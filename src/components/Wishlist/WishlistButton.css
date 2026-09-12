@@ -1,0 +1,67 @@
+.wishlist-btn {
+  --paper: #faf6ed;
+  --ink-soft: #6b5f52;
+  --red: #d6361f;
+  --red-dark: #a82814;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(250, 246, 237, 0.9);
+  color: var(--ink-soft);
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(36, 28, 21, 0.18);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.wishlist-btn:hover {
+  background: var(--paper);
+  color: var(--red);
+  transform: scale(1.08);
+}
+
+.wishlist-btn:active {
+  transform: scale(0.92);
+}
+
+.wishlist-btn:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.wishlist-btn.is-active {
+  color: var(--red);
+}
+
+/* pop when the heart fills in — re-triggers each time the class is added */
+.wishlist-btn.is-active svg {
+  animation: wishlist-pop 0.35s ease;
+}
+
+@keyframes wishlist-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  55% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlist-btn,
+  .wishlist-btn.is-active svg {
+    transition: none;
+    animation: none;
+  }
+}

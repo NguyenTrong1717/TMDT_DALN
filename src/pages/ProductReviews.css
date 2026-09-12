@@ -1,0 +1,657 @@
+.reviews-section {
+  --paper: #fbf8f3;
+  --paper-raised: #ffffff;
+  --ink: #211d1a;
+  --ink-soft: #7a736a;
+  --ink-faint: #a89f93;
+  --line: #e7e0d4;
+  --accent: #0f6e64;
+  --accent-dark: #0a4f48;
+  --accent-soft: #e3f1ee;
+  --gold: #dfa62e;
+  --danger: #b3261e;
+  --danger-soft: #f9e9e8;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --font-display: "Fraunces", "Iowan Old Style", ui-serif, Georgia, serif;
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Header ---------- */
+
+.reviews-header__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.reviews-section h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.reviews-count-badge {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-dark);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 2px 10px;
+  line-height: 1.6;
+}
+
+/* ---------- Rating summary (the "ticket stamp") ---------- */
+
+.rating-summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+  margin: 20px 0 24px;
+  padding: 18px 20px;
+  background: var(--paper-raised);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.rating-summary__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-right: 24px;
+  border-right: 1px dashed var(--line);
+  min-width: 96px;
+}
+
+.rating-summary__number {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.rating-summary__count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.rating-summary__bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rating-bar {
+  display: grid;
+  grid-template-columns: 42px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-bar__label {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.rating-bar__track {
+  height: 6px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.rating-bar__fill {
+  height: 100%;
+  background: var(--gold);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.rating-bar__count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+/* ---------- Body layout ---------- */
+
+.reviews-body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 720px) {
+  .reviews-body {
+    grid-template-columns: 1fr;
+  }
+  .rating-summary {
+    grid-template-columns: 1fr;
+  }
+  .rating-summary__score {
+    flex-direction: row;
+    justify-content: center;
+    border-right: none;
+    border-bottom: 1px dashed var(--line);
+    padding: 0 0 14px;
+  }
+}
+
+/* ---------- Form panel ---------- */
+
+.reviews-form-panel {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  align-self: start;
+}
+
+.reviews-form-panel h4 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 14px;
+}
+
+.form-field {
+  margin-bottom: 14px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.form-label__hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-faint);
+}
+
+.star-selector {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 2px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: fit-content;
+}
+
+.star-selector label {
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--line);
+  transition:
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.star-selector input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+/* Row is reversed so the visual order reads 1★→5★ while the
+   ~ sibling selector can still light up "this star and below". */
+.star-selector label:hover,
+.star-selector label:hover ~ label,
+.star-selector label:has(input:checked),
+.star-selector label:has(input:checked) ~ label {
+  color: var(--gold);
+}
+
+.reviews-form-panel textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+
+.reviews-form-panel textarea:focus,
+.review-reply-form textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.submit-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- List panel ---------- */
+
+.reviews-list-wrapper {
+  position: relative;
+}
+
+.reviews-list-panel {
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 4px;
+}
+
+.reviews-list-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviews-list-panel::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 999px;
+}
+
+/* Each review reads like a torn ticket stub: dashed perforation
+   along the top plus a small notch cut on either side. */
+.review-card {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-top: 1px dashed var(--ink-faint);
+  border-radius: var(--radius-sm);
+  padding: 16px 16px 16px 14px;
+}
+
+.review-card::before,
+.review-card::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.review-card::before {
+  left: -6px;
+}
+
+.review-card::after {
+  right: -6px;
+}
+
+.review-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.review-author {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.review-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-left: auto;
+}
+
+.review-stars {
+  display: inline-flex;
+  gap: 1px;
+  color: var(--line);
+  font-size: 13px;
+}
+
+.review-stars--sm span {
+  font-size: 12px;
+}
+
+.review-stars span.filled {
+  color: var(--gold);
+}
+
+.review-comment {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Shop reply */
+.review-reply {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.review-reply-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.review-reply-text {
+  font-size: 13px;
+  margin: 0 0 4px;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.review-reply-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+/* Admin reply composer */
+.review-reply-form {
+  margin-top: 10px;
+}
+
+.review-reply-form textarea {
+  width: 100%;
+  min-height: 64px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.review-reply-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.reply-open-btn,
+.reply-send-btn,
+.reply-cancel-btn,
+.retry-btn {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.reply-open-btn {
+  background: none;
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
+
+.reply-open-btn:hover {
+  background: var(--accent-soft);
+}
+
+.reply-send-btn,
+.retry-btn {
+  background: var(--accent);
+  color: #fff;
+}
+
+.reply-send-btn:hover:not(:disabled),
+.retry-btn:hover {
+  background: var(--accent-dark);
+}
+
+.reply-send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.reply-cancel-btn {
+  background: none;
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.reply-cancel-btn:hover {
+  background: var(--paper);
+}
+
+/* ---------- Empty / error / loading states ---------- */
+
+.reviews-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--ink-soft);
+}
+
+.reviews-empty .empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.reviews-empty p {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.reviews-empty--error {
+  color: var(--danger);
+}
+
+.reviews-empty--error .empty-icon {
+  filter: none;
+}
+
+.reviews-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review-skeleton {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper-raised);
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--line);
+  flex-shrink: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+
+.skeleton-line {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--line);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line--short {
+  width: 30%;
+}
+
+.skeleton-line--medium {
+  width: 65%;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rating-bar__fill,
+  .skeleton-avatar,
+  .skeleton-line {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---------- Scroll controls ---------- */
+
+.scroll-controls {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scroll-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--paper-raised);
+  color: var(--ink-soft);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    background 0.15s ease;
+  box-shadow: 0 2px 6px rgba(33, 29, 26, 0.08);
+}
+
+.scroll-btn.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+@media (max-width: 720px) {
+  .scroll-controls {
+    display: none;
+  }
+}

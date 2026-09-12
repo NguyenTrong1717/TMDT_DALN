@@ -1,0 +1,528 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+/* ============================================================
+   FLASH SALE — clean, professional, minimal
+   Palette: bg #F7F8FA / surface #FFFFFF / border #E7E9EE
+            accent (flash) #E9412B / text-hi #1B1F27 / text-mid #6B7280 / text-low #9AA0AC
+   Type: Inter only — one clean family, weight does the work
+   ============================================================ */
+
+.fsp-page {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e7e9ee;
+  --accent: #e9412b;
+  --accent-dark: #c73320;
+  --success: #16a34a;
+  --text-hi: #1b1f27;
+  --text-mid: #6b7280;
+  --text-low: #9aa0ac;
+
+  background: var(--bg);
+  color: var(--text-hi);
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+}
+
+.fsp-page * {
+  box-sizing: border-box;
+}
+
+/* ---------------- HERO ---------------- */
+
+.fsp-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 24px;
+}
+
+.fsp-hero__glow,
+.fsp-hero__glow2 {
+  display: none; /* keep markup, drop the decoration for a cleaner hero */
+}
+
+.fsp-hero__inner {
+  position: relative;
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.fsp-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.fsp-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 12.5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+}
+
+.fsp-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-mid);
+  font-weight: 500;
+}
+
+.fsp-live__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.fsp-hero__title {
+  font-weight: 800;
+  font-size: clamp(26px, 3.4vw, 34px);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+
+.fsp-hero__title span {
+  color: var(--accent);
+}
+
+.fsp-hero__sub {
+  color: var(--text-mid);
+  font-size: 14.5px;
+  margin: 0;
+}
+
+/* countdown — simple, legible */
+
+.fsp-countdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fsp-cd-sep {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-low);
+}
+
+.fsp-cd-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.fsp-cd-box {
+  background: var(--text-hi);
+  border-radius: 8px;
+  padding: 8px 6px;
+  width: 54px;
+  text-align: center;
+}
+
+.fsp-cd-num {
+  font-weight: 700;
+  font-size: 22px;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.fsp-cd-label {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--text-low);
+  font-weight: 600;
+}
+
+/* ---------------- FILTER TABS ---------------- */
+
+.fsp-filter-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.fsp-filter {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fsp-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.fsp-filter-btn {
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.fsp-filter-btn:hover {
+  color: var(--text-hi);
+  border-color: #d0d3da;
+}
+
+.fsp-filter-btn.active {
+  background: var(--text-hi);
+  border-color: var(--text-hi);
+  color: #fff;
+}
+
+.fsp-filter-btn:focus-visible,
+.fsp-sort:focus-visible,
+.fsp-card__cart:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------- STATS ---------------- */
+
+.fsp-stats-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.fsp-stats {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 18px 24px;
+}
+
+.fsp-stat {
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+
+.fsp-stat:last-child {
+  border-right: none;
+}
+
+.fsp-stat__num {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-hi);
+}
+
+.fsp-stat__label {
+  font-size: 12px;
+  color: var(--text-low);
+  margin-top: 3px;
+}
+
+/* ---------------- TOOLBAR ---------------- */
+
+.fsp-toolbar-wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.fsp-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px 10px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fsp-toolbar__left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.fsp-toolbar__title {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.fsp-toolbar__count {
+  font-size: 13px;
+  color: var(--text-low);
+}
+
+.fsp-sort {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-hi);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.fsp-sort:hover {
+  border-color: #d0d3da;
+}
+
+/* ---------------- GRID / STATES ---------------- */
+
+.fsp-grid-wrap {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 6px 24px 56px;
+}
+
+.fsp-loading,
+.fsp-empty {
+  text-align: center;
+  color: var(--text-mid);
+  padding: 70px 20px;
+  font-size: 14px;
+}
+
+.fsp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+/* ---------------- CARD ---------------- */
+
+.fsp-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.fsp-card:hover {
+  box-shadow: 0 6px 18px rgba(20, 24, 32, 0.08);
+  border-color: #d8dbe1;
+}
+
+.fsp-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+.fsp-card__img {
+  aspect-ratio: 1 / 0.85;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.fsp-card__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14px;
+}
+
+.fsp-card__body {
+  padding: 12px 14px 14px;
+}
+
+.fsp-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+}
+
+.fsp-card__status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--success);
+  margin: 0 0 10px;
+}
+
+.fsp-card__status-icon {
+  font-size: 13px;
+}
+
+/* stock bar — simple progress */
+
+.fsp-card__stock {
+  margin-bottom: 12px;
+}
+
+.fsp-card__stock-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-low);
+  margin-bottom: 5px;
+}
+
+.fsp-card__bar {
+  height: 5px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fsp-card__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.fsp-card__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fsp-card__prices {
+  display: flex;
+  flex-direction: column;
+}
+
+.fsp-card__price {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.fsp-card__old {
+  font-size: 12px;
+  color: var(--text-low);
+  text-decoration: line-through;
+}
+
+.fsp-card__cart {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-hi);
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.fsp-card__cart:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 720px) {
+  .fsp-hero {
+    padding: 28px 18px;
+  }
+
+  .fsp-hero__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fsp-cd-box {
+    width: 46px;
+    padding: 6px 2px;
+  }
+
+  .fsp-cd-num {
+    font-size: 18px;
+  }
+
+  .fsp-stats {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 16px;
+  }
+
+  .fsp-stat:nth-child(2) {
+    border-right: none;
+  }
+
+  .fsp-stat:nth-child(1),
+  .fsp-stat:nth-child(2) {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+  }
+
+  .fsp-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .fsp-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .fsp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------- MOTION ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .fsp-card {
+    transition: none;
+  }
+}

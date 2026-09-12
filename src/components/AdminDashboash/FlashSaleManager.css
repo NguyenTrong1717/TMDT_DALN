@@ -1,0 +1,528 @@
+:root {
+  --bg: #f0f4f9;
+  --surface: #ffffff;
+  --surface-hover: #eef2f8;
+  --border: #dde3ee;
+  --accent: #2563eb;
+  --accent-light: #eff4ff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --danger-color: #991b1b;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm:
+    0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card:
+    0 2px 8px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.fsm-page *,
+.fsm-page *::before,
+.fsm-page *::after {
+  box-sizing: border-box;
+}
+
+.fsm-page {
+  font-family: "Inter", system-ui, sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 36px 32px 64px;
+  color: var(--text-primary);
+}
+
+.fsm-page .admin-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.fsm-page .admin-title svg {
+  color: #ef4444;
+}
+
+/* â”€â”€ Time card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-time-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  color: #fff;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-card);
+}
+
+.fsm-time-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fsm-time-icon {
+  font-size: 26px;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.fsm-time-label {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.fsm-time-sub {
+  font-size: 12.5px;
+  color: #cbd5e1;
+  margin-top: 2px;
+}
+
+.fsm-time-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.fsm-time-actions input[type="datetime-local"] {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color-scheme: dark;
+}
+
+.fsm-btn-save-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fsm-btn-save-time:hover {
+  background: #1d4ed8;
+}
+
+.fsm-btn-save-time:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.fsm-stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 22px;
+  min-width: 160px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fsm-stat-box--accent {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.fsm-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.fsm-stat-box--accent .fsm-stat-num {
+  color: #dc2626;
+}
+
+.fsm-stat-label {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* â”€â”€ Toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.fsm-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 14px;
+  min-width: 260px;
+  color: var(--text-muted);
+}
+
+.fsm-search input {
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  flex: 1;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.fsm-filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.fsm-filters select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.fsm-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.fsm-btn-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.fsm-btn-add:hover {
+  background: #15803d;
+}
+
+/* â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.fsm-modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.fsm-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fsm-modal__head h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.fsm-modal__close {
+  border: none;
+  background: var(--surface-hover);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.fsm-form {
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fsm-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.fsm-form input,
+.fsm-form select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.fsm-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fsm-form__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -6px 0 0;
+}
+
+.fsm-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.fsm-form__cancel {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.fsm-form__submit {
+  border: none;
+  background: #16a34a;
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.fsm-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.fsm-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fsm-table thead {
+  background: var(--surface-hover);
+}
+
+.fsm-table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.fsm-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle, var(--border));
+  font-size: 13.5px;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.fsm-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.fsm-row--active {
+  background: var(--accent-light);
+}
+
+.fsm-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 340px;
+}
+
+.fsm-product-cell img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: #f8fafc;
+}
+
+.fsm-price-cell {
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.fsm-discount-btn {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.fsm-discount-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fsm-discount-edit input {
+  width: 56px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 7px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.fsm-discount-edit button {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+}
+
+.fsm-discount-edit .fsm-cancel {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+/* â”€â”€ Toggle switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fsm-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+}
+
+.fsm-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.fsm-slider {
+  position: absolute;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fsm-slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.15s;
+  box-shadow: var(--shadow-sm);
+}
+
+.fsm-switch input:checked + .fsm-slider {
+  background: #22c55e;
+}
+
+.fsm-switch input:checked + .fsm-slider::before {
+  transform: translateX(18px);
+}
+
+.fsm-empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}

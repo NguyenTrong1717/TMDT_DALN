@@ -1,0 +1,134 @@
+.intro-video-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: intro-video-overlay-fade 0.2s ease-out;
+}
+
+@keyframes intro-video-overlay-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.intro-video-box {
+  width: 720px;
+  max-width: 100%;
+  background: #0f0f0f;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  animation: intro-video-box-pop 0.22s ease-out;
+}
+
+@keyframes intro-video-box-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.intro-video-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.15s ease;
+}
+
+.intro-video-close-btn:hover {
+  background: #ff5d5d;
+}
+
+.intro-video-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+.intro-video-player {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+}
+
+.intro-video-mute-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.intro-video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ddd;
+  text-align: center;
+  padding: 24px;
+  gap: 8px;
+}
+
+.intro-video-placeholder-sub {
+  font-size: 12.5px;
+  color: #999;
+}
+
+.intro-video-placeholder-sub code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #ff8080;
+}
+
+.intro-video-caption {
+  padding: 10px 16px;
+  color: #ccc;
+  font-size: 12.5px;
+  text-align: center;
+  background: #0f0f0f;
+}
+
+@media (max-width: 600px) {
+  .intro-video-box {
+    width: 100%;
+  }
+}

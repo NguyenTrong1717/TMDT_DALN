@@ -1,0 +1,135 @@
+/* ShowroomSystem.css */
+
+.showroom-section {
+  --sw-blue: #4a7dc4;
+  --sw-blue-dark: #3e6bb0;
+  --sw-text: #262626;
+  --sw-link: #2f6fd6;
+
+  font-family: "Be Vietnam Pro", Arial, sans-serif;
+  color: var(--sw-text);
+  padding: 48px 24px;
+  background: #ffffff;
+}
+
+.showroom-section * {
+  box-sizing: border-box;
+}
+
+.showroom-container {
+  max-width: 1340px;
+  margin: 0 auto;
+}
+
+/* Tiêu đề chung phía trên */
+.showroom-title-box {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.showroom-title {
+  display: inline-block;
+  font-size: 28px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--sw-blue-dark);
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 4px solid var(--sw-blue);
+}
+
+/* Lưới các thẻ cơ sở */
+.showroom-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 34px;
+  column-gap: 34px;
+}
+
+@media (max-width: 980px) {
+  .showroom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Thẻ từng cơ sở */
+.cs-card {
+  position: relative;
+  border: 2.5px solid #e3e9f2;
+  border-radius: 16px;
+  padding: 46px 26px 24px 30px;
+  margin-top: 30px;
+  background: #fff;
+}
+
+.cs-header {
+  position: absolute;
+  top: -28px;
+  left: -2px;
+  display: flex;
+  align-items: center;
+  width: calc(100% + 4px);
+}
+
+.cs-num {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  border: 5px solid var(--sw-blue);
+  color: var(--sw-blue);
+  font-size: 24px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-family: Arial, sans-serif;
+}
+
+.cs-header h3 {
+  flex: 1 1 auto;
+  background: var(--sw-blue);
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.4px;
+  padding: 15px 20px 15px 40px;
+  margin: 0 0 0 -32px;
+  border-radius: 32px;
+  text-transform: uppercase;
+}
+
+/* Các dòng thông tin */
+.cs-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.55;
+  margin-bottom: 11px;
+  color: var(--sw-text);
+  text-decoration: none;
+}
+
+.cs-row span {
+  color: inherit;
+}
+
+.cs-bold {
+  font-weight: 700;
+}
+
+/* Các dòng dạng link (Hướng dẫn đường đi / Hình ảnh) */
+a.cs-row.cs-link {
+  color: var(--sw-link);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+a.cs-row.cs-link:hover {
+  opacity: 0.75;
+}

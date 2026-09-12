@@ -1,0 +1,229 @@
+.Pro-demo {
+  background: #f7f8fa;
+  min-height: 100vh;
+}
+
+/* ===== Breadcrumb bar ===== */
+.demo-bar {
+  background: #ffffff;
+  border-bottom: 1px solid #e9ebef;
+  padding: 16px 0;
+}
+
+.demo-bread {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.demo-bread a {
+  text-decoration: none;
+}
+
+.demo-bread span {
+  background: #f0f1f4;
+  color: #4a4f57;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.demo-bread a:hover span {
+  background: #e3e6ea;
+}
+
+.demo-bread-current {
+  background: #dcf5ee !important;
+  color: #0a9c7f !important;
+  font-weight: 600 !important;
+}
+
+.demo-bread-sep {
+  color: #b3b8c0;
+  font-size: 14px;
+}
+
+/* ===== List container ===== */
+.demo-list-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 8px 20px 64px;
+}
+
+.demo-loading,
+.demo-empty {
+  text-align: center;
+  color: #8a8f98;
+  font-size: 14px;
+  padding: 40px 0;
+}
+
+/* ===== Product grid ===== */
+.demo-grid-1 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 1200px) {
+  .demo-grid-1 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .demo-grid-1 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Product card ===== */
+.demo-card-1 {
+  background: #ffffff;
+  border: 1px solid #e5e8ec;
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.demo-card-1:hover {
+  border-color: #17b891;
+  box-shadow: 0 10px 24px rgba(15, 25, 35, 0.09);
+  transform: translateY(-4px);
+}
+
+.img-demo {
+  position: relative;
+  background: #f5f6f8;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.img-demo img {
+  width: 100%;
+  height: 130px;
+  object-fit: contain;
+  display: block;
+}
+
+.demo-spec-overlay {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  right: 14px;
+  text-align: center;
+}
+
+.demo-spec-main {
+  display: block;
+  color: #e13d38;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.demo-spec-sub {
+  display: block;
+  color: #23262b;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* ===== Card content ===== */
+.demo-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-name {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #23262b;
+  line-height: 1.4;
+  margin: 0 0 8px;
+  min-height: 40px;
+}
+
+.demo-summary {
+  font-size: 13px;
+  color: #6b7078;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.demo-chips {
+  margin-bottom: 10px;
+}
+
+.demo-chip {
+  display: inline-block;
+  background: #f2f3f5;
+  color: #4a4f57;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.demo-trust-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.demo-trust-item {
+  position: relative;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #4a4f57;
+  line-height: 1.4;
+}
+
+.demo-trust-item::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 13px;
+  height: 13px;
+  line-height: 13px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #17b891;
+  border-radius: 50%;
+}
+
+.demo-price {
+  color: #e13d38;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.promo-tags {
+  display: inline-block;
+  width: fit-content;
+  background: #dcf5ee;
+  color: #0a9c7f;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+}

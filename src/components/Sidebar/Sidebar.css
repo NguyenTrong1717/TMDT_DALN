@@ -1,0 +1,211 @@
+.nav-panel {
+  --nav-accent: #ff424e;
+  --nav-ink: #14213d;
+
+  width: 100%;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(20, 33, 61, 0.08);
+  overflow: visible;
+  border: 1px solid #eef0f4;
+}
+
+/* ===========================
+   MENU
+=========================== */
+.nav-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.nav-panel__group {
+  position: relative;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+.nav-panel__group-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nav-ink);
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.nav-panel__icon {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: var(--nav-accent);
+  transition: color 0.2s ease;
+}
+
+.nav-panel__group-header:hover,
+.nav-panel__group-header:focus-visible {
+  background: #fff2f3;
+  color: var(--nav-accent);
+}
+
+/* Gạch chân trượt vào khi hover, giống thanh danh mục các sàn TMĐT */
+.nav-panel__group-header::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--nav-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.2s ease;
+}
+
+.nav-panel__group-header:hover::after {
+  transform: scaleX(1);
+}
+
+.nav-panel__badge {
+  background: var(--nav-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.03em;
+}
+
+.nav-panel__group:hover .nav-panel__chevron {
+  transform: rotate(90deg);
+  color: var(--nav-accent);
+}
+
+.nav-panel__chevron {
+  font-size: 16px;
+  color: #c7cbd6;
+  transition:
+    transform 0.25s ease,
+    color 0.2s ease;
+}
+
+/* ===========================
+   DROPDOWN (hiện xuống bên dưới mục cha)
+=========================== */
+.nav-panel__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 240px;
+  padding: 8px;
+
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #eef0f4;
+  box-shadow: 0 16px 36px rgba(20, 33, 61, 0.15);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+
+  transition: 0.2s ease;
+  z-index: 100;
+}
+
+.nav-panel__group:hover .nav-panel__dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* ===========================
+   LINK
+=========================== */
+.nav-panel__link {
+  padding: 11px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: #4a4f5c;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    padding-left 0.15s ease;
+}
+
+.nav-panel__link:hover {
+  background: #fff2f3;
+  color: var(--nav-accent);
+  padding-left: 18px;
+}
+
+/* ===========================
+   SCROLL BAR
+=========================== */
+.nav-panel__dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nav-panel__dropdown::-webkit-scrollbar-thumb {
+  background: #d8dbe3;
+  border-radius: 20px;
+}
+
+/* ===========================
+   MOBILE — dưới 992px thì xếp dọc lại cho dễ bấm
+=========================== */
+@media (max-width: 992px) {
+  .nav-panel__list {
+    flex-direction: column;
+    padding: 6px;
+  }
+
+  .nav-panel__group-header {
+    justify-content: flex-start;
+    border-radius: 8px;
+  }
+
+  .nav-panel__group-header::after {
+    display: none;
+  }
+
+  .nav-panel__group {
+    border-bottom: 1px solid #f2f2f2;
+  }
+
+  .nav-panel__group:last-child {
+    border-bottom: none;
+  }
+
+  .nav-panel__dropdown {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    width: 100%;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    display: none;
+  }
+
+  .nav-panel__group:hover .nav-panel__dropdown {
+    display: block;
+  }
+}

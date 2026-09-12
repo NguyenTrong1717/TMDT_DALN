@@ -1,0 +1,431 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");
+
+/* ---------------------------------------------------
+   Tokens — shares the wallet's palette so admin and
+   customer surfaces read as one product, tuned denser
+   and quieter for a working console.
+--------------------------------------------------- */
+.voucher-manager-page {
+  --paper: #faf6ed;
+  --card: #fffdf8;
+  --ink: #241c15;
+  --ink-soft: #6b5f52;
+  --red: #d6361f;
+  --red-dark: #a82814;
+  --red-tint: #fbe9e5;
+  --gold: #b8892b;
+  --gold-tint: #f8eed9;
+  --green: #2f7d5e;
+  --line: #e6ddcd;
+  --muted-bg: #efeae0;
+  --muted-text: #8f8577;
+
+  --font-display: "Be Vietnam Pro", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  min-height: 100vh;
+  background: var(--paper);
+  font-family: var(--font-display);
+  color: var(--ink);
+  padding: 32px clamp(16px, 4vw, 48px) 64px;
+}
+
+.loading-box,
+.no-vouchers {
+  max-width: 520px;
+  margin: 80px auto;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 14px;
+  padding: 28px;
+  border: 1.5px dashed var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+/* ---------------------------------------------------
+   Header
+--------------------------------------------------- */
+.voucher-manager-header {
+  max-width: 960px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.admin-title svg {
+  color: var(--red);
+  font-size: 18px;
+}
+
+.btn-create-voucher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  background: var(--red);
+  color: #fff9f2;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(214, 54, 31, 0.5);
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.btn-create-voucher:hover {
+  background: var(--red-dark);
+  transform: translateY(-1px);
+}
+
+.btn-create-voucher:active {
+  transform: translateY(0);
+}
+
+/* ---------------------------------------------------
+   List
+--------------------------------------------------- */
+.voucher-manager-list {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.voucher-manager-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 18px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.voucher-manager-card:hover {
+  border-color: #d8cbb0;
+  box-shadow: 0 6px 18px -12px rgba(36, 28, 21, 0.3);
+}
+
+.voucher-manager-card__value {
+  flex: 0 0 auto;
+  min-width: 84px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--red-dark);
+  background: var(--red-tint);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.voucher-manager-card__info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.voucher-manager-card__info h4 {
+  margin: 0 0 3px;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  font-family: var(--font-mono);
+  color: var(--ink);
+}
+
+.voucher-manager-card__info p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.voucher-manager-card__info p.meta {
+  font-size: 12px;
+  color: var(--muted-text);
+  margin-top: 3px;
+}
+
+.tag {
+  display: inline-block;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 4px;
+  font-size: 11px;
+}
+
+.tag--expired {
+  background: var(--muted-bg);
+  color: var(--muted-text);
+}
+
+.tag--soldout {
+  background: var(--gold-tint);
+  color: var(--gold);
+}
+
+.voucher-manager-card__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit,
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn-edit {
+  border: 1.5px solid var(--line);
+  color: var(--ink-soft);
+}
+
+.btn-edit:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.btn-delete {
+  border: 1.5px solid transparent;
+  color: var(--red-dark);
+}
+
+.btn-delete:hover {
+  background: var(--red-tint);
+  border-color: var(--red-tint);
+}
+
+/* ---------------------------------------------------
+   Form modal
+--------------------------------------------------- */
+.voucher-form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(36, 28, 21, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.voucher-form {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: 0 24px 48px -16px rgba(36, 28, 21, 0.45);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 96px);
+}
+
+.voucher-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.voucher-form-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.btn-close {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-close:hover {
+  background: var(--muted-bg);
+  color: var(--ink);
+}
+
+.voucher-form-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.voucher-form-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.voucher-form-body input,
+.voucher-form-body select,
+.voucher-form-body textarea {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.voucher-form-body input:focus,
+.voucher-form-body select:focus,
+.voucher-form-body textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-tint);
+}
+
+.voucher-form-body input::placeholder,
+.voucher-form-body textarea::placeholder {
+  color: var(--muted-text);
+}
+
+.voucher-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+}
+
+.btn-cancel {
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  border-radius: 9px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn-cancel:hover {
+  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.btn-save {
+  border: none;
+  background: var(--red);
+  color: #fff9f2;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  border-radius: 9px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-save:hover {
+  background: var(--red-dark);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* keyboard accessibility */
+.btn-create-voucher:focus-visible,
+.btn-edit:focus-visible,
+.btn-delete:focus-visible,
+.btn-close:focus-visible,
+.btn-cancel:focus-visible,
+.btn-save:focus-visible,
+.voucher-form-body input:focus-visible,
+.voucher-form-body select:focus-visible,
+.voucher-form-body textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------
+   Responsive
+--------------------------------------------------- */
+@media (max-width: 640px) {
+  .voucher-manager-card {
+    flex-wrap: wrap;
+  }
+
+  .voucher-manager-card__value {
+    order: -1;
+  }
+
+  .voucher-manager-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voucher-manager-card,
+  .btn-create-voucher,
+  .btn-edit,
+  .btn-delete,
+  .btn-cancel,
+  .btn-save {
+    transition: none;
+  }
+}

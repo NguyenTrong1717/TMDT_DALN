@@ -1,0 +1,388 @@
+/* ==========================================================================
+   1. KHUNG CHỨA CHÍNH (LAYOUT TỔNG)
+   ========================================================================== */
+.login-page {
+  background-color: #f5f7fa; /* Nền xám nhạt nhẹ nhàng làm nổi bật hộp đăng nhập */
+  padding: 30px 0 60px 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Breadcrumb - Thanh điều hướng phụ */
+.breadcrumb {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+.breadcrumb a {
+  color: #0b63b6;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.breadcrumb a:hover {
+  color: #e30019;
+}
+
+.breadcrumb span {
+  width: 114px;
+  height: 28px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+
+  transition: 0.25s;
+}
+
+.breadcrumb span:hover {
+  background: #0b63b6;
+  border-color: #0b63b6;
+  color: #fff;
+}
+
+.breadcrumb p,
+.breadcrumb .active-path {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Container bọc ngoài (Hỗ trợ grid/flex tốt hơn) */
+.containers {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* Khung hộp đăng nhập chia 2 bên */
+.login-wrapper {
+  display: flex;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Đổ bóng mờ hiện đại */
+  min-height: 550px;
+}
+
+/* ==========================================================================
+   2. BÊN TRÁI: BANNER TÍNH NĂNG (LOGIN-LEFT)
+   ========================================================================== */
+@media (max-width: 992px) {
+  .login-left {
+    display: none; /* Ẩn cột trái khi màn hình nhỏ (Tablet/Mobile) để tránh chật chội */
+  }
+}
+.login-left {
+  flex: 1;
+  background: linear-gradient(135deg, #0b63b6, #084b8a);
+  color: #fff;
+  border-radius: 18px;
+  padding: 40px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.login-overlay {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-overlay h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.welcome-text {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.feature-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 17px;
+}
+
+.feature-item h4 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.feature-item p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ==========================================================================
+   3. BÊN PHẢI: FORM NHẬP LIỆU (LOGIN-RIGHT)
+   ========================================================================== */
+.login-right {
+  flex: 1;
+  padding: 50px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 576px) {
+  .login-right {
+    padding: 30px 20px; /* Thu nhỏ khoảng cách padding trên điện thoại */
+  }
+}
+
+.login-right h2 {
+  font-size: 28px;
+  color: #222222;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.register-link {
+  font-size: 14.5px;
+  color: #666666;
+  margin-bottom: 30px;
+}
+
+.register-link a {
+  color: #0b63b6;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* Các nhóm form nhập liệu */
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444444;
+  margin-bottom: 8px;
+}
+
+/* Cụm Input chứa Icon lồng bên trong */
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group input {
+  height: 52px;
+  padding: 0 50px;
+  font-size: 14px;
+}
+
+.input-icon {
+  width: 14px;
+  height: 50px;
+  position: absolute;
+  left: 20px;
+  color: #999999;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.eye-icon {
+  bottom: -12px;
+  width: 16px;
+  height: 50px;
+  position: absolute;
+  right: 14px;
+  color: #999999;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.eye-icon:hover {
+  color: #0b63b6;
+}
+
+/* Thẻ input thực tế */
+.input-group input {
+  width: 100%;
+  padding: 13px 16px 13px 42px; /* Lùi text sang phải nhường chỗ cho Icon */
+  font-size: 15px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  outline: none;
+  background-color: #fafafa;
+  transition: all 0.25s ease;
+  color: #333333;
+}
+
+/* Khi người dùng click vào ô nhập */
+.input-group input:focus {
+  border-color: #8d00ff;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(141, 0, 255, 0.1); /* Viền sáng nhẹ bao quanh */
+}
+
+/* Đổi màu icon tương ứng khi ô input được active */
+.input-group input:focus + .input-icon {
+  color: #8d00ff;
+}
+
+/* Lựa chọn ghi nhớ & Quên mật khẩu */
+.login-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555555;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember input {
+  width: 16px;
+  height: 16px;
+  accent-color: #0b63b6; /* Đổi màu checkbox sang màu tím đồng bộ */
+  cursor: pointer;
+}
+
+.login-option a {
+  color: #666666;
+  text-decoration: none;
+}
+
+.login-option a:hover {
+  color: #d3d1f5;
+  text-decoration: underline;
+}
+
+/* Nút đăng nhập chính */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #0b63b6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+}
+
+.login-btn:hover {
+  background-color: #7200cc;
+}
+
+.login-btn:active {
+  transform: scale(0.99); /* Hiệu ứng lún nút nhẹ khi bấm */
+}
+
+/* Đường gạch ngang chữ "hoặc đăng nhập với" */
+.line {
+  text-align: center;
+  position: relative;
+  margin: 30px 0 20px 0;
+}
+
+.line::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.line span {
+  background-color: #ffffff;
+  padding: 0 15px;
+  color: #888888;
+  font-size: 13.5px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Khối các nút đăng nhập mạng xã hội (Google / FB) */
+.social-login {
+  display: flex;
+  gap: 15px;
+}
+
+.social-login button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #0b63b6;
+  border-radius: 8px;
+  background-color: #0b63b6;
+  color: #ebeef0;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/* Hiệu ứng hover riêng từng nút mạng xã hội */
+.social-login button:first-child:hover {
+  background-color: #fff5f5;
+  border-color: #ea4335; /* Đỏ Google */
+  color: #ea4335;
+}
+
+.social-login button:last-child:hover {
+  background-color: #f0f4fc;
+  border-color: #1877f2; /* Xanh Facebook */
+  color: #1877f2;
+}

@@ -1,0 +1,254 @@
+.discount-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  color: #fff;
+}
+
+/* ================= HEADER ================= */
+
+.discount-header {
+  text-align: center;
+  margin-bottom: 45px;
+}
+
+.discount-header h1 {
+  font-size: 42px;
+  font-weight: 800;
+  color: #4da3ff;
+  margin-bottom: 12px;
+}
+
+.discount-header p {
+  font-size: 18px;
+  color: #b5b5b5;
+}
+
+/* ================= GRID ================= */
+
+.coupon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 28px;
+}
+
+/* ================= CARD ================= */
+
+.coupon-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 24px;
+  border-radius: 18px;
+
+  background: linear-gradient(145deg, #151515, #202020);
+
+  border: 1px solid rgba(77, 163, 255, 0.2);
+
+  transition: 0.35s;
+  position: relative;
+  overflow: hidden;
+}
+
+.coupon-card::before {
+  content: "";
+  position: absolute;
+  left: -80px;
+  top: 0;
+  width: 70px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  transform: skewX(-20deg);
+  transition: 0.5s;
+}
+
+.coupon-card:hover::before {
+  left: 120%;
+}
+
+.coupon-card:hover {
+  transform: translateY(-8px);
+  border-color: #4da3ff;
+  box-shadow: 0 18px 40px rgba(77, 163, 255, 0.25);
+}
+
+/* ================= PERCENT ================= */
+
+.coupon-percent {
+  width: 90px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #4da3ff, #1b7cff);
+
+  color: white;
+  font-size: 26px;
+  font-weight: 800;
+
+  flex-shrink: 0;
+}
+
+/* ================= INFO ================= */
+
+.coupon-info {
+  flex: 1;
+  margin: 0 25px;
+}
+
+.coupon-info h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.coupon-info p {
+  color: #bdbdbd;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* ================= BUTTON ================= */
+
+.copy-btn {
+  border: none;
+  outline: none;
+
+  cursor: pointer;
+
+  padding: 12px 24px;
+
+  border-radius: 10px;
+
+  background: linear-gradient(135deg, #4da3ff, #1b7cff);
+
+  color: white;
+  font-weight: 700;
+
+  transition: 0.3s;
+}
+
+.copy-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 20px rgba(77, 163, 255, 0.4);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+/* ================= FLASH SALE ================= */
+
+.flash-sale {
+  margin-top: 70px;
+  text-align: center;
+
+  padding: 45px;
+
+  border-radius: 20px;
+
+  background: linear-gradient(145deg, #181818, #252525);
+
+  border: 1px solid rgba(255, 72, 72, 0.25);
+}
+
+.flash-sale h2 {
+  font-size: 30px;
+  margin-bottom: 25px;
+  color: #ff5757;
+}
+
+.countdown {
+  display: inline-block;
+
+  padding: 18px 45px;
+
+  font-size: 42px;
+  font-weight: bold;
+
+  letter-spacing: 5px;
+
+  color: white;
+
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #ff4444, #ff7d45);
+
+  box-shadow: 0 0 25px rgba(255, 70, 70, 0.35);
+
+  animation: pulse 1.2s infinite;
+}
+
+.flash-ended {
+  margin-top: 18px;
+  color: #ff6666;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* ================= ANIMATION ================= */
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .coupon-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .coupon-info {
+    margin: 20px 0;
+  }
+
+  .coupon-percent {
+    margin-bottom: 20px;
+  }
+
+  .discount-header h1 {
+    font-size: 34px;
+  }
+
+  .countdown {
+    font-size: 32px;
+    letter-spacing: 3px;
+    padding: 15px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .coupon-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discount-header h1 {
+    font-size: 28px;
+  }
+
+  .coupon-info h3 {
+    font-size: 20px;
+  }
+
+  .countdown {
+    font-size: 26px;
+    letter-spacing: 2px;
+  }
+}

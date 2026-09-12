@@ -1,0 +1,1060 @@
+.product-detail-page {
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* 1. Breadcrumb thanh điều hướng */
+.bread-bar {
+  background-color: #ffffff;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f5;
+  margin-bottom: 20px;
+}
+.inner-bread {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  font-size: 13px;
+  color: #666666;
+}
+.inner-bread a {
+  color: #0b63b6;
+  text-decoration: none;
+}
+.inner-bread span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Tạo hình dáng ô vuông */
+  width: 100px;
+  height: 30px;
+  margin: 0 8px;
+
+  /* Tạo khung và màu nền */
+  background-color: #f1f3f5; /* Màu nền xám nhạt */
+  border: 1px solid #e9ecef; /* Viền ngoài mảnh */
+  border-radius: 4px; /* Bo góc nhẹ cho ô vuông */
+
+  /* Định dạng dấu gạch chéo bên trong */
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: bold;
+
+  /* Hiệu ứng chuyển đổi mượt mà và trỏ chuột bấm */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+/* Hiệu ứng khi di chuột vào ô vuông */
+.inner-bread span:hover {
+  background-color: #0b27b6; /* Đổi sang màu xanh thương hiệu giống Header */
+  border-color: #0b63b6;
+  color: #ffffff; /* Đổi dấu gạch chéo sang màu trắng */
+  transform: scale(1.05); /* Ô vuông phóng to nhẹ lên một chút */
+}
+
+.inner-bread .active-path {
+  color: #333333;
+  font-weight: 600;
+}
+
+/* 2. Bố cục tổng thể 3 cột */
+.product-detail-container {
+  max-width: 1200px;
+  margin: 0 auto 50px auto;
+  padding: 20px 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.product-main-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #222222;
+  margin-top: 0;
+  margin-bottom: 25px;
+  border-bottom: 1px solid #f1f1f1;
+  padding-bottom: 15px;
+
+  /* Cấu hình cắt chữ trên 1 dòng */
+  white-space: nowrap; /* Không cho chữ tự động xuống dòng */
+  overflow: hidden; /* Ẩn phần chữ bị tràn */
+  text-overflow: ellipsis; /* Biến phần chữ bị ẩn thành dấu ... */
+}
+
+.product-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 0.9fr; /* Tỷ lệ 3 cột Ảnh - Thông tin - Chính sách */
+  gap: 30px;
+}
+
+/* Khối bọc cụm nút mua hàng */
+.purchase-actions-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Khoảng cách giữa hàng trên và hàng dưới */
+  margin-top: 15px;
+  width: 100%;
+}
+
+/* Khối chia đôi hàng nút bấm phía dưới */
+.sub-buy-buttons-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Chia đôi chính xác 50% - 50% */
+  gap: 12px; /* Khoảng cách giữa 2 nút dưới */
+  width: 100%;
+}
+
+/* Thao tác chung cho cả 2 nút hàng dưới */
+.btn-buy-now-split,
+.btn-installment-split {
+  border: none;
+  border-radius: 6px;
+  padding: 10px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  color: #ffffff;
+}
+
+.btn-buy-now-split strong,
+.btn-installment-split strong {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.btn-buy-now-split span,
+.btn-installment-split span {
+  font-size: 10px;
+  opacity: 0.85;
+  margin-top: 2px;
+  text-align: center;
+}
+
+/* NÚT MUA NGAY: Màu cam đỏ rực rỡ nổi bật */
+.btn-buy-now-split {
+  background-color: #ff5722;
+}
+
+.btn-buy-now-split:hover {
+  background-color: #e64a19;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(230, 74, 25, 0.2);
+}
+
+/* NÚT TRẢ GÓP: Màu xanh dương đồng bộ với chính sách trả góp */
+.btn-installment-split {
+  background-color: #0d6efd;
+}
+
+.btn-installment-split:hover {
+  background-color: #0b5ed7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(11, 94, 215, 0.2);
+}
+
+/* Tương thích giao diện khi màn hình quá nhỏ thì xếp dọc lại */
+@media (max-width: 480px) {
+  .sub-buy-buttons-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cột trái: Ảnh */
+.detail-left-gallery {
+  position: relative;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 380px;
+}
+.main-image-wrapper img {
+  max-width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+}
+.sale-badge-red {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: #d32f2f;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+/* Cột giữa: Nâng cấp linh kiện & Giá */
+.upgrade-options-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.upgrade-options-box label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  padding: 8px 12px;
+  border: 1px dashed #cccccc;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #fdfdfd;
+}
+
+.price-display-section {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  padding: 15px 0;
+  border-top: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f1f1;
+  margin-bottom: 20px;
+}
+.old-price {
+  font-size: 16px;
+  text-decoration: line-through;
+  color: #999999;
+}
+.live-price {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0b63b6;
+}
+
+/* Hộp quà tặng */
+.gift-bonus-box {
+  border: 1px solid #ffccd5;
+  background-color: #fff5f6;
+  border-radius: 6px;
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+.gift-title {
+  background-color: #ffebec;
+  color: #d32f2f;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 30px;
+  border-bottom: 1px solid #ffccd5;
+}
+.gift-icons {
+  margin-right: 3px;
+  margin-bottom: 3px;
+  display: inline-block;
+  transform: translateY(-2px);
+}
+.gift-list {
+  padding: 18px 15px 15px 30px;
+  margin: 0;
+}
+.gift-list li {
+  font-size: 13px;
+  color: #333333;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Nút mua hàng đỏ rực to rõ ràng */
+.btn-add-to-cart-big {
+  width: 100%;
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.btn-add-to-cart-big:hover {
+  background-color: #c62828;
+}
+.btn-add-to-cart-big strong {
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+.btn-add-to-cart-big span {
+  font-size: 11px;
+  opacity: 0.9;
+  margin-top: 3px;
+}
+
+/* Cột phải: Khối chính sách */
+.detail-right-policies {
+  border: 1px solid #eef2f5;
+  border-radius: 8px;
+  padding: 20px;
+  background-color: #fafbfc;
+}
+.detail-right-policies h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+.policy-item-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: flex-start;
+}
+.policy-icon-blue {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.policy-item-row p {
+  margin: 0;
+  font-size: 13px;
+  color: #555555;
+  line-height: 1.5;
+}
+
+.loading-box {
+  text-align: center;
+  padding: 100px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #666;
+}
+
+/* PHẦN MÔ TẢ & BẢNG THÔNG SỐ CHI TIẾT MÁY */
+.product-description-section {
+  background-color: #ffffff;
+  margin-top: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #eaeaea;
+  overflow: hidden;
+}
+
+.description-layout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr; /* Cột trái chứa bảng to rộng, cột phải chứa widget nhỏ */
+  gap: 30px;
+  box-sizing: border-box;
+}
+
+/* Cột trái */
+.description-left-content {
+  background-color: #ffffff;
+  border: 1px solid #eef2f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tab-header-title {
+  background-color: #f8f9fa;
+  padding: 14px 20px;
+  border-bottom: 2px solid #0056b3; /* Vệt xanh dương làm điểm nhấn bên dưới */
+}
+
+.tab-header-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0056b3;
+  letter-spacing: 0.5px;
+}
+
+.main-specs-body {
+  padding: 25px;
+}
+
+/* Tiêu đề phụ: "THÔNG SỐ CHI TIẾT MÁY :" */
+.main-specs-body h3 {
+  font-size: 16px;
+  color: #222222;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Dòng chữ đánh giá máy (review-text) */
+.main-specs-body .review-text {
+  font-size: 14.5px;
+  line-height: 1.6; /* Tăng độ giãn dòng cho mắt dễ đọc */
+  color: #444444;
+  margin-bottom: 25px;
+  padding: 12px 16px;
+  background-color: #fdf6f0; /* Nền màu cam kem nhạt để làm nổi bật lời khuyên */
+  border-left: 4px solid #f4511e; /* Viền cam đậm bên trái */
+  border-radius: 0 6px 6px 0;
+}
+
+.main-specs-body .review-text strong {
+  color: #333333;
+  font-weight: 600;
+}
+/* Định dạng Bảng thông số chi tiết lớn */
+.specs-table-detail {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 14px; /* Tăng kích thước chữ của bảng lên một chút cho rõ ràng */
+  background-color: #ffffff;
+}
+
+/* Căn chỉnh các ô hàng đầu (Header Table) */
+.specs-table-detail th {
+  background-color: #f4f6f8;
+  color: #333333;
+  font-weight: 700;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+/* Căn chỉnh nội dung các dòng dữ liệu (Td) */
+.specs-table-detail td {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  color: #4a5568;
+  line-height: 1.5;
+}
+
+/* Làm đậm cột tên linh kiện bên trái */
+.specs-table-detail td strong {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+/* Tạo hiệu ứng dòng kẻ xen kẽ cho bảng chính */
+.specs-table-detail tbody tr:nth-child(even) {
+  background-color: #fcfdfd;
+}
+
+/* Hiệu ứng hover nhẹ khi di chuột vào từng dòng linh kiện */
+.specs-table-detail tbody tr:hover {
+  background-color: #f7fafc;
+}
+
+/* Định dạng các đường link chữ màu xanh trong bảng */
+.blue-text-link {
+  color: #0056b3 !important;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.blue-text-link:hover {
+  text-decoration: underline;
+  color: #003d82 !important;
+}
+
+/* Khối quà tặng/khuyến mãi phía dưới bảng */
+.bonus-gift-rules h4 {
+  font-size: 14px;
+  color: #222222;
+  margin-bottom: 10px;
+}
+
+.bonus-gift-rules p {
+  font-size: 13px;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.bonus-gift-rules ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.bonus-gift-rules li {
+  font-size: 13px;
+  color: #444444;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* CỘT PHẢI - SIDEBAR KHỐI THÔNG SỐ NHANH & TIN TỨC */
+
+.description-right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Widget thông số kỹ thuật rút gọn */
+.widget-spec-box,
+.widget-news-box {
+  background: #ffffff;
+  border: 1px solid #eef2f5;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.widget-spec-box h3,
+.widget-news-box h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+  margin-top: 0;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.mini-table-container {
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.mini-specs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mini-specs-table th,
+.mini-specs-table td {
+  border: 1px solid #dddddd;
+  padding: 12px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.mini-specs-table th {
+  background-color: #f9fafb;
+  color: #555;
+}
+
+/* Nút xem đầy đủ thông số kẻ viền xanh */
+.btn-view-all-specs {
+  width: 100%;
+  background-color: #ffffff;
+  color: #0b63b6;
+  border: 1px solid #0b63b6;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-view-all-specs:hover {
+  background-color: #0b63b6;
+  color: #ffffff;
+}
+
+/* Danh sách tin tức công nghệ nhỏ */
+.news-list-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.news-item-mini {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #eaeaea;
+}
+
+.news-item-mini:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.news-item-mini img {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}
+
+.news-info-mini a {
+  font-size: 13px;
+  color: #333333;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.news-info-mini a:hover {
+  color: #0b63b6;
+}
+
+.news-info-mini span {
+  font-size: 11px;
+  color: #999999;
+}
+
+/* Responsive hạ về 1 cột trên điện thoại */
+@media (max-width: 850px) {
+  .description-layout-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .product-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.related-products-section {
+  background-color: #f8f9fa;
+  padding: 30px 0 60px 0;
+  width: 100%;
+}
+.related-inner-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+.related-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.related-products-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 ô sản phẩm trên 1 hàng ngang */
+  gap: 15px;
+}
+.related-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+.related-product-card {
+  background: #ffffff;
+  border: 1px solid #eef2f5;
+  border-radius: 8px;
+  padding: 15px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 350px;
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
+}
+.related-product-card:hover {
+  transform: translateY(-4px);
+  border-color: #0b63b6;
+}
+.related-card-img-wrapper {
+  width: 100%;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.related-card-img-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.related-card-info-content h4 {
+  font-size: 13px;
+  font-weight: 600;
+  height: 45px;
+  margin: 0 0 8px 0;
+  display: inline-block;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Thêm thuộc tính này để kích hoạt dấu ba chấm */
+}
+
+/*Sản phẩm chi tiết*/
+.related-price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.related-price-current {
+  font-size: 15px;
+  font-weight: 700;
+  color: #359be5;
+  position: relative;
+  left: 6px;
+}
+.related-price-old {
+  font-size: 11px;
+  text-decoration: line-through;
+  color: #999999;
+  margin-left: 5px;
+}
+.related-status-stock {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  bottom: 4px;
+  top: 4px;
+  cursor: pointer;
+}
+.related-status-stock {
+  background: #007bff;
+  color: #fff;
+}
+
+.related-carded {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  z-index: 2;
+}
+
+.btn-quick-cart-circle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #111;
+  color: #fff;
+
+  cursor: pointer;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  transition: 0.2s ease;
+}
+@media (max-width: 992px) {
+  .related-products-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 576px) {
+  .related-products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Lớp nền đen mờ phủ toàn màn hình */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Tạo màu tối trong suốt phía sau */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Đảm bảo đè lên trên tất cả các thành phần khác */
+}
+
+/* Khối hộp trắng chứa nội dung Modal */
+.modal-container {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 650px;
+  border-radius: 8px;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: scaleUpModal 0.25s ease-out;
+}
+
+@keyframes scaleUpModal {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Nút đóng dấu X */
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+  z-index: 10;
+}
+
+/* Cấu hình các Tabs lựa chọn */
+.modal-tabs-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #eef2f5;
+  background-color: #f8f9fa;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.modal-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.modal-tab-item.active {
+  background-color: #ffffff;
+  border-bottom: 2px solid #0b63b6;
+}
+
+.modal-tab-item .tab-icon {
+  font-size: 18px; /* Tăng kích thước icon to rõ ràng */
+  color: #707070; /* Màu xám mặc định khi tab chưa active */
+  flex-shrink: 0; /* Không cho icon bị bóp méo khi thu nhỏ màn hình */
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  transform: translateY(1px); /* Nhích nhẹ lên 1px để căn đều giữa dòng chữ */
+  transition: color 0.2s ease; /* Hiệu ứng mượt mà khi đổi màu */
+}
+/* Phần thân chứa form điền thông tin */
+.modal-body-content {
+  padding: 20px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-form-row {
+  display: flex;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.form-label {
+  width: 140px;
+  font-size: 13px;
+  color: #555;
+}
+
+.form-value-price {
+  font-weight: 700;
+  color: #ff5722;
+}
+
+.radio-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.modal-results-box {
+  background: #fdfcfc;
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 15px 0;
+}
+
+.result-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.border-top-dash {
+  border-top: 1px dashed #ddd;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.modal-note-text {
+  font-size: 11px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.modal-contact-footer {
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+}
+.modal-contact-footer h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+.modal-contact-footer p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+.hotline-blue {
+  color: #0b63b6;
+  font-weight: 700;
+}
+
+/* Các dòng chi tiết phụ thụt lề */
+.sub-detail-line {
+  padding-left: 20px !important; /* Thụt vào đầu dòng */
+  font-size: 12.5px !important;
+  color: #777777 !important; /* Màu xám nhạt hơn dòng chính */
+}
+
+.orange-text {
+  color: #333333;
+  font-weight: bold;
+}
+
+.text-center-bold {
+  padding-bottom: 12px;
+}
+
+/* modal thống số kĩ thuật*/
+.specs-modal-container {
+  background-color: #ffffff;
+  width: 92%;
+  max-width: 650px;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: modalPopUpEffect 0.25s cubic-bezier(0.1, 0.8, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes modalPopUpEffect {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.specs-modal-header {
+  background-color: #0056b3; /* Đồng bộ màu xanh Royal với trang chủ */
+  padding: 15px 0;
+  text-align: center;
+}
+
+.specs-modal-header h2 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.specs-modal-body {
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto; /* Cuộn dọc mượt nếu danh sách linh kiện quá dài */
+}
+
+/* Định dạng bảng biểu Table sắc nét */
+.specs-popup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  background: #fff;
+}
+
+.specs-popup-table th,
+.specs-popup-table td {
+  border: 1px solid #e0e0e0;
+  padding: 11px 14px;
+  text-align: left;
+}
+
+.specs-popup-table th {
+  background-color: #f5f7f9;
+  color: #333333;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.specs-popup-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Hiệu ứng dòng kẻ xen kẽ (Zebra striping) */
+.specs-popup-table tbody tr:nth-child(even) {
+  background-color: #fbfbfc;
+}
+
+/* Hiệu ứng di chuột nổi bật dòng */
+.specs-popup-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+.specs-popup-table td strong {
+  color: #222;
+  font-weight: 600;
+}
+
+/* Các link chữ màu xanh dương */
+.blue-text-link {
+  color: #0056b3 !important;
+  font-weight: 500;
+}

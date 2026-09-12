@@ -1,0 +1,35 @@
+/* ==========================================================================
+   KHUNG LƯỚI SẢN PHẨM (PRODUCT GRID LAYOUT)
+   ========================================================================== */
+.product-grid {
+  display: grid;
+
+  /* Tuyệt chiêu tự động chia cột:
+     - auto-fill: Tự động điền đầy số lượng cột dựa trên không gian trống.
+     - minmax(240px, 1fr): Mỗi thẻ sản phẩm rộng tối thiểu 240px và tối đa là chiếm đều khoảng trống còn lại.
+  */
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+
+  /* Khoảng cách giữa các ô sản phẩm (Dọc và Ngang) */
+  gap: 24px;
+
+  /* Khoảng cách đệm xung quanh toàn bộ lưới */
+  padding: 20px 0;
+
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   HỖ TRỢ RESPONSIVE TRÊN CÁC MÀN HÌNH QUÁ NHỎ (ĐIỆN THOẠI CŨ)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .product-grid {
+    /* Trên điện thoại siêu nhỏ, hạ chiều rộng tối thiểu xuống 160px để hiển thị vừa vặn 2 cột */
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+
+    /* Thu hẹp khoảng cách giữa các ô một chút cho đỡ tốn diện tích */
+    gap: 12px;
+    padding: 10px 0;
+  }
+}

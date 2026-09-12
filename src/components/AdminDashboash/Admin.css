@@ -1,0 +1,510 @@
+/* =========================================================
+   Admin.css — Bảng điều khiển quản trị
+   Phong cách: chuyên nghiệp / doanh nghiệp
+   Bảng màu: navy đậm + điểm nhấn đồng (bronze)
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Màu nền & cấu trúc */
+  --ink-900: #0e1b2e; /* nền sidebar (đậm nhất) */
+  --ink-800: #16294a; /* gradient sidebar */
+  --paper: #f3f5f7; /* nền khu vực nội dung */
+  --surface: #ffffff; /* nền card / navbar */
+  --border: #e2e6eb;
+
+  /* Điểm nhấn */
+  --accent-600: #c8862d; /* đồng — trạng thái active, nút chính */
+  --accent-500: #d89a45;
+  --accent-100: #f6e8d2;
+
+  /* Văn bản */
+  --text-900: #1a2433;
+  --text-600: #56616f;
+  --text-400: #8b96a3;
+
+  /* Trạng thái */
+  --success-600: #2f7d52;
+  --success-100: #e3f1e9;
+  --warning-600: #b7791f;
+  --warning-100: #fbf1df;
+  --danger-600: #c0392b;
+  --danger-100: #fbe9e7;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-sm: 0 1px 2px rgba(14, 27, 46, 0.06);
+  --shadow-md: 0 6px 20px rgba(14, 27, 46, 0.1);
+
+  --font-display: "Lora", Georgia, serif;
+  --font-body:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   Layout tổng thể
+   ========================================================= */
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--paper);
+  font-family: var(--font-body);
+  color: var(--text-900);
+}
+
+/* =========================================================
+   Sidebar
+   ========================================================= */
+
+.admin-sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--ink-900) 0%, var(--ink-800) 100%);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-logo h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 21px;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+}
+
+.sidebar-search-wrap {
+  position: relative;
+  margin: 16px 12px 2px;
+}
+
+.sidebar-search {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.48);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.sidebar-search:focus-within {
+  border-color: var(--accent-500);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-search svg {
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
+.sidebar-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #ffffff;
+  font: 500 12px var(--font-body);
+}
+
+.sidebar-search input::placeholder {
+  color: rgba(255, 255, 255, 0.44);
+}
+
+.sidebar-search input::-webkit-search-cancel-button {
+  filter: invert(1);
+  opacity: 0.55;
+}
+
+.sidebar-search-results {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: var(--ink-900);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-search-results a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.sidebar-search-results a:hover {
+  background: rgba(200, 134, 45, 0.18);
+  color: #ffffff;
+}
+
+.sidebar-search-results p {
+  margin: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  text-align: center;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.sidebar-menu a svg {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.18s ease;
+}
+
+.sidebar-menu a:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.sidebar-menu a:hover svg {
+  color: #ffffff;
+}
+
+/* Mục đang chọn — "tab sổ sách" bằng viền đồng bên trái */
+.sidebar-menu a.active {
+  background: rgba(200, 134, 45, 0.16);
+  color: #ffffff;
+  border-left-color: var(--accent-600);
+}
+
+.sidebar-menu a.active svg {
+  color: var(--accent-600);
+}
+
+.sidebar-menu a.active:hover {
+  background: rgba(200, 134, 45, 0.22);
+}
+
+/* =========================================================
+   Khu vực nội dung chính
+   ========================================================= */
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-navbar {
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--text-900);
+}
+
+.navbar-current-page {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--text-600);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.logout-btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--danger-600);
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.logout-btn:hover {
+  background: var(--danger-100);
+  border-color: var(--danger-600);
+}
+
+.admin-content {
+  flex: 1;
+  padding: 28px;
+  overflow-y: auto;
+}
+
+/* =========================================================
+   Thành phần dùng chung cho các trang con (Outlet)
+   — để Sản phẩm / Đơn hàng / Người dùng / Thống kê / Giảm giá
+   dùng đồng bộ, không cần định nghĩa lại mỗi trang.
+   ========================================================= */
+
+.admin-content h1 {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-900);
+  margin: 0 0 4px;
+}
+
+.admin-content h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.admin-content p.page-subtitle {
+  color: var(--text-600);
+  font-size: 14px;
+  margin: 0 0 24px;
+}
+
+.admin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-400);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-900);
+}
+
+.admin-table tbody tr:hover {
+  background: var(--paper);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.badge-success {
+  background: var(--success-100);
+  color: var(--success-600);
+}
+.badge-warning {
+  background: var(--warning-100);
+  color: var(--warning-600);
+}
+.badge-danger {
+  background: var(--danger-100);
+  color: var(--danger-600);
+}
+
+.btn {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.btn-primary {
+  background: var(--accent-600);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-500);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-900);
+}
+
+.btn-secondary:hover {
+  background: var(--paper);
+}
+
+/* =========================================================
+   Trợ năng & chuyển động
+   ========================================================= */
+
+.sidebar-menu a:focus-visible,
+.logout-btn:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--accent-600);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-menu a,
+  .logout-btn,
+  .btn {
+    transition: none;
+  }
+}
+
+/* =========================================================
+   Responsive — sidebar chuyển thành thanh ngang trên mobile
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: sticky;
+    top: 0;
+    flex-direction: row;
+    align-items: center;
+    z-index: 20;
+  }
+
+  .sidebar-logo {
+    padding: 0 16px;
+    border-bottom: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    height: 56px;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 16px;
+  }
+
+  .sidebar-search-wrap {
+    display: none;
+  }
+
+  .sidebar-menu {
+    flex-direction: row;
+    padding: 8px;
+    gap: 4px;
+    overflow-x: auto;
+  }
+
+  .sidebar-menu a {
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 12px;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+
+  .sidebar-menu a.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent-600);
+  }
+
+  .sidebar-menu a span {
+    font-size: 10px;
+  }
+
+  .admin-navbar {
+    padding: 0 16px;
+  }
+
+  .navbar-current-page {
+    display: none;
+  }
+
+  .admin-content {
+    padding: 18px;
+  }
+}

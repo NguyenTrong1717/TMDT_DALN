@@ -1,0 +1,300 @@
+.pmc-page {
+  background: #f7faf9;
+  min-height: 100vh;
+}
+
+.pmc-bar {
+  background: #fff;
+  border-bottom: 1px solid #e6efec;
+}
+
+.pmc-bread {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b8079;
+  flex-wrap: wrap;
+}
+
+.pmc-bread a {
+  color: #6b8079;
+}
+
+.pmc-bread a:hover {
+  color: #0a6e64;
+}
+
+.pmc-bread-current {
+  color: #0a6e64;
+  font-weight: 600;
+}
+
+.pmc-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.pmc-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #163f3a;
+  margin-bottom: 18px;
+}
+
+.pmc-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.pmc-filter-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #cfe6e0;
+  background: #fff;
+  color: #3a5c55;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pmc-filter-chip:hover {
+  border-color: #0a6e64;
+}
+
+.pmc-filter-chip.is-active {
+  background: #0a6e64;
+  border-color: #0a6e64;
+  color: #fff;
+}
+
+.pmc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #e6efec;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.pmc-toolbar-label {
+  font-size: 13px;
+  color: #6b8079;
+  font-weight: 600;
+}
+
+.pmc-sort-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pmc-sort-chip {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+  font-size: 12.5px;
+  color: #444;
+  cursor: pointer;
+}
+
+.pmc-sort-chip.is-active {
+  background: #eafaf6;
+  border-color: #0a6e64;
+  color: #0a6e64;
+  font-weight: 600;
+}
+
+.pmc-loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #6b8079;
+  font-size: 14px;
+}
+
+.pmc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 18px;
+}
+
+.pmc-card {
+  position: relative;
+  display: block;
+  background: #fff;
+  border: 1px solid #e6efec;
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.pmc-card:hover {
+  box-shadow: 0 10px 24px rgba(10, 110, 100, 0.12);
+  transform: translateY(-3px);
+}
+
+.pmc-card-off {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #ff5d5d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  z-index: 2;
+}
+
+.pmc-card-img {
+  background: #eafaf6;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.pmc-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pmc-card-body {
+  padding: 12px 14px 16px;
+}
+
+.pmc-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #163f3a;
+  line-height: 1.35;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pmc-card-spec {
+  font-size: 12px;
+  color: #7a8f89;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pmc-card-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pmc-card-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d64545;
+}
+
+.pmc-card-price-old {
+  font-size: 12px;
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.pmc-card-chip {
+  display: inline-block;
+  font-size: 11px;
+  background: #eafaf6;
+  color: #0a6e64;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.pmc-card-trust {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: #5c7d75;
+}
+
+.pmc-card-trust li {
+  padding-left: 14px;
+  position: relative;
+  line-height: 1.6;
+}
+
+.pmc-card-trust li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #0a6e64;
+  font-weight: 700;
+}
+
+.pmc-card-installment {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #ff5d5d;
+}
+
+.pmc-viewall-wrap {
+  text-align: center;
+  margin-top: 28px;
+}
+
+.pmc-viewall {
+  padding: 10px 28px;
+  border-radius: 999px;
+  border: 1.5px solid #0a6e64;
+  background: #fff;
+  color: #0a6e64;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pmc-viewall:hover {
+  background: #0a6e64;
+  color: #fff;
+}
+
+.demo-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.demo-price-old {
+  font-size: 12px;
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.demo-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d64545;
+}

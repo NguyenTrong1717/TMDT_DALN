@@ -1,0 +1,587 @@
+/* =========================================================
+   Profile.css — Hồ sơ cá nhân
+   Đồng bộ bảng màu với hệ thống quản trị: navy + đồng (bronze)
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ink-900: #0e1b2e;
+  --ink-800: #16294a;
+  --paper: #f3f5f7;
+  --surface: #ffffff;
+  --border: #e2e6eb;
+
+  --accent-700: #8a5a1e; /* chữ trên nền đồng nhạt — đủ tương phản */
+  --accent-600: #c8862d;
+  --accent-500: #d89a45;
+  --accent-100: #f6e8d2;
+
+  --info-600: #2e5c8a;
+  --info-100: #e7eef6;
+
+  --text-900: #1a2433;
+  --text-600: #56616f;
+  --text-400: #8b96a3;
+
+  --success-600: #2f7d52;
+  --success-100: #e3f1e9;
+  --danger-600: #c0392b;
+  --danger-100: #fbe9e7;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --shadow-sm: 0 1px 2px rgba(14, 27, 46, 0.06);
+  --shadow-md: 0 10px 28px rgba(14, 27, 46, 0.1);
+
+  --font-display: "Lora", Georgia, serif;
+  --font-body:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* =========================================================
+   Khung trang & breadcrumb
+   ========================================================= */
+
+.product-detail-pages {
+  background: var(--paper);
+  font-family: var(--font-body);
+  color: var(--text-900);
+  min-height: 60vh;
+}
+
+.product-detail-pages .container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.inner-breads {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px 24px;
+  font-size: 13px;
+  color: var(--text-400);
+}
+
+.inner-breads a {
+  color: var(--text-600);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.inner-breads a:hover {
+  color: var(--accent-600);
+}
+
+.inner-breads a:not(:last-child)::after {
+  content: "›";
+  margin-left: 6px;
+  color: var(--text-400);
+}
+
+/* =========================================================
+   Bố cục tổng thể: trái (hồ sơ + menu) / phải (thông tin)
+   ========================================================= */
+
+.profile-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  padding: 60px 0 56px;
+}
+
+.profile-left {
+  width: 296px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 24px;
+}
+
+.profile-right {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================================================
+   Khối avatar
+   ========================================================= */
+
+.profile-avatar-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.profile-avatar-circle {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--ink-900) 0%, var(--ink-800) 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 4px var(--accent-100),
+    var(--shadow-md);
+}
+
+.profile-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-avatar-box h2 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text-900);
+}
+
+.profile-avatar-box p {
+  font-size: 13px;
+  color: var(--text-600);
+  margin: 0 0 14px;
+  word-break: break-word;
+}
+
+.badge-role {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.badge-role.admin {
+  background: var(--accent-100);
+  color: var(--accent-700);
+}
+
+.badge-role.user {
+  background: var(--info-100);
+  color: var(--info-600);
+}
+
+/* =========================================================
+   Menu hồ sơ
+   ========================================================= */
+
+.profile-menu {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profile-menu-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-900);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.profile-menu-btn svg {
+  font-size: 15px;
+  color: var(--text-400);
+  flex-shrink: 0;
+  transition: color 0.16s ease;
+}
+
+.profile-menu-btn:hover {
+  background: var(--paper);
+}
+
+/* Mục quản trị — viền đồng bên trái, cùng ngôn ngữ thiết kế với khu Admin */
+.profile-menu-btn.admin-btn {
+  background: var(--accent-100);
+  border-left-color: var(--accent-600);
+  color: var(--accent-700);
+  font-weight: 600;
+}
+
+.profile-menu-btn.admin-btn svg {
+  color: var(--accent-600);
+}
+
+.profile-menu-btn.admin-btn:hover {
+  background: #f0dcb8;
+}
+
+/* Đăng xuất — tách khỏi nhóm còn lại bằng đường viền trên */
+.profile-menu-btn.logout-btn {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  color: var(--danger-600);
+}
+
+.profile-menu-btn.logout-btn svg {
+  color: var(--danger-600);
+}
+
+.profile-menu-btn.logout-btn:hover {
+  background: var(--danger-100);
+}
+
+/* =========================================================
+   Khu vực thông tin (bên phải)
+   ========================================================= */
+
+.profile-title {
+  margin-bottom: 20px;
+}
+
+.profile-title h2 {
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text-900);
+}
+
+.profile-title p {
+  font-size: 14px;
+  color: var(--text-600);
+  margin: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.info-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  color: var(--ink-800);
+  font-size: 16px;
+}
+
+.info-details {
+  min-width: 0;
+}
+
+.info-details label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-400);
+  margin-bottom: 4px;
+}
+
+.info-details p {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-900);
+  margin: 0;
+  word-break: break-word;
+}
+
+/* Trạng thái / vai trò hiển thị dạng nhãn nhỏ */
+.role-admin,
+.role-user,
+.status-active,
+.status-lock {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 11px;
+  border-radius: 999px;
+}
+
+.role-admin {
+  background: var(--accent-100);
+  color: var(--accent-700);
+}
+.role-user {
+  background: var(--info-100);
+  color: var(--info-600);
+}
+.status-active {
+  background: var(--success-100);
+  color: var(--success-600);
+}
+.status-lock {
+  background: var(--danger-100);
+  color: var(--danger-600);
+}
+
+/* =========================================================
+   Hành động cuối trang
+   ========================================================= */
+
+.profile-bottom-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.primary-btn,
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.primary-btn {
+  background: var(--accent-600);
+  color: #ffffff;
+}
+
+.primary-btn:hover {
+  background: var(--accent-500);
+}
+
+.secondary-btn {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-900);
+}
+
+.secondary-btn:hover {
+  background: var(--paper);
+}
+
+/* =========================================================
+   Trợ năng & chuyển động
+   ========================================================= */
+
+.profile-menu-btn:focus-visible,
+.primary-btn:focus-visible,
+.secondary-btn:focus-visible,
+.inner-breads a:focus-visible {
+  outline: 2px solid var(--accent-600);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-menu-btn,
+  .info-card,
+  .primary-btn,
+  .secondary-btn,
+  .inner-breads a {
+    transition: none;
+  }
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 860px) {
+  .profile-wrapper {
+    flex-direction: column;
+  }
+
+  .profile-left {
+    width: 100%;
+    position: static;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-bottom-actions {
+    flex-direction: column;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-detail-pages .container {
+    padding: 0 16px;
+  }
+
+  .profile-avatar-box {
+    padding: 24px 18px;
+  }
+}
+
+/* =========================================================
+   Trang chỉnh sửa thông tin (EditProfile)
+   ========================================================= */
+
+.product-menu-page {
+  background: var(--paper);
+  font-family: var(--font-body);
+  color: var(--text-900);
+  min-height: 60vh;
+  padding-bottom: 56px;
+}
+
+.product-menu-page .container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.product-menu-page .product-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 40px;
+  margin-top: 32px;
+}
+
+.product-menu-page h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-900);
+  margin: 0 0 28px;
+}
+
+.edit-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-groups label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-600);
+}
+
+.form-groups input {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-900);
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.form-groups input:hover {
+  border-color: #c7cdd5;
+}
+
+.form-groups input:focus {
+  outline: none;
+  border-color: var(--accent-600);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-100);
+}
+
+.form-groups input::placeholder {
+  color: var(--text-400);
+}
+
+.edit-profile-form .primary-btn {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+@media (max-width: 600px) {
+  .product-menu-page .product-wrapper {
+    padding: 28px 20px;
+    margin-top: 20px;
+  }
+
+  .edit-profile-form .primary-btn {
+    align-self: stretch;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,193 @@
+/* ==========================================================================
+   ProductPage — cùng hệ thiết kế "TikTok sáng" (đồng bộ toàn bộ hệ thống)
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --pp-bg: #fafafa;
+  --pp-panel: #ffffff;
+  --pp-panel-2: #f4f5f6;
+  --pp-border-soft: #eeeff1;
+  --pp-text: #161823;
+  --pp-text-muted: #6b6f76;
+  --pp-text-dim: #9a9ea5;
+  --pp-cyan: #00d9d1;
+  --pp-cyan-ink: #007a75;
+  --pp-pink: #fe2c55;
+  --pp-gradient: linear-gradient(90deg, var(--pp-cyan), var(--pp-pink));
+  --pp-font-display: "Poppins", "Inter", sans-serif;
+  --pp-font-body: "Inter", -apple-system, sans-serif;
+  --pp-radius: 14px;
+}
+
+.product-page,
+.product-page * {
+  box-sizing: border-box;
+}
+
+.product-page {
+  background: var(--pp-bg);
+  font-family: var(--pp-font-body);
+}
+
+/* ---------- breadcrumb ---------- */
+.bread-bar {
+  background: var(--pp-bg);
+  border-bottom: 1px solid var(--pp-border-soft);
+}
+.inner-bread {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.inner-bread a {
+  color: var(--pp-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.inner-bread a:hover {
+  color: var(--pp-text);
+}
+.inner-bread a:not(:last-child)::after {
+  content: "›";
+  margin-left: 6px;
+  color: var(--pp-text-dim);
+}
+.inner-bread a:last-child span {
+  color: var(--pp-cyan-ink);
+  font-weight: 600;
+}
+
+/* ---------- grid ---------- */
+.product-list-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 24px 56px;
+}
+
+.product-grid-1 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.product-card-1 {
+  background: var(--pp-panel);
+  border: 1px solid var(--pp-border-soft);
+  border-radius: var(--pp-radius);
+  padding: 16px;
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.product-card-1:hover {
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1.5px var(--pp-cyan),
+    0 10px 24px -12px var(--pp-pink);
+}
+
+.img-wrapper {
+  background: var(--pp-panel-2);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.img-wrapper img {
+  width: 100%;
+  height: 140px;
+  object-fit: contain;
+  display: block;
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pp-text);
+  margin: 0 0 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 36px;
+}
+
+.card-price {
+  font-family: var(--pp-font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--pp-pink);
+  margin: 0 0 10px;
+}
+
+.promo-tags {
+  display: inline-block;
+  font-family: var(--pp-font-display);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--pp-cyan-ink);
+  background: rgba(0, 217, 209, 0.1);
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .product-grid-1 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .product-grid-1 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .product-list-container {
+    padding: 20px 16px 40px;
+  }
+  .product-grid-1 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .img-wrapper img {
+    height: 110px;
+  }
+  .card-name {
+    font-size: 12px;
+    min-height: 32px;
+  }
+  .card-price {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 420px) {
+  .product-card-1 {
+    padding: 10px;
+  }
+  .promo-tags {
+    font-size: 10px;
+    padding: 4px 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card-1,
+  .inner-bread a {
+    transition: none;
+  }
+}

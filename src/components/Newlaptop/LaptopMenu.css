@@ -1,0 +1,454 @@
+/* LaptopMenu.css */
+
+.lp-page,
+.lp-breadcrumb,
+.lp-tabs-wrap {
+  --ink: #10172a;
+  --muted: #64748b;
+  --accent: #4f46e5;
+  --accent-dark: #4338ca;
+  --accent-soft: #eef0ff;
+  --gold: #f59e0b;
+  --price: #e11d48;
+  --old-price: #9ca3af;
+  --border: #e6e8f0;
+  --surface: #ffffff;
+  --surface-soft: #f8f9fc;
+}
+
+/* ---------- Breadcrumb ---------- */
+
+.lp-breadcrumb {
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border);
+}
+
+.lp-breadcrumb__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 15px;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-breadcrumb__inner a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.lp-breadcrumb__inner a:hover {
+  text-decoration: underline;
+}
+
+.lp-breadcrumb__inner span {
+  color: var(--muted);
+}
+
+.lp-breadcrumb__inner span::before {
+  content: "/";
+  margin-right: 8px;
+  color: #c7cad6;
+}
+
+/* ---------- Tabs ---------- */
+
+.lp-tabs-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.lp-tabs {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 15px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.lp-tab {
+  flex: 0 0 auto;
+  padding: 9px 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.lp-tab:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.lp-tab--active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: var(--accent-dark);
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.28);
+}
+
+/* ---------- Main layout ---------- */
+
+.lp-page {
+  background: var(--surface-soft);
+  padding: 32px 0 56px;
+  min-height: 60vh;
+}
+
+.lp-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+/* ---------- Toolbar ---------- */
+
+.lp-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.lp-toolbar__left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.lp-title {
+  font-size: 22px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin: 0;
+  position: relative;
+  padding-left: 16px;
+}
+
+.lp-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8%;
+  height: 84%;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold), var(--accent));
+}
+
+.lp-count {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.lp-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-sort-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.lp-sort-select {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.lp-sort-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Grid ---------- */
+
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.lp-card-link {
+  text-decoration: none;
+  display: block;
+}
+
+.lp-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.lp-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--accent));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.lp-card-link:hover .lp-card {
+  transform: translateY(-6px);
+  border-color: transparent;
+  box-shadow: 0 16px 28px rgba(16, 23, 42, 0.1);
+}
+
+.lp-card-link:hover .lp-card::before {
+  opacity: 1;
+}
+
+.lp-card__badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: var(--price);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.lp-card__img {
+  width: 100%;
+  height: 168px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-soft);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.lp-card__img img {
+  max-width: 85%;
+  max-height: 85%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.lp-card-link:hover .lp-card__img img {
+  transform: scale(1.06);
+}
+
+.lp-card__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.lp-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+  height: 40px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin: 0 0 8px;
+}
+
+.lp-card__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #16a34a;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.lp-card__status-icon {
+  font-size: 14px;
+}
+
+.lp-card__price-row {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.lp-card__prices {
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-card__price {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--price);
+}
+
+.lp-card__old-price {
+  font-size: 12px;
+  color: var(--old-price);
+  text-decoration: line-through;
+}
+
+.lp-card__cart-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 18px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lp-card__cart-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
+/* ---------- Loading / empty ---------- */
+
+.lp-loading,
+.lp-empty {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--muted);
+}
+
+.lp-empty p {
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.lp-empty a {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.lp-empty a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Pagination ---------- */
+
+.lp-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 36px;
+}
+
+.lp-pagination__btn {
+  min-width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lp-pagination__btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.lp-pagination__btn--active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: var(--accent-dark);
+  color: #ffffff;
+}
+
+.lp-pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1024px) {
+  .lp-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .lp-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .lp-toolbar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .lp-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

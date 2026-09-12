@@ -1,0 +1,199 @@
+/* ── Statistics Page ── */
+.page-stats {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #e8eaf0;
+}
+
+/* Header */
+.stats-header {
+  margin-bottom: 24px;
+}
+
+.stats-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stats-header p {
+  font-size: 13px;
+  color: #8b90a7;
+  margin-top: 2px;
+}
+
+/* ── KPI Cards ── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi {
+  background: #1e2336;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Coloured top accent bar driven by --kpi-accent inline var */
+.kpi::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--kpi-accent);
+}
+
+.kpi .label {
+  font-size: 11px;
+  color: #8b90a7;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.kpi .value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #e8eaf0;
+}
+
+.kpi .delta {
+  font-size: 11px;
+  color: #43e97b;
+  margin-top: 4px;
+}
+
+/* ── Chart Grid Layouts ── */
+.charts-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.charts-grid--2-1 {
+  grid-template-columns: 2fr 1fr;
+}
+
+.charts-grid--1-1 {
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+  .charts-grid--2-1,
+  .charts-grid--1-1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Chart Card ── */
+.chart-card {
+  background: #1e2336;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8eaf0;
+  margin-bottom: 4px;
+}
+
+.chart-sub {
+  font-size: 11px;
+  color: #8b90a7;
+  margin-bottom: 20px;
+}
+
+/* ── Custom Tooltip ── */
+.chart-tooltip {
+  background: #1e2336;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #e8eaf0;
+}
+
+.tooltip-label {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #a89cff;
+}
+
+/* ── Top Products ── */
+.top-products {
+  background: #1e2336;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.top-products-header {
+  padding: 18px 20px 12px;
+}
+
+.top-products-header .chart-title {
+  margin-bottom: 0;
+}
+
+.tp-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tp-rank {
+  font-size: 12px;
+  font-weight: 700;
+  color: #555c75;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.tp-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e8eaf0;
+}
+
+.tp-bar-wrap {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.tp-bar {
+  height: 4px;
+  background: #252b40;
+  border-radius: 2px;
+}
+
+.tp-bar-fill {
+  height: 100%;
+  background: #6c63ff;
+  border-radius: 2px;
+}
+
+.tp-sold {
+  font-size: 12px;
+  color: #8b90a7;
+  flex-shrink: 0;
+}
+
+.tp-rev {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a89cff;
+  flex-shrink: 0;
+  min-width: 90px;
+  text-align: right;
+}
