@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/FooterUser";
 import "./ProductDetail.css";
-import { FaShippingFast, FaAddressCard, FaCcApplePay } from "react-icons/fa";
+import { FaShippingFast, FaAddressCard, FaCcApplePay, FaStore } from "react-icons/fa";
+import { BsCreditCard2Front } from "react-icons/bs";
 import { MdCurrencyExchange } from "react-icons/md";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { FaGift } from "react-icons/fa6";
@@ -176,6 +177,13 @@ const ProductDetail = () => {
       </div>
 
       <main className="product-detail-container">
+        {/* Header Badges & Rating */}
+        <div className="product-header-badges">
+          <span className="detail-badge-rating">⭐ 4.9 (348 đánh giá)</span>
+          <span className="detail-badge-sold">Đã bán 1.4k+</span>
+          <span className="detail-badge-vna">Chính hãng 100% Fullbox</span>
+          <span className="detail-badge-warranty">Bảo hành 36T 1 Đổi 1</span>
+        </div>
         <h1 className="product-main-title">{product.name}</h1>
 
         <div className="product-detail-layout">
@@ -190,109 +198,171 @@ const ProductDetail = () => {
                 }}
               />
             </div>
+            {/* Showroom Stock Box */}
+            <div className="showroom-stock-mini-box">
+              <h4><FaStore /> CÒN HÀNG TẠI SHOWROOM:</h4>
+              <ul>
+                <li><span className="stock-dot-green">●</span> <strong>Hà Nội:</strong> 123 Thái Hà, Đống Đa</li>
+                <li><span className="stock-dot-green">●</span> <strong>TP. Hồ Chí Minh:</strong> 456 Lê Hồng Phong, Q.10</li>
+                <li><span className="stock-dot-green">●</span> <strong>Đà Nẵng:</strong> 78 Nguyễn Văn Linh, Hải Châu</li>
+              </ul>
+            </div>
           </div>
 
           <div className="detail-center-info">
+            {/* Upgrade Options */}
             <div className="upgrade-options-box">
+              <div className="options-header-label">CHỌN CẤU HÌNH NÂNG CẤP:</div>
               <label>
-                <input type="radio" name="vga" defaultChecked /> NÂNG CẤP LÊN
-                VGA RTX 3060 CŨ + 2.400.000đ
+                <input type="radio" name="vga" defaultChecked /> BẢN TIÊU CHUẨN (Cấu hình chuẩn theo máy)
               </label>
               <label>
-                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3060TI CŨ
-                + 3.400.000đ
+                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3060TI CŨ + 2.400.000đ
               </label>
               <label>
-                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3070TI CŨ
-                + 7.900.000đ
+                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3070TI CŨ + 5.900.000đ
               </label>
             </div>
 
+            {/* Colors Selection Pills */}
+            <div className="color-options-row">
+              <span className="color-label">Màu sắc:</span>
+              <div className="color-pills-group">
+                <button type="button" className="color-pill active">Đen Phantom</button>
+                <button type="button" className="color-pill">Bạc Titan</button>
+                <button type="button" className="color-pill">Trắng Tuyết</button>
+              </div>
+            </div>
+
+            {/* Live Price Block */}
             <div className="price-display-section">
-              <span className="old-price">
-                {(product.price * 1.06).toLocaleString("vi-VN")}đ
-              </span>
-              <span className="live-price">
-                {product.price.toLocaleString("vi-VN")}đ
+              <div className="price-primary-group">
+                <span className="live-price">
+                  {product.price ? product.price.toLocaleString("vi-VN") : 0}đ
+                </span>
+                <span className="old-price">
+                  {(product.price * 1.15).toLocaleString("vi-VN")}đ
+                </span>
+              </div>
+              <span className="save-badge-retail">
+                Tiết kiệm {(product.price * 0.15).toLocaleString("vi-VN")}đ (-15%)
               </span>
             </div>
 
+            {/* Red Gift Box */}
             <div className="gift-bonus-box">
               <div className="gift-title">
                 <span className="gift-icons">
                   <FaGift />
                 </span>
-                Quà tặng / Khuyến mãi
+                KHUYẾN MÃI ĐẶC QUYỀN TRỊ GIÁ 1.500.000đ
               </div>
               <ul className="gift-list">
                 <li>
                   <strong>CHUỘT GAMING DAREU EM908 USB LED RGB GIÁ 350K</strong>
                 </li>
-                <li>BÀN PHÍM GAMING DAREU EK810 USB LED GIÁ 690K</li>
+                <li>BÀN PHÍM GAMING DAREU EK810 USB LED CHÍNH HÃNG GIÁ 690K</li>
                 <li>TAI NGHE GAMING DAREU EH469 USB LED RGB GIÁ 450K</li>
-                <li>LÓT CHUỘT DAREU ESP109 FULL SIZE 90X40 GIÁ 160K</li>
+                <li>LÓT CHUỘT DAREU SPEED FULL SIZE 90X40 GIÁ 160K</li>
               </ul>
             </div>
 
+            {/* Bank Partner Offers */}
+            <div className="detail-bank-offers-box">
+              <div className="bank-offers-title">
+                <BsCreditCard2Front /> ƯU ĐÃI THANH TOÁN QUA ĐỐI TÁC:
+              </div>
+              <div className="bank-offers-list">
+                <div className="bank-offer-tag">
+                  <span className="bank-tag-pill vib">VIB</span>
+                  <span>Giảm thêm 1.000.000đ khi mở thẻ tín dụng mới</span>
+                </div>
+                <div className="bank-offer-tag">
+                  <span className="bank-tag-pill vpbank">VPBank</span>
+                  <span>Giảm 500.000đ cho đơn hàng từ 10.000.000đ</span>
+                </div>
+                <div className="bank-offer-tag">
+                  <span className="bank-tag-pill momo">MoMo</span>
+                  <span>Nhập mã TECH200 giảm ngay 200.000đ</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3 Call to Action buttons */}
             <div className="purchase-actions-group">
+              <button
+                className="btn-buy-now-flagship"
+                onClick={() => handleAddToCart(true)}
+              >
+                MUA NGAY
+                <span>Giao hàng siêu tốc 2h hoặc nhận tại showroom</span>
+              </button>
+
+              <div className="sub-buy-buttons-row">
+                <button
+                  className="btn-installment-split"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <strong>TRẢ GÓP 0% QUA CCCD</strong>
+                  <span>Xét duyệt hồ sơ 5 phút online</span>
+                </button>
+
+                <button
+                  className="btn-installment-card-split"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <strong>TRẢ GÓP QUA THẺ</strong>
+                  <span>Visa, Master, JCB hạn mức linh hoạt</span>
+                </button>
+              </div>
+
               <button
                 className="btn-add-to-cart-big"
                 onClick={() => handleAddToCart(false)}
               >
                 THÊM VÀO GIỎ HÀNG
-                <span>THÊM VÀO GIỎ ĐỂ CHỌN TIẾP</span>
+                <span>Thêm vào giỏ để tiếp tục chọn sản phẩm khác</span>
               </button>
-              <div className="sub-buy-buttons-row">
-                <button
-                  className="btn-buy-now-split"
-                  onClick={() => handleAddToCart(true)}
-                >
-                  MUA NGAY
-                  <span>Giao tận nơi hoặc trực tiếp</span>
-                </button>
-
-                <button
-                  className="btn-installment-split"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  <strong>MUA TRẢ GÓP</strong>
-                  <span>Thủ tục đơn giản, xét duyệt nhanh</span>
-                </button>
-              </div>
             </div>
           </div>
 
           <div className="detail-right-policies">
-            <h3>CHÍNH SÁCH KHÁCH HÀNG</h3>
+            <h3>CAM KẾT DỊCH VỤ VÀNG</h3>
             <div className="policy-item-row">
               <span className="policy-icon-blue">
                 <FaShippingFast />
               </span>
-              <p>Giao hàng miễn phí (chỉ áp dụng khu vực nội thành)</p>
-            </div>
-            <div className="policy-item-row">
-              <span className="policy-icon-blue">
-                <FaAddressCard />
-              </span>
-              <p>
-                Hỗ trợ trả góp lãi suất thấp cho các sản phẩm thông qua các đơn
-                vị tài chính
-              </p>
-            </div>
-            <div className="policy-item-row">
-              <span className="policy-icon-blue">
-                <FaCcApplePay />
-              </span>
-              <p>
-                Trả góp lãi suất 0% qua thẻ tín dụng Visa, Master, JCB (áp dụng
-                một số mặt hàng nhất định)
-              </p>
+              <div>
+                <strong>Miễn phí giao hàng toàn quốc</strong>
+                <p>Giao siêu tốc 2h nội thành, kiểm tra hàng trước khi nhận</p>
+              </div>
             </div>
             <div className="policy-item-row">
               <span className="policy-icon-blue">
                 <MdCurrencyExchange />
               </span>
-              <p>Đổi mới trong vòng 7 ngày nếu lỗi do Nhà Sản Xuất</p>
+              <div>
+                <strong>1 Đổi 1 trong vòng 30 ngày</strong>
+                <p>Đổi mới ngay lập tức nếu phát sinh lỗi từ nhà sản xuất</p>
+              </div>
+            </div>
+            <div className="policy-item-row">
+              <span className="policy-icon-blue">
+                <FaAddressCard />
+              </span>
+              <div>
+                <strong>Bảo hành chính hãng 12 - 36 Tháng</strong>
+                <p>Hỗ trợ bảo hành tại hệ thống ủy quyền toàn quốc</p>
+              </div>
+            </div>
+            <div className="policy-item-row">
+              <span className="policy-icon-blue">
+                <FaCcApplePay />
+              </span>
+              <div>
+                <strong>Hỗ trợ trả góp 0% lãi suất</strong>
+                <p>Thủ tục đơn giản qua CCCD hoặc thẻ tín dụng</p>
+              </div>
             </div>
           </div>
         </div>

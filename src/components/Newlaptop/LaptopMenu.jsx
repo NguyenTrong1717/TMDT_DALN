@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { AiFillCheckCircle } from "react-icons/ai";
-import { PiShoppingCartDuotone } from "react-icons/pi";
-import { toast } from "sonner";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../../components/Sevicer/Sevicer";
+import FacetedFilterBar from "../FacetedFilter/FacetedFilterBar";
+import LaptopCard from "../ProductCard/LaptopCard";
+import SeoArticleSection from "../SeoContent/SeoArticleSection";
 import "./LaptopMenu.css";
 
-const TABS = [
-  { label: "LAPTOP CŨ", category: "laptop-cu" },
-  { label: "LAPTOP GAMING", category: "laptop-gaming" },
-  { label: "LAPTOP MỚI", category: "laptop-moi" },
-  { label: "LAPTOP ĐỒ HỌA", category: "laptop-do-hoa" },
+const DEMAND_TILES = [
+  { label: "Văn phòng", category: "laptop-cu", image: "/images/LT1.png" },
+  { label: "Gaming", category: "laptop-gaming", image: "/images/Game.jpg" },
+  { label: "Mỏng nhẹ", category: "laptop-moi", image: "/images/LT5.jpg" },
+  { label: "Đồ họa - kỹ thuật", category: "laptop-do-hoa", image: "/images/DH.jpg" },
+  { label: "Sinh viên", category: "laptop-gia-uu-dai", image: "/images/LT3.jpg" },
+  { label: "Cao cấp", category: "laptop-van-phong", image: "/images/LT11.png" },
 ];
 
 const SORT_OPTIONS = [
@@ -32,8 +34,12 @@ const LaptopMenu = () => {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilters, setActiveFilters] = useState({});
 
-  const activeTab = TABS.find((t) => t.category === category) || TABS[0];
+  const activeTab = DEMAND_TILES.find((t) => t.category === category) || {
+    label: category ? category.replace(/-/g, " ").toUpperCase() : "LAPTOP GAMING",
+    category: category || "laptop-gaming",
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -41,7 +47,14 @@ const LaptopMenu = () => {
     fetch(`http://localhost:3000/LaptopUser?category=${category}`)
       .then((res) => res.json())
       .then((data) => {
-        setAllItems(data);
+        if (data && data.length > 0) {
+          setAllItems(data);
+        } else {
+          // Fallback if exact slug not matched in db
+          fetch("http://localhost:3000/LaptopUser")
+            .then((r) => r.json())
+            .then((all) => setAllItems(all || []));
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -54,29 +67,32 @@ const LaptopMenu = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [category, currentPage]);
 
-  const sorted = [...allItems].sort((a, b) => {
-    if (sort === "price-asc") return a.price - b.price;
-    if (sort === "price-desc") return b.price - a.price;
-    if (sort === "discount-desc") return (b.discount || 0) - (a.discount || 0);
-    return 0;
-  });
+  const filteredItems = useMemo(() => {
+    let result = [...allItems];
 
-  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE);
-  const paginated = sorted.slice(
+    if (activeFilters.price) {
+      if (activeFilters.price === "p-under-10") result = result.filter((item) => item.price < 10000000);
+      else if (activeFilters.price === "p-10-15")
+        result = result.filter((item) => item.price >= 10000000 && item.price <= 15000000);
+      else if (activeFilters.price === "p-15-25")
+        result = result.filter((item) => item.price >= 15000000 && item.price <= 25000000);
+      else if (activeFilters.price === "p-above-25")
+        result = result.filter((item) => item.price > 25000000);
+    }
+
+    return result.sort((a, b) => {
+      if (sort === "price-asc") return a.price - b.price;
+      if (sort === "price-desc") return b.price - a.price;
+      if (sort === "discount-desc") return (b.discount || 0) - (a.discount || 0);
+      return 0;
+    });
+  }, [allItems, sort, activeFilters]);
+
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  const paginated = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
-
-  const handleAddToCart = (e, item) => {
-    e.preventDefault();
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!currentUser) {
-      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
-      navigate("/login");
-      return;
-    }
-    toast.success(`Đã thêm "${item.name}" vào giỏ hàng!`);
-  };
 
   return (
     <>
@@ -92,16 +108,17 @@ const LaptopMenu = () => {
         </div>
       </div>
 
-      {/* TABS */}
+      {/* TABS - TILES CHỌN THEO NHU CẦU CÓ HÌNH ẢNH MINH HỌA */}
       <div className="lp-tabs-wrap">
         <div className="lp-tabs">
-          {TABS.map((tab) => (
+          {DEMAND_TILES.map((tab) => (
             <button
-              key={tab.category}
-              className={`lp-tab ${tab.category === category ? "lp-tab--active" : ""}`}
+              key={tab.label}
+              className={`demand-tile-btn ${tab.category === category ? "active" : ""}`}
               onClick={() => navigate(`/laptop/${tab.category}`)}
             >
-              {tab.label}
+              <img src={tab.image} alt={tab.label} className="demand-tile-img" />
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -110,12 +127,21 @@ const LaptopMenu = () => {
       {/* MAIN */}
       <div className="lp-page">
         <div className="lp-container">
+          {/* FACETED FILTER BAR */}
+          <FacetedFilterBar
+            onFilterChange={(filters) => {
+              setActiveFilters(filters);
+              setCurrentPage(1);
+            }}
+            totalCount={filteredItems.length}
+          />
+
           {/* TOOLBAR */}
           <div className="lp-toolbar">
             <div className="lp-toolbar__left">
               <h1 className="lp-title">{activeTab.label}</h1>
               {!loading && (
-                <span className="lp-count">{allItems.length} sản phẩm</span>
+                <span className="lp-count">{filteredItems.length} sản phẩm</span>
               )}
             </div>
             <div className="lp-toolbar__right">
@@ -137,57 +163,20 @@ const LaptopMenu = () => {
             </div>
           </div>
 
-          {/* GRID */}
+          {/* 6-LAYER LAPTOP GRID */}
           {loading ? (
             <div className="lp-loading">Đang tải sản phẩm...</div>
           ) : paginated.length === 0 ? (
             <div className="lp-empty">
-              <p>Không có sản phẩm nào trong danh mục này.</p>
+              <p>Không có sản phẩm nào phù hợp với bộ lọc này.</p>
               <Link to="/">Quay lại trang chủ</Link>
             </div>
           ) : (
             <div className="lp-grid">
               {paginated.map((item) => (
-                <Link
-                  to={`/laptop-detail/${item.id}`}
-                  className="lp-card-link"
-                  key={item.id}
-                >
-                  <div className="lp-card">
-                    {item.discount && (
-                      <div className="lp-card__badge">-{item.discount}%</div>
-                    )}
-                    <div className="lp-card__img">
-                      <img src={item.image} alt={item.name} />
-                    </div>
-                    <div className="lp-card__info">
-                      <h4 className="lp-card__name">{item.name}</h4>
-                      <p className="lp-card__status">
-                        <AiFillCheckCircle className="lp-card__status-icon" />
-                        {item.status || "Còn hàng"}
-                      </p>
-                      <div className="lp-card__price-row">
-                        <div className="lp-card__prices">
-                          <span className="lp-card__price">
-                            {item.price ? item.price.toLocaleString() : 0}đ
-                          </span>
-                          {item.oldPrice && (
-                            <span className="lp-card__old-price">
-                              {item.oldPrice.toLocaleString()}đ
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          className="lp-card__cart-btn"
-                          title="Thêm vào giỏ"
-                          onClick={(e) => handleAddToCart(e, item)}
-                        >
-                          <PiShoppingCartDuotone />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <div key={item.id} className="lp-card-item-wrapper">
+                  <LaptopCard product={item} />
+                </div>
               ))}
             </div>
           )}
@@ -224,6 +213,9 @@ const LaptopMenu = () => {
           )}
         </div>
       </div>
+
+      {/* SEO ARTICLE SECTION */}
+      <SeoArticleSection categoryTitle={activeTab.label} />
 
       <Sevicer />
       <FooterUser />

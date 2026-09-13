@@ -1,0 +1,173 @@
+/* ==========================================================================
+   FacetedFilterBar.css — Bộ lọc đa tầng phần cứng chuẩn sàn TMĐT
+   ========================================================================== */
+
+.faceted-filter-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.faceted-filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-header-icon {
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.filter-header-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: -0.2px;
+}
+
+.active-filter-badge {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.filter-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.filter-result-count {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.filter-result-count strong {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.filter-reset-btn {
+  background: none;
+  border: 1px solid #cbd5e1;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.filter-reset-btn:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+/* Faceted Groups */
+.faceted-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faceted-group-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.faceted-group-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  min-width: 140px;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+.faceted-options-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.faceted-chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.faceted-chip:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.faceted-chip.selected {
+  background: #fef2f2;
+  border-color: #dc2626;
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.chip-check-icon {
+  font-size: 10px;
+  color: #dc2626;
+}
+
+.chip-text {
+  line-height: 1;
+}
+
+.chip-count {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.faceted-chip.selected .chip-count {
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .faceted-group-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .faceted-group-label {
+    min-width: auto;
+    padding-top: 0;
+  }
+}

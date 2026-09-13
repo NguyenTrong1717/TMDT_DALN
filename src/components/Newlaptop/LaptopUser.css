@@ -1,128 +1,139 @@
 /* ==========================================================================
-   LaptopUser — cùng hệ thiết kế tối giản với EventList/Catenogy
+   LaptopUser.css — Hệ thống hiển thị Laptop sàn TMĐT
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap");
-
-:root {
-  --lu-bg: #fafafa;
-  --lu-panel-2: #f4f5f6;
-  --lu-border-soft: #eeeff1;
-  --lu-text: #161823;
-  --lu-text-muted: #6b6f76;
-  --lu-cyan-ink: #007a75;
-  --lu-pink: #fe2c55;
-  --lu-font-display: "Poppins", "Inter", sans-serif;
-  --lu-font-body: "Inter", -apple-system, sans-serif;
-}
-
-.laptop-menus,
-.laptop-menus * {
+.laptop-menus {
+  background: #ffffff;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 36px 20px;
   box-sizing: border-box;
 }
 
-.laptop-menus {
-  background: var(--lu-bg);
-  font-family: var(--lu-font-body);
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 32px 24px;
-}
-
-/* ---------- tabs ---------- */
-.laptop-lists {
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--lu-border-soft);
-}
-.laptop-containers {
+/* Header Section */
+.laptop-section-header {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.laptop-containers::-webkit-scrollbar {
-  display: none;
-}
-.laptop-chars {
-  flex-shrink: 0;
-  font-family: var(--lu-font-display);
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--lu-text-muted);
-  background: none;
-  border: none;
-  padding: 12px 16px;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-.laptop-chars:hover {
-  color: var(--lu-text);
-}
-.laptop-chars.active {
-  color: var(--lu-text);
-  border-color: var(--lu-pink);
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-/* ---------- grid ---------- */
+.laptop-section-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+}
+
+.laptop-sub-tag {
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.laptop-see-all-btn {
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.laptop-see-all-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+/* Demand Tiles (Chuẩn hình ảnh người dùng cung cấp) */
+.laptop-demand-tiles-wrap {
+  margin-bottom: 22px;
+}
+
+.demand-tiles-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.demand-tile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 16px 6px 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.demand-tile-btn:hover {
+  border-color: #d70018;
+  color: #d70018;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(215, 0, 24, 0.12);
+}
+
+.demand-tile-btn.active {
+  border-color: #d70018;
+  background: #fff5f5;
+  color: #d70018;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px #d70018;
+}
+
+.demand-tile-img {
+  width: 44px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Grid Layout */
 .laptop-grid-layouts {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
+
 .laptop-grid-layouts p {
   grid-column: 1 / -1;
   text-align: center;
-  color: var(--lu-text-muted);
+  color: #64748b;
   font-size: 13px;
   padding: 40px 0;
 }
 
-/* ==========================================================================
-   RESPONSIVE
-   ========================================================================== */
+/* Responsive */
 @media (max-width: 1200px) {
-  .laptop-grid-layouts {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
   .laptop-grid-layouts {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 700px) {
-  .laptop-menus {
-    padding: 24px 16px;
-  }
+@media (max-width: 768px) {
   .laptop-grid-layouts {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
-  .laptop-chars {
-    font-size: 11.5px;
-    padding: 8px 13px;
-    max-width: 140px;
-  }
 }
 
-@media (max-width: 380px) {
+@media (max-width: 440px) {
   .laptop-grid-layouts {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .laptop-chars {
-    transition: none;
+    grid-template-columns: 1fr;
   }
 }

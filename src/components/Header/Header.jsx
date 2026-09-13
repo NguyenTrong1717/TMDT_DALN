@@ -168,45 +168,83 @@ const Header = (props) => {
 
   return (
     <header
-      className={`site-header ${isScrolled ? "site-header--compact" : ""}`}
+      className={`site-header ${isScrolled ? "site-header--scrolled" : ""}`}
     >
-      {/* MỚI: thanh thông báo chạy ngang - sẽ ẩn khi cuộn xuống */}
-      <div
-        className={`site-header__marquee ${
-          isScrolled ? "site-header__marquee--hidden" : ""
-        }`}
-      >
-        <div className="site-header__marquee-track">
-          <span className="site-header__marquee-item">
-            Giảm giá đến 50% cho tất cả sản phẩm laptop gaming
+      {/* 1. THANH QUẢNG CÁO CHẠY NGANG ĐỈNH TRANG - SIÊU ĐẸP, MƯỢT MÀ */}
+      <div className="site-top-promo-bar">
+        <div className="site-top-promo-track">
+          <span className="site-top-promo-item">
+            🔥 FLASH SALE HÔM NAY: Nhập mã <strong className="promo-code">GIAREQUA</strong> giảm ngay 500.000đ trực tiếp
           </span>
-          <span className="site-header__marquee-item">
-            Miễn phí vận chuyển toàn quốc cho đơn hàng từ 500.000đ
+          <span className="site-top-promo-item">
+            💥 TRẢ GÓP 0% QUA CCCD / THẺ TÍN DỤNG: Duyệt hồ sơ nhanh chỉ 5 phút
           </span>
-          <span className="site-header__marquee-item">
-            Hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng
+          <span className="site-top-promo-item">
+            🚀 GIAO HỎA TỐC 1H: Miễn phí vận chuyển toàn quốc cho đơn từ 500.000đ
           </span>
-          <span className="site-header__marquee-item">
-            Tặng ngay chuột không dây khi mua PC gaming
+          <span className="site-top-promo-item">
+            🎁 TẶNG COMBO BALO + CHUỘT GAMING 1.200.000Đ KHI MUA LAPTOP & PC
+          </span>
+          <span className="site-top-promo-item">
+            ⭐️ 1 ĐỔI 1 TRONG 30 NGÀY NẾU PHÁT SINH LỖI PHẦN CỨNG CHÍNH HÃNG
           </span>
           {/* Lặp lại để hiệu ứng chạy liên tục không bị đứt đoạn */}
-          <span className="site-header__marquee-item">
-            Giảm giá đến 50% cho tất cả sản phẩm laptop gaming
+          <span className="site-top-promo-item">
+            🔥 FLASH SALE HÔM NAY: Nhập mã <strong className="promo-code">GIAREQUA</strong> giảm ngay 500.000đ trực tiếp
           </span>
-          <span className="site-header__marquee-item">
-            Miễn phí vận chuyển toàn quốc cho đơn hàng từ 500.000đ
+          <span className="site-top-promo-item">
+            💥 TRẢ GÓP 0% QUA CCCD / THẺ TÍN DỤNG: Duyệt hồ sơ nhanh chỉ 5 phút
           </span>
-          <span className="site-header__marquee-item">
-            Hỗ trợ trả góp 0% lãi suất qua thẻ tín dụng
+          <span className="site-top-promo-item">
+            🚀 GIAO HỎA TỐC 1H: Miễn phí vận chuyển toàn quốc cho đơn từ 500.000đ
           </span>
-          <span className="site-header__marquee-item">
-            Tặng ngay chuột không dây khi mua PC gaming
+          <span className="site-top-promo-item">
+            🎁 TẶNG COMBO BALO + CHUỘT GAMING 1.200.000Đ KHI MUA LAPTOP & PC
+          </span>
+          <span className="site-top-promo-item">
+            ⭐️ 1 ĐỔI 1 TRONG 30 NGÀY NẾU PHÁT SINH LỖI PHẦN CỨNG CHÍNH HÃNG
           </span>
         </div>
       </div>
 
-      <div className="site-header__container">
-        <div className="site-header__top">
+      {/* 2. THANH TIỆN ÍCH PHỤ TRÊN CÙNG (Ẩn tự nhiên khi cuộn xuống để header cực kỳ tinh gọn) */}
+      {!isScrolled && (
+        <div className="site-header__utility-bar">
+          <div className="site-header__utility-inner">
+            <div className="utility-left">
+              <span>📍 15 Showroom Toàn Quốc — Trải nghiệm máy trực tiếp trên tay</span>
+            </div>
+            <ul className="utility-menu">
+              <li
+                className="utility-menu-item utility-menu-item--clickable"
+                onClick={() => setActiveModal("GIÁ ƯU ĐÃI NHẤT")}
+              >
+                <MdDiscount />
+                <span>Giá Ưu Đãi Nhất</span>
+              </li>
+              <li
+                className="utility-menu-item utility-menu-item--clickable"
+                onClick={() => navigate("/lien-he")}
+              >
+                <AiOutlineFileProtect />
+                <span>Liên Hệ Với Chúng Tôi</span>
+              </li>
+              <li className="utility-menu-item">
+                <FaShippingFast />
+                <span>Miễn Phí Vận Chuyển</span>
+              </li>
+              <li className="utility-menu-item utility-menu-item--notif">
+                <NotificationBell label="Thông Báo" />
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* 3. THANH HEADER CHÍNH - CỐ ĐỊNH STICKY TOP: 0 - TẤT CẢ LOGO + TÌM KIẾM + GIỎ HÀNG CHUNG 1 HÀNG */}
+      <div className="site-header__main-bar">
+        <div className="site-header__main-inner">
+          {/* Logo */}
           <div className="site-header__logo">
             <Link to="/" className="logo">
               <span className="logo-h">H</span>
@@ -214,133 +252,154 @@ const Header = (props) => {
               <span className="logo-store">Store</span>
             </Link>
           </div>
-          <nav className="site-header__nav">
-            <ul className="site-header__menu">
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable"
-                onClick={() => setActiveModal("HỖ TRỢ TRẢ GÓP")}
-              >
-                <MdOutlineSupportAgent />
-                Hỗ Trợ Trả Góp
-              </li>
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable"
-                onClick={() => setActiveModal("GIÁ ƯU ĐÃI NHẤT")}
-              >
-                <MdDiscount />
-                Giá Ưu Đãi Nhất
-              </li>
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable"
-                onClick={() => navigate("/lien-he")}
-              >
-                <AiOutlineFileProtect />
-                Liên Hệ Với Chúng Tôi
-              </li>
-              <li className="site-header__menu-item">
-                <FaShippingFast />
-                Miễn Phí Vận Chuyển
-              </li>
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable"
-                onClick={() => setActiveModal("HOTLINE")}
-              >
-                <MdOutlineAddIcCall />
-                HOTLINE
-              </li>
 
-              <li className="site-header__menu-item site-header__menu-item--notif ">
-                <NotificationBell label="Thông Báo" />
-              </li>
+          {/* Nút Danh Mục Sản Phẩm */}
+          <button
+            className="site-header__category-btn"
+            type="button"
+            onClick={() => {
+              const navPanel = document.querySelector(".nav-panel");
+              if (navPanel) {
+                navPanel.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else {
+                navigate("/category/top-ban-chay");
+              }
+            }}
+          >
+            <span className="cat-btn-icon">☰</span>
+            <span className="cat-btn-label">Danh Mục</span>
+          </button>
 
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable site-header__cart-item"
-                onClick={() => navigate("/cart")}
-              >
-                <div className="site-header__cart-icon">
-                  <PiShoppingCartDuotone />
-                  <span className="site-header__cart-count">{cartCount}</span>
-                </div>
-                Giỏ Hàng
-              </li>
-
-              <li
-                className="site-header__menu-item site-header__menu-item--clickable site-header__account-wrapper"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAccountMenu(!showAccountMenu);
-                }}
-              >
-                <VscAccount />
-                <span>{isLoggedIn ? currentUser.fullName : "Tài khoản"}</span>
-
-                {showAccountMenu && (
-                  <ul className="site-header__account-menu">
-                    {!isLoggedIn ? (
-                      <>
-                        <li>
-                          <Link to="/login">Đăng nhập</Link>
-                        </li>
-                        <li>
-                          <Link to="/register">Đăng ký</Link>
-                        </li>
-                      </>
-                    ) : (
-                      <>
-                        {isAdmin && (
-                          <li>
-                            <Link to="/admin">Trang Admin</Link>
-                          </li>
-                        )}
-                        <li>
-                          <Link to="/profile">Thông tin cá nhân</Link>
-                        </li>
-                        <li
-                          onClick={handleLogout}
-                          className="site-header__account-menu-logout"
-                        >
-                          Đăng xuất
-                        </li>
-                      </>
-                    )}
-                  </ul>
-                )}
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        {/* MỚI: thanh search - sẽ ẩn khi cuộn xuống */}
-        <div
-          className={`site-header__bottom ${
-            isScrolled ? "site-header__bottom--hidden" : ""
-          }`}
-        >
-          <div className="site-header__bottom-inner">
-            <button className="site-header__category-btn">
-              Danh Mục Sản Phẩm
-            </button>
-            <form
-              className="site-header__search-box"
-              onSubmit={handleSearchSubmit}
+          {/* Form tìm kiếm tích hợp ngay trên thanh chính */}
+          <form
+            className="site-header__search-box"
+            onSubmit={handleSearchSubmit}
+          >
+            <select
+              className="site-header__search-category"
+              onChange={(e) => {
+                if (e.target.value === "Laptop")
+                  navigate("/laptop/laptop-gaming");
+                else if (e.target.value === "PC")
+                  navigate("/category/top-ban-chay");
+                else if (e.target.value === "Con Chuột")
+                  navigate("/component/chuot");
+              }}
             >
-              <select className="site-header__search-category">
-                <option>Danh Mục</option>
-                <option>Laptop</option>
-                <option>PC</option>
-                <option>Con Chuột</option>
-              </select>
-              <input
-                className="site-header__search-input"
-                type="text"
-                placeholder="Bạn cần tìm gì..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button className="site-header__search-btn" type="submit">
-                <IoSearch />
-              </button>
-            </form>
+              <option value="all">Tất cả</option>
+              <option value="Laptop">Laptop</option>
+              <option value="PC">Dàn PC</option>
+              <option value="Con Chuột">Linh Kiện</option>
+            </select>
+            <input
+              className="site-header__search-input"
+              type="text"
+              placeholder="Bạn cần tìm laptop, PC hay linh kiện gì hôm nay..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              className="site-header__search-btn"
+              type="submit"
+              title="Tìm kiếm"
+            >
+              <IoSearch />
+            </button>
+          </form>
+
+          {/* Các nút hành động thuận tiện cho người dùng đi theo khi cuộn */}
+          <div className="site-header__actions">
+            {/* Hỗ Trợ Trả Góp */}
+            <div
+              className="header-action-pill"
+              onClick={() => setActiveModal("HỖ TRỢ TRẢ GÓP")}
+              title="Mua trả góp lãi suất 0%"
+            >
+              <MdOutlineSupportAgent className="action-pill-icon" />
+              <div className="action-pill-text">
+                <span className="pill-sub">Tư vấn</span>
+                <span className="pill-main">Trả Góp 0%</span>
+              </div>
+            </div>
+
+            {/* HOTLINE */}
+            <div
+              className="header-action-pill"
+              onClick={() => setActiveModal("HOTLINE")}
+              title="Tổng đài hỗ trợ khẩn cấp"
+            >
+              <MdOutlineAddIcCall className="action-pill-icon" />
+              <div className="action-pill-text">
+                <span className="pill-sub">Hotline</span>
+                <span className="pill-main">1800.2097</span>
+              </div>
+            </div>
+
+            {/* Giỏ Hàng */}
+            <div
+              className="header-action-pill cart-pill"
+              onClick={() => navigate("/cart")}
+              title="Giỏ hàng mua sắm"
+            >
+              <div className="cart-icon-wrapper">
+                <PiShoppingCartDuotone className="action-pill-icon" />
+                <span className="cart-count-badge">{cartCount}</span>
+              </div>
+              <div className="action-pill-text">
+                <span className="pill-sub">Giỏ hàng</span>
+                <span className="pill-main">({cartCount}) SP</span>
+              </div>
+            </div>
+
+            {/* Tài Khoản */}
+            <div
+              className="header-action-pill account-pill"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAccountMenu(!showAccountMenu);
+              }}
+            >
+              <VscAccount className="action-pill-icon" />
+              <div className="action-pill-text">
+                <span className="pill-sub">{isLoggedIn ? "Xin chào" : "Thành viên"}</span>
+                <span className="pill-main">{isLoggedIn ? currentUser.fullName : "Tài khoản"}</span>
+              </div>
+
+              {showAccountMenu && (
+                <ul className="site-header__account-menu">
+                  {!isLoggedIn ? (
+                    <>
+                      <li>
+                        <Link to="/login">Đăng nhập</Link>
+                      </li>
+                      <li>
+                        <Link to="/register">Đăng ký</Link>
+                      </li>
+                    </>
+                  ) : (
+                    <>
+                      {isAdmin && (
+                        <li>
+                          <Link to="/admin">Trang Admin</Link>
+                        </li>
+                      )}
+                      <li>
+                        <Link to="/profile">Thông tin cá nhân</Link>
+                      </li>
+                      <li
+                        onClick={handleLogout}
+                        className="site-header__account-menu-logout"
+                      >
+                        Đăng xuất
+                      </li>
+                    </>
+                  )}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </div>

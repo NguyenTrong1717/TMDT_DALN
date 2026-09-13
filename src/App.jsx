@@ -30,7 +30,7 @@ import FlashSalePage from "./components/Sidebar/FlashSalePage";
 import VoucherWallet from "./components/Sidebar/VoucherWallet";
 import AdminServiceRequests from "./components/AdminDashboash/AdminServiceRequests";
 import ProDemo from "./components/Sidebar/Prodemo";
-import ChatBox from "./components/ChatboxAI/ChatBox";
+import ChatBot from "./Chat_bot/ChatBot";
 import ProductMangaNew from "./components/Sidebar/ProductMangaNew";
 import ProductManaCategory from "./components/Sidebar/ProductManaCategory";
 import ReviewManager from "./components/AdminDashboash/ReviewManager";
@@ -39,6 +39,7 @@ import WishlistFloatingWidget from "./components/Wishlist/WishlistFloatingWidget
 import Wishlist from "./components/Wishlist/Wishlist";
 import VoucherManager from "./components/AdminDashboash/VoucherManager";
 import ContactPage from "./components/AdminDashboash/ContactPage";
+import BackToTop from "./components/BackToTop/BackToTop";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({ children }) => {
@@ -111,7 +112,8 @@ function App() {
         </Route>
       </Routes>
       <WishlistFloatingWidget />
-      <ChatBox />
+      <ChatBot />
+      <BackToTop />
     </BrowserRouter>
   );
 }

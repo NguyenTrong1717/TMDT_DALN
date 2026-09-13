@@ -13,7 +13,7 @@ const SpecsModal = ({ isOpen, onClose, product }) => {
       /(I5\s\d{5}[F|K]?|I7\s\d{5}[F|K]?|G6405|AMD\sRyzen\s\d[^\s]*)/i;
     const ramRegex = /(RAM\s\d+G(B)?|\s\d+G\sDDR\d?|\s\d+GB)/i;
     const ssdRegex = /(SSD\s\d+G(B)?\s?NVME|SSD\s\d+G(B)?)/i;
-    const vgaRegex = /(VGA\s[^\)]*|GTX\d+[\s\w]*|RTX\d+[\s\w]*)/i;
+    const vgaRegex = /(VGA\s[^)]*|GTX\d+[\s\w]*|RTX\d+[\s\w]*)/i;
 
     // Tìm kiếm vị trí khớp trong tên
     const mainMatch = name.match(mainRegex);
