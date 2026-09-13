@@ -1,32 +1,38 @@
 /**
  * =========================================================
- * TẦNG 4: PRESENTATION LAYER (GIAO DIỆN HỘI THOẠI)
+ * TẦNG 4: PRESENTATION LAYER (GIAO DIỆN HỘI THOẠI FLAGSHIP)
  * File: src/Chat_bot/ChatBot.jsx
- * Nhiệm vụ:
- * 1. Render giao diện chatbox gọn gàng, tự nhiên
- * 2. Gọi tầng RAG Engine (ragEngine.js) để lấy câu trả lời
- * 3. Đồng bộ và lưu lịch sử chat vào db.json
  * =========================================================
  */
 
 import { useState, useEffect, useRef } from "react";
-import { FaCommentDots, FaTimes, FaPaperPlane, FaUser } from "react-icons/fa";
+import {
+  FaTimes,
+  FaPaperPlane,
+  FaUser,
+  FaTrashAlt,
+  FaRobot,
+  FaFire,
+  FaRegLightbulb,
+} from "react-icons/fa";
 import { SiProbot } from "react-icons/si";
+import { BsStars } from "react-icons/bs";
+import { HiSparkles } from "react-icons/hi";
 import { fetchStoreCatalog } from "./knowledge";
 import { executeRAG } from "./ragEngine";
 import "./ChatBot.css";
 
 const API_URL = "http://localhost:3000";
 
-// Các gợi ý câu hỏi phổ biến để khách bấm nhanh
-const SUGGESTED_QUESTIONS = [
-  "Tư vấn PC tầm giá 15 triệu",
-  "Có laptop nào làm đồ họa tốt không?",
-  "Chính sách bảo hành của shop ra sao?",
-  "Shop có hỗ trợ mua trả góp không?",
+// Các gợi ý câu hỏi thông minh theo nhu cầu thực tế
+const QUICK_PROMPTS = [
+  { icon: "💻", text: "Tư vấn PC Gaming tầm giá 15 triệu" },
+  { icon: "🎮", text: "Laptop Gaming trang bị RTX 4060" },
+  { icon: "🛡️", text: "Chính sách bảo hành và 1 đổi 1" },
+  { icon: "💳", text: "Thủ tục mua trả góp 0% qua CCCD" },
+  { icon: "🔥", text: "Mã khuyến mãi & giảm giá hôm nay" },
 ];
 
-// Hàm lấy visitorId để phân biệt lịch sử chat từng người
 const getVisitorId = () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
   if (currentUser?.id) return `user_${currentUser.id}`;
@@ -39,24 +45,46 @@ const getVisitorId = () => {
   return guestId;
 };
 
+const formatTime = (isoString) => {
+  try {
+    const d = isoString ? new Date(isoString) : new Date();
+    return d.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
+
+const INITIAL_BOT_MESSAGE = {
+  id: "init-welcome",
+  sender: "bot",
+  text: "Dạ em chào anh/chị 👋 Em là Trợ lý AI của HCore Store!\n\nEm có thể giúp anh/chị:\n• Tư vấn cấu hình PC Gaming / Đồ họa tối ưu ngân sách\n• Tra cứu giá bán và cấu hình Laptop mới nhất\n• Giải đáp chính sách bảo hành 36 tháng & trả góp 0%\n\nAnh/chị cứ đặt câu hỏi hoặc bấm vào gợi ý bên dưới nhé!",
+  createdAt: new Date().toISOString(),
+};
+
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([INITIAL_BOT_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [catalog, setCatalog] = useState([]);
   const [apiKey] = useState(
-    import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem("gemini_api_key") || ""
+    import.meta.env.VITE_GEMINI_API_KEY ||
+      localStorage.getItem("gemini_api_key") ||
+      "",
   );
 
   const bodyRef = useRef(null);
+  const inputRef = useRef(null);
   const visitorId = useRef(getVisitorId());
   const isSendingRef = useRef(false);
 
-  // 1. Tải kho dữ liệu sản phẩm làm Knowledge Base cho RAG
+  // 1. Tải dữ liệu sản phẩm làm Knowledge Base cho RAG
   useEffect(() => {
-    fetchStoreCatalog().then((data) => setCatalog(data));
+    fetchStoreCatalog().then((data) => setCatalog(data || []));
   }, []);
 
   // 2. Tải lịch sử chat từ db.json
@@ -65,7 +93,7 @@ const ChatBot = () => {
     const loadHistory = async () => {
       try {
         const res = await fetch(
-          `${API_URL}/chatMessages?visitorId=${visitorId.current}&_sort=createdAt`
+          `${API_URL}/chatMessages?visitorId=${visitorId.current}&_sort=createdAt`,
         );
         if (ignore) return;
 
@@ -77,18 +105,9 @@ const ChatBot = () => {
           }
         }
       } catch (err) {
-        console.warn("Chưa kết nối được server chatMessages:", err.message);
+        console.warn("Chưa kết nối server chatMessages:", err.message);
       }
-
-      // Lời chào mặc định ban đầu
-      setMessages([
-        {
-          visitorId: visitorId.current,
-          sender: "bot",
-          text: "Dạ chào bạn 👋 Mình là Trợ lý AI HCore. Bạn cần tư vấn chọn máy, hỏi giá hay cần giải đáp bảo hành cứ nhắn mình nhé!",
-          createdAt: new Date().toISOString(),
-        },
-      ]);
+      setMessages([INITIAL_BOT_MESSAGE]);
     };
 
     loadHistory();
@@ -97,14 +116,24 @@ const ChatBot = () => {
     };
   }, []);
 
-  // 3. Tự động cuộn xuống tin nhắn mới nhất
+  // 3. Tự động cuộn xuống cuối khi có tin nhắn mới
   useEffect(() => {
     if (bodyRef.current) {
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
+      bodyRef.current.scrollTo({
+        top: bodyRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages, isTyping, isOpen]);
 
-  // 4. Lưu tin nhắn vào db.json
+  // Focus ô nhập khi mở khung chat
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 250);
+    }
+  }, [isOpen]);
+
+  // Lưu tin nhắn vào db.json
   const persistMessage = async (msg) => {
     try {
       await fetch(`${API_URL}/chatMessages`, {
@@ -113,11 +142,33 @@ const ChatBot = () => {
         body: JSON.stringify(msg),
       });
     } catch (err) {
-      console.warn("Lưu tin nhắn vào db.json thất bại:", err.message);
+      console.warn("Lưu tin nhắn thất bại:", err.message);
     }
   };
 
-  // 5. Xử lý gửi câu hỏi và kích hoạt RAG Engine
+  // Xóa toàn bộ lịch sử trò chuyện
+  const handleClearHistory = async () => {
+    if (window.confirm("Bạn có muốn làm mới cuộc trò chuyện này không?")) {
+      setMessages([INITIAL_BOT_MESSAGE]);
+      try {
+        const res = await fetch(
+          `${API_URL}/chatMessages?visitorId=${visitorId.current}`,
+        );
+        if (res.ok) {
+          const allMsgs = await res.json();
+          for (const m of allMsgs) {
+            await fetch(`${API_URL}/chatMessages/${m.id}`, {
+              method: "DELETE",
+            });
+          }
+        }
+      } catch {
+        // bỏ qua
+      }
+    }
+  };
+
+  // Gửi tin nhắn và kích hoạt RAG Engine
   const handleSendMessage = async (customQuery = null) => {
     const query = (customQuery || input).trim();
     if (!query || isSendingRef.current) return;
@@ -137,11 +188,13 @@ const ChatBot = () => {
     setIsTyping(true);
 
     try {
-      // Giả lập độ trễ 0.6s - 1s tạo cảm giác bot đang gõ tự nhiên
-      await new Promise((resolve) => setTimeout(resolve, 600 + Math.random() * 400));
+      await new Promise((resolve) =>
+        setTimeout(resolve, 500 + Math.random() * 400),
+      );
 
-      // GỌI TẦNG RAG ENGINE
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "null",
+      );
       const botReplyText = await executeRAG({
         userQuery: query,
         catalog,
@@ -158,6 +211,7 @@ const ChatBot = () => {
 
       setMessages((prev) => [...prev, botMessage]);
       persistMessage(botMessage);
+
       if (!isOpen) setHasUnread(true);
     } catch (error) {
       console.error("Lỗi RAG Chatbot:", error);
@@ -175,25 +229,42 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="rag-chatbot-root">
+    <div className="hcore-chatbot-wrapper">
       {isOpen && (
-        <div className="rag-chatbox-window">
-          {/* HEADER */}
-          <div className="rag-chatbox-header">
-            <div className="rag-header-left">
-              <span className="rag-bot-icon">
-                <SiProbot />
-              </span>
-              <div>
-                <h4>Trợ Lý HCore Store</h4>
-                <span className="rag-status-sub">Trực tuyến</span>
+        <div className="hcore-chat-window">
+          {/* HEADER CHÍNH - SẮC NÉT ĐỎ HCORE GRADIENT */}
+          <div className="hcore-chat-header">
+            <div className="hcore-chat-header-main">
+              <div className="hcore-chat-avatar-glow">
+                <SiProbot className="hcore-chat-avatar-icon" />
+                <span className="hcore-status-pulse" />
+              </div>
+              <div className="hcore-chat-title-group">
+                <div className="hcore-chat-name-row">
+                  <span className="hcore-chat-name">HCore AI Assistant</span>
+                  <span className="hcore-badge-rag">
+                    <HiSparkles /> RAG 2.0
+                  </span>
+                </div>
+                <span className="hcore-chat-sub">
+                  ● Trực tuyến • Tư vấn PC, Laptop & Bảo hành 24/7
+                </span>
               </div>
             </div>
 
-            <div className="rag-header-right">
+            <div className="hcore-chat-header-actions">
               <button
-                className="rag-header-btn"
-                title="Đóng"
+                type="button"
+                className="hcore-header-action-btn"
+                title="Làm mới cuộc trò chuyện"
+                onClick={handleClearHistory}
+              >
+                <FaTrashAlt />
+              </button>
+              <button
+                type="button"
+                className="hcore-header-action-btn hcore-btn-close"
+                title="Đóng cửa sổ chat"
                 onClick={() => {
                   setIsOpen(false);
                   setHasUnread(false);
@@ -204,98 +275,159 @@ const ChatBot = () => {
             </div>
           </div>
 
-          {/* BODY TIN NHẮN */}
-          <div className="rag-chatbox-body" ref={bodyRef}>
+          {/* DẢI BANNER BẢO HÀNH & CAM KẾT CHÍNH HÃNG */}
+          <div className="hcore-chat-promo-ribbon">
+            <span>🛡️ 100% Hàng Chính Hãng</span>
+            <span>•</span>
+            <span>⚡ 1 Đổi 1 trong 30 Ngày</span>
+            <span>•</span>
+            <span>🚀 Trả Góp 0% Duyệt 5P</span>
+          </div>
+
+          {/* VÙNG HIỂN THỊ NỘI DUNG TIN NHẮN */}
+          <div className="hcore-chat-body" ref={bodyRef}>
             {messages.map((msg, index) => (
               <div
-                key={index}
-                className={`rag-msg-row ${
-                  msg.sender === "user" ? "rag-msg-user-row" : "rag-msg-bot-row"
+                key={msg.id || index}
+                className={`hcore-msg-row ${
+                  msg.sender === "user"
+                    ? "hcore-msg-row--user"
+                    : "hcore-msg-row--bot"
                 }`}
               >
                 {msg.sender === "bot" && (
-                  <span className="rag-avatar rag-avatar-bot">
+                  <div className="hcore-msg-avatar hcore-msg-avatar--bot">
                     <SiProbot />
-                  </span>
+                  </div>
                 )}
 
-                <div
-                  className={`rag-bubble ${
-                    msg.sender === "user" ? "rag-bubble-user" : "rag-bubble-bot"
-                  }`}
-                >
-                  {msg.text}
+                <div className="hcore-msg-bubble-wrap">
+                  <div
+                    className={`hcore-msg-bubble ${
+                      msg.sender === "user"
+                        ? "hcore-msg-bubble--user"
+                        : "hcore-msg-bubble--bot"
+                    }`}
+                  >
+                    {msg.sender === "bot" && (
+                      <div className="hcore-bubble-badge">
+                        <BsStars className="badge-sparkle" /> HCore Store AI
+                      </div>
+                    )}
+                    <div className="hcore-bubble-text">{msg.text}</div>
+                  </div>
+                  <span className="hcore-msg-timestamp">
+                    {formatTime(msg.createdAt)}
+                  </span>
                 </div>
 
                 {msg.sender === "user" && (
-                  <span className="rag-avatar rag-avatar-user">
+                  <div className="hcore-msg-avatar hcore-msg-avatar--user">
                     <FaUser />
-                  </span>
+                  </div>
                 )}
               </div>
             ))}
 
             {isTyping && (
-              <div className="rag-msg-row rag-msg-bot-row">
-                <span className="rag-avatar rag-avatar-bot">
+              <div className="hcore-msg-row hcore-msg-row--bot">
+                <div className="hcore-msg-avatar hcore-msg-avatar--bot">
                   <SiProbot />
-                </span>
-                <div className="rag-bubble rag-bubble-bot rag-typing-indicator">
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                </div>
+                <div className="hcore-msg-bubble hcore-msg-bubble--bot hcore-typing-bubble">
+                  <span className="hcore-typing-text">
+                    HCore AI đang truy xuất kho dữ liệu
+                  </span>
+                  <div className="hcore-typing-dots">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* CÂU HỎI GỢI Ý NHANH */}
-          <div className="rag-quick-questions">
-            {SUGGESTED_QUESTIONS.map((q, idx) => (
-              <button
-                key={idx}
-                className="rag-question-chip"
-                onClick={() => handleSendMessage(q)}
-                disabled={isTyping}
-              >
-                {q}
-              </button>
-            ))}
+          {/* THANH GỢI Ý CÂU HỎI NHANH (QUICK CHIPS) */}
+          <div className="hcore-chat-quick-suggestions">
+            <div className="hcore-quick-label">
+              <FaRegLightbulb /> Gợi ý hỏi nhanh:
+            </div>
+            <div className="hcore-quick-chips-scroll">
+              {QUICK_PROMPTS.map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="hcore-quick-chip"
+                  onClick={() => handleSendMessage(q.text)}
+                  disabled={isTyping}
+                >
+                  <span className="chip-icon">{q.icon}</span>
+                  <span className="chip-text">{q.text}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* FOOTER INPUT */}
-          <div className="rag-chatbox-footer">
-            <input
-              type="text"
-              placeholder="Nhập câu hỏi bạn cần tư vấn..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isTyping}
-            />
-            <button
-              className="rag-btn-send"
-              onClick={() => handleSendMessage()}
-              disabled={isTyping || !input.trim()}
-              aria-label="Gửi"
-            >
-              <FaPaperPlane />
-            </button>
+          {/* KHUNG NHẬP LIỆU FOOTER */}
+          <div className="hcore-chat-footer">
+            <div className="hcore-input-container">
+              <input
+                ref={inputRef}
+                type="text"
+                className="hcore-chat-input"
+                placeholder="Hỏi về PC, laptop, linh kiện, bảo hành... (Enter)"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isTyping}
+              />
+              <button
+                type="button"
+                className="hcore-send-btn"
+                onClick={() => handleSendMessage()}
+                disabled={isTyping || !input.trim()}
+                title="Gửi câu hỏi"
+              >
+                <FaPaperPlane />
+              </button>
+            </div>
+            <div className="hcore-chat-watermark">
+              <span>⚡ Trợ lý AI thông minh HCore • Phản hồi chính xác tức thì</span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* NÚT BONG BÓNG MỞ CHAT */}
+      {/* NÚT KÍCH HOẠT NỔI Ở GÓC MÀN HÌNH - PHỐI HỢP CÙNG NÚT LÊN ĐẦU */}
       <button
-        className="rag-floating-trigger"
+        type="button"
+        className={`hcore-floating-trigger ${isOpen ? "hcore-floating-trigger--active" : ""}`}
         onClick={() => {
           setIsOpen(!isOpen);
           setHasUnread(false);
         }}
+        title="Chat với Trợ lý AI HCore"
       >
-        {isOpen ? <FaTimes /> : <FaCommentDots />}
-        {!isOpen && hasUnread && <span className="rag-unread-dot" />}
-        {!isOpen && <span className="rag-trigger-label">Tư vấn trực tuyến</span>}
+        <div className="hcore-trigger-icon-wrap">
+          {isOpen ? (
+            <FaTimes className="trigger-icon trigger-icon-close" />
+          ) : (
+            <SiProbot className="trigger-icon trigger-icon-robot" />
+          )}
+          {!isOpen && <span className="trigger-pulse-ring" />}
+        </div>
+
+        {!isOpen && (
+          <div className="hcore-trigger-label-group">
+            <span className="trigger-label-main">Tư vấn AI 24/7</span>
+            <span className="trigger-label-sub">
+              <span className="online-green-dot" /> Trực tuyến
+            </span>
+          </div>
+        )}
+
+        {!isOpen && hasUnread && <span className="hcore-unread-badge">1</span>}
       </button>
     </div>
   );
