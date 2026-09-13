@@ -30,7 +30,7 @@ import FlashSalePage from "./components/Sidebar/FlashSalePage";
 import VoucherWallet from "./components/Sidebar/VoucherWallet";
 import AdminServiceRequests from "./components/AdminDashboash/AdminServiceRequests";
 import ProDemo from "./components/Sidebar/Prodemo";
-import ChatBox from "./components/ChatboxAI/ChatBox";
+import ChatBot from "./Chat_bot/ChatBot";
 import ProductMangaNew from "./components/Sidebar/ProductMangaNew";
 import ProductManaCategory from "./components/Sidebar/ProductManaCategory";
 import ReviewManager from "./components/AdminDashboash/ReviewManager";
@@ -111,7 +111,7 @@ function App() {
         </Route>
       </Routes>
       <WishlistFloatingWidget />
-      <ChatBox />
+      <ChatBot />
     </BrowserRouter>
   );
 }
