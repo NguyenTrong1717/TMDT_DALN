@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kiến Trúc Hệ Thống HCore RAG Chatbot",
+    "output": "rag-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "full-pipeline",
+        "label": "Toàn bộ luồng RAG",
+        "focus": ["user", "frontend", "fastapi", "guards", "retriever", "generator", "gemini"],
+        "note": "Luồng hoàn chỉnh từ truy vấn người dùng, bảo mật, lọc dữ liệu đến sinh câu trả lời."
+      },
+      {
+        "id": "indexing-flow",
+        "label": "Tầng Vector & Indexing",
+        "focus": ["json_server", "chunker", "fastembed", "retriever"],
+        "note": "Quy trình chuyển đổi danh mục sản phẩm thành Entity Chunks và nhúng vector 384 chiều bằng FastEmbed ONNX."
+      },
+      {
+        "id": "generation-and-fallback",
+        "label": "Tầng sinh văn bản & Fallback",
+        "focus": ["generator", "gemini", "fallback", "frontend"],
+        "note": "Cơ chế ghép System Instruction cho Gemini 3.5 Flash và phương án dự phòng ngoại tuyến đảm bảo tính sẵn sàng 100%."
+      }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Khách hàng", "sublabel": "Browser / Mobile", "pos": [40, 280], "size": [120, 60] },
+    { "id": "frontend", "type": "frontend", "label": "React ChatBot", "sublabel": "Vite Client :5173", "pos": [220, 280], "size": [120, 60], "tag": "Reactive UI" },
+    { "id": "fastapi", "type": "backend", "label": "FastAPI Core", "sublabel": "Uvicorn :8000", "pos": [400, 280], "size": [120, 60], "tag": "REST Engine" },
+    { "id": "guards", "type": "security", "label": "Security Guards", "sublabel": "PII & Safety Filter", "pos": [400, 110], "size": [120, 60], "tag": "3 Lớp lọc" },
+    { "id": "retriever", "type": "backend", "label": "Hybrid Retriever", "sublabel": "Cosine & Rerank", "pos": [580, 280], "size": [120, 60], "tag": "Top-K Search" },
+    { "id": "generator", "type": "backend", "label": "Prompt Engine", "sublabel": "Grounding Context", "pos": [760, 280], "size": [120, 60], "tag": "Augment" },
+    { "id": "gemini", "type": "cloud", "label": "Gemini 3.5 Flash", "sublabel": "Google GenAI API", "pos": [940, 280], "size": [120, 60], "tag": "LLM" },
+    { "id": "json_server", "type": "database", "label": "JSON Server", "sublabel": "db.json :3000", "pos": [220, 440], "size": [120, 60], "tag": "Catalog" },
+    { "id": "chunker", "type": "backend", "label": "Entity Chunker", "sublabel": "Semantic Chunks", "pos": [400, 440], "size": [120, 60], "tag": "RAM Cache" },
+    { "id": "fastembed", "type": "backend", "label": "FastEmbed ONNX", "sublabel": "MiniLM-L12", "pos": [580, 440], "size": [120, 60], "tag": "Local AI" },
+    { "id": "fallback", "type": "backend", "label": "Smart Fallback", "sublabel": "Offline Rules", "pos": [760, 440], "size": [120, 60], "tag": "High Avail" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "HCore Local Infrastructure", "wraps": ["frontend", "fastapi", "guards", "retriever", "generator", "json_server", "chunker", "fastembed", "fallback"] },
+    { "kind": "security-group", "label": "RAG Python Microservice Container (:8000)", "wraps": ["fastapi", "guards", "retriever", "generator", "chunker", "fastembed", "fallback"] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "user", "to": "frontend", "label": "Hỏi đáp", "variant": "emphasis" },
+    { "id": "c2", "from": "frontend", "to": "fastapi", "label": "HTTP", "variant": "emphasis" },
+    { "id": "c3", "from": "fastapi", "to": "guards", "label": "Lọc an toàn", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": -65 },
+    { "id": "c4", "from": "fastapi", "to": "retriever", "label": "Truy xuất", "variant": "emphasis" },
+    { "id": "c5", "from": "json_server", "to": "chunker", "label": "Catalog", "fromSide": "right", "toSide": "left" },
+    { "id": "c6", "from": "chunker", "to": "fastembed", "label": "Chunks", "fromSide": "right", "toSide": "left" },
+    { "id": "c7", "from": "fastembed", "to": "retriever", "label": "Vectors", "fromSide": "top", "toSide": "bottom", "labelDy": -65 },
+    { "id": "c8", "from": "retriever", "to": "generator", "label": "Contexts", "variant": "emphasis" },
+    { "id": "c9", "from": "generator", "to": "gemini", "label": "Prompt", "variant": "emphasis" },
+    { "id": "c10", "from": "generator", "to": "fallback", "label": "Offline", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 65 }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Tầng Dữ Liệu & Vector (Indexing)",
+      "items": [
+        "Entity-based Chunking bảo toàn nguyên vẹn ngữ cảnh từng sản phẩm thay vì cắt theo số ký tự.",
+        "Mô hình Local AI FastEmbed ONNX tạo vector ngữ nghĩa 384 chiều chạy offline siêu tốc (10-20ms).",
+        "Fingerprint Cache trong RAM giúp loại bỏ hoàn toàn việc tính toán vector trùng lặp."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Tầng Truy Xuất & Xếp Hạng (Retrieval & Reranking)",
+      "items": [
+        "Cosine Similarity đo khoảng cách góc giữa câu hỏi và tri thức dựa trên vector L2 chuẩn hóa.",
+        "Regex Parser bóc tách ngân sách tối đa (dưới 15tr) và ngân sách mục tiêu (tầm 20tr).",
+        "Metadata Reranker thưởng điểm cho sản phẩm đúng danh mục và đúng tầm giá khách tìm."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Tầng Bảo Mật & Sinh Phản Hồi (Generation & Guardrails)",
+      "items": [
+        "3 lớp bảo vệ độc lập: Chặn rò rỉ PII, chặn Prompt Injection (DAN/Jailbreak) và lọc Off-topic.",
+        "Google Gemini 3.5 Flash Lite sinh câu trả lời tự nhiên, ngắn gọn và bám sát 100% dữ liệu cửa hàng.",
+        "Cơ chế Smart Local Fallback tự động phản hồi theo mẫu nếu mất kết nối mạng hoặc lỗi API."
+      ]
+    }
+  ]
+}

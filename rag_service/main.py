@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 import uvicorn
 from dotenv import load_dotenv
 
-from rag_engine import execute_rag
+from engine import execute_rag
 
 load_dotenv()
 
