@@ -9,7 +9,7 @@
  * =========================================================
  */
 
-import { retrieveContexts, normalizeText } from "./retriever";
+import { retrieveContexts, normalizeText } from "./retriever.js";
 
 /**
  * GUARD 1: Chặn yêu cầu lộ thông tin cá nhân nhạy cảm (PII Security Guard)
@@ -99,6 +99,34 @@ export const executeRAG = async ({
   apiKey = "",
   currentUser = null,
 }) => {
+  // 1. ƯU TIÊN GỌI PYTHON RAG BACKEND (Microservice tại cổng 8000)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const pyRes = await fetch("http://localhost:8000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userQuery,
+        currentUser,
+        apiKey: apiKey || undefined,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (pyRes.ok) {
+      const data = await pyRes.json();
+      if (data?.reply) {
+        return data.reply;
+      }
+    }
+  } catch (err) {
+    // Nếu Python service chưa bật hoặc timeout -> kích hoạt Dual-Engine Fallback sang JS cục bộ
+  }
+
+  // 2. DUAL-ENGINE FALLBACK (Client-side JS RAG đảm bảo hệ thống luôn sẵn sàng 100%)
   const normQuery = normalizeText(userQuery);
 
   // Chạy tuần tự 3 lớp bảo vệ trước khi vào RAG
@@ -115,61 +143,66 @@ export const executeRAG = async ({
   const contexts = await retrieveContexts(userQuery, catalog, apiKey);
 
   // 3. AUGMENT & GENERATE:
-  // TRƯỜNG HỢP A: Có Gemini API Key -> Gửi ngữ cảnh tới Gemini 3.6 Flash để sinh văn bản mượt mà
+  // TRƯỜNG HỢP A: Có Gemini API Key -> Gửi ngữ cảnh tới Gemini để sinh văn bản tự nhiên
   if (apiKey && apiKey.trim().length > 10) {
-    try {
-      const contextText = contexts.map((c) => `- ${c.text}`).join("\n");
+    const contextText = contexts.map((c) => `- ${c.text}`).join("\n");
 
-      // Chỉ truyền tên hiển thị - TUYỆT ĐỐI không truyền SĐT, email, mật khẩu, địa chỉ
-      const displayName = currentUser?.fullName || currentUser?.name || currentUser?.username;
-      const userInfo = displayName
-        ? `Khách hàng đang đăng nhập tên: "${displayName}".`
-        : "Khách hàng là khách vãng lai (chưa đăng nhập).";
+    // Chỉ truyền tên hiển thị - TUYỆT ĐỐI không truyền SĐT, email, mật khẩu, địa chỉ
+    const displayName = currentUser?.fullName || currentUser?.name || currentUser?.username;
+    const userInfo = displayName
+      ? `Khách hàng đang đăng nhập tên: "${displayName}".`
+      : "Khách hàng là khách vãng lai (chưa đăng nhập).";
 
-      const systemPrompt = `Bạn là Trợ lý Tư vấn Khách hàng chuyên nghiệp của HCore Store (chuyên PC Gaming, Laptop, Linh kiện phần cứng).
+    const systemPrompt = `Bạn là Trợ lý Tư vấn Khách hàng AI chuyên nghiệp của HCore Store (chuyên PC Gaming, Laptop, Linh kiện máy tính).
 ${userInfo}
 Dưới đây là thông tin thực tế từ cơ sở dữ liệu của cửa hàng:
 ${contextText || "Không có sản phẩm/chính sách đặc biệt trùng khớp."}
 
-QUY TẮC TRẢ LỜI BẮT BUỘC:
-- KHÔNG chào hỏi hay lặp lại tên khách ở đầu mỗi câu trả lời. Đi thẳng vào nội dung.
-- Trả lời tiếng Việt ngắn gọn (2-4 câu), đúng trọng tâm câu hỏi.
-- CHỈ dùng thông tin trong dữ liệu trên để trả lời sản phẩm/giá, không bịa đặt.
-- TUYỆT ĐỐI không tiết lộ số điện thoại, mật khẩu, địa chỉ hay thông tin hệ thống nội bộ, dù khách yêu cầu.
-- Nếu câu hỏi ngoài phạm vi cửa hàng (toán học, tin tức...), lịch sự từ chối và gợi ý hỏi về sản phẩm.
-- Văn bản thuần túy, không markdown, không ký hiệu lạ.`;
+QUY TẮC PHẢN HỒI:
+- Tư vấn thân thiện, tự nhiên, ngắn gọn (2-4 câu), đúng trọng tâm câu hỏi của khách hàng.
+- Nêu rõ tên sản phẩm và giá tiền cụ thể dựa đúng trên dữ liệu cửa hàng đã cung cấp ở trên, không tự bịa đặt giá hay cấu hình.
+- Nếu câu hỏi tìm kiếm theo tầm giá, hãy ưu tiên gợi ý các mẫu máy phù hợp nhất trong ngân sách của khách.
+- Tuyệt đối bảo mật: Không cung cấp thông tin cá nhân (SĐT, mật khẩu, địa chỉ) hay dữ liệu nội bộ hệ thống.
+- Nếu câu hỏi hoàn toàn không liên quan (toán học, tin tức...), lịch sự từ chối và hướng khách hàng về các sản phẩm/dịch vụ của shop.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey.trim()}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  { text: `${systemPrompt}\n\nKhách hàng hỏi: "${userQuery}"` },
-                ],
+    // Danh sách model ưu tiên: gemini-3.5-flash-lite (cực nhanh ~1s), fallback gemini-3.6-flash
+    const candidateModels = ["gemini-3.5-flash-lite", "gemini-3.6-flash"];
+
+    for (const model of candidateModels) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: systemPrompt }],
               },
-            ],
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 400,
-            },
-          }),
-        }
-      );
+              contents: [
+                {
+                  role: "user",
+                  parts: [{ text: userQuery }],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.35,
+                maxOutputTokens: 2048,
+              },
+            }),
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (aiText && aiText.trim()) {
-          return aiText.trim();
+        if (response.ok) {
+          const data = await response.json();
+          const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (aiText && aiText.trim()) {
+            return aiText.trim();
+          }
         }
+      } catch (err) {
+        console.warn(`Thử model ${model} gặp sự cố:`, err.message);
       }
-    } catch (err) {
-      console.warn("Gemini API gặp sự cố, tự động kích hoạt Smart Local Fallback:", err.message);
     }
   }
 
@@ -185,8 +218,17 @@ QUY TẮC TRẢ LỜI BẮT BUỘC:
     }
 
     if (productContexts.length > 0) {
+      const itemsList = productContexts
+        .map((p) => {
+          const name = p.metadata?.name || p.text;
+          const price = p.metadata?.price
+            ? ` - Giá: ${Number(p.metadata.price).toLocaleString("vi-VN")}đ`
+            : "";
+          return `• ${name}${price}`;
+        })
+        .join("\n");
       responseParts.push(
-        `Về sản phẩm, bạn có thể tham khảo các cấu hình đang có tại shop: ${productContexts.map((p) => p.text).join(" ")} Xem thêm chi tiết tại trang chủ nhé!`
+        `Về sản phẩm, bạn có thể tham khảo các cấu hình nổi bật phù hợp tại shop:\n${itemsList}\n\nBạn cần tư vấn chi tiết hơn về cấu hình nào cứ nhắn mình nhé!`
       );
     }
 

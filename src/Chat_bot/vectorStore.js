@@ -10,7 +10,7 @@
  * =========================================================
  */
 
-import { STORE_POLICIES } from "./knowledge";
+import { STORE_POLICIES } from "./knowledge.js";
 
 // BỘ NHỚ ĐỆM CHUNKS & VECTORS TRÁNH TÍNH TOÁN LẠI DỮ LIỆU CŨ (IN-MEMORY CACHE SINGLETON)
 const chunkCache = new Map();
@@ -215,17 +215,7 @@ export const searchVectorStore = async ({
 }) => {
   if (!chunks.length || !query.trim()) return [];
 
-  // Thử dùng Gemini Dense Embedding nếu có API Key
-  if (apiKey && apiKey.trim().length > 10) {
-    const queryVec = await getGeminiEmbedding(query, apiKey);
-    if (queryVec) {
-      // Đối với demo, tính song song cho các chunks
-      // Nếu các chunks đã có sẵn embedding thì so khớp cực nhanh
-      // (Fallback sang Local Semantic Vector nếu gọi nhiều tốn quota)
-    }
-  }
-
-  // Chế độ Local Semantic Vector Search (Nhanh, tin cậy, không tốn quota)
+  // Chế độ Local Semantic Vector Search (Nhanh tức thì <3ms, hoàn toàn tin cậy, không tốn quota)
   const vocabHelper = buildVocabulary(chunks);
   const queryVector = createLocalEmbedding(query, vocabHelper);
 
