@@ -175,7 +175,19 @@ const Header = (props) => {
       <div className="site-top-promo-bar">
         <div className="site-top-promo-track">
           <span className="site-top-promo-item">
-            🔥 FLASH SALE HÔM NAY: Nhập mã <strong className="promo-code">GIAREQUA</strong> giảm ngay 500.000đ trực tiếp
+            🔥 FLASH SALE HÔM NAY: Nhập mã{" "}
+            <strong
+              className="promo-code"
+              title="Nhấp để copy mã giảm giá"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard?.writeText("GIAREQUA");
+                toast.success("Đã sao chép mã giảm giá GIAREQUA (-500.000đ)!");
+              }}
+            >
+              GIAREQUA
+            </strong>{" "}
+            giảm ngay 500.000đ trực tiếp
           </span>
           <span className="site-top-promo-item">
             💥 TRẢ GÓP 0% QUA CCCD / THẺ TÍN DỤNG: Duyệt hồ sơ nhanh chỉ 5 phút
@@ -190,19 +202,31 @@ const Header = (props) => {
             ⭐️ 1 ĐỔI 1 TRONG 30 NGÀY NẾU PHÁT SINH LỖI PHẦN CỨNG CHÍNH HÃNG
           </span>
           {/* Lặp lại để hiệu ứng chạy liên tục không bị đứt đoạn */}
-          <span className="site-top-promo-item">
-            🔥 FLASH SALE HÔM NAY: Nhập mã <strong className="promo-code">GIAREQUA</strong> giảm ngay 500.000đ trực tiếp
+          <span className="site-top-promo-item" aria-hidden="true">
+            🔥 FLASH SALE HÔM NAY: Nhập mã{" "}
+            <strong
+              className="promo-code"
+              title="Nhấp để copy mã giảm giá"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard?.writeText("GIAREQUA");
+                toast.success("Đã sao chép mã giảm giá GIAREQUA (-500.000đ)!");
+              }}
+            >
+              GIAREQUA
+            </strong>{" "}
+            giảm ngay 500.000đ trực tiếp
           </span>
-          <span className="site-top-promo-item">
+          <span className="site-top-promo-item" aria-hidden="true">
             💥 TRẢ GÓP 0% QUA CCCD / THẺ TÍN DỤNG: Duyệt hồ sơ nhanh chỉ 5 phút
           </span>
-          <span className="site-top-promo-item">
+          <span className="site-top-promo-item" aria-hidden="true">
             🚀 GIAO HỎA TỐC 1H: Miễn phí vận chuyển toàn quốc cho đơn từ 500.000đ
           </span>
-          <span className="site-top-promo-item">
+          <span className="site-top-promo-item" aria-hidden="true">
             🎁 TẶNG COMBO BALO + CHUỘT GAMING 1.200.000Đ KHI MUA LAPTOP & PC
           </span>
-          <span className="site-top-promo-item">
+          <span className="site-top-promo-item" aria-hidden="true">
             ⭐️ 1 ĐỔI 1 TRONG 30 NGÀY NẾU PHÁT SINH LỖI PHẦN CỨNG CHÍNH HÃNG
           </span>
         </div>
