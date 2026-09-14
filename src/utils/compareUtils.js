@@ -27,7 +27,7 @@ export const TABLE_DETAIL_PATH = {
   ProductPagies: (id) => `/menu/${id}`,
   ProductMenus: (id) => `/menu/${id}`,
   appliances: (id) => `/appliance/${id}`,
-  demoUnits: (id) => `/proDemo`,
+  demoUnits: () => `/proDemo`,
 };
 
 function safeParse(raw) {

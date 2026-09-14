@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { AiFillCheckCircle } from "react-icons/ai";
-import { PiShoppingCartDuotone } from "react-icons/pi";
-import { toast } from "sonner";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../../components/Sevicer/Sevicer";
+import FacetedFilterBar from "../FacetedFilter/FacetedFilterBar";
+import ProductCard from "../ProductCard/ProductCard";
+import SeoArticleSection from "../SeoContent/SeoArticleSection";
 import "./CategoryPage.css";
 
 const TABS = [
@@ -32,6 +32,7 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilters, setActiveFilters] = useState({});
 
   const activeTab = TABS.find((t) => t.category === category) || TABS[0];
 
@@ -54,29 +55,45 @@ const CategoryPage = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [category, currentPage]);
 
-  const sorted = [...allItems].sort((a, b) => {
-    if (sort === "price-asc") return a.price - b.price;
-    if (sort === "price-desc") return b.price - a.price;
-    if (sort === "discount-desc") return (b.discount || 0) - (a.discount || 0);
-    return 0;
-  });
+  // Apply faceted filters
+  const filteredItems = useMemo(() => {
+    let result = [...allItems];
 
-  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE);
-  const paginated = sorted.slice(
+    if (activeFilters.price) {
+      if (activeFilters.price === "p-under-10") result = result.filter((item) => item.price < 10000000);
+      else if (activeFilters.price === "p-10-15")
+        result = result.filter((item) => item.price >= 10000000 && item.price <= 15000000);
+      else if (activeFilters.price === "p-15-25")
+        result = result.filter((item) => item.price >= 15000000 && item.price <= 25000000);
+      else if (activeFilters.price === "p-above-25")
+        result = result.filter((item) => item.price > 25000000);
+    }
+
+    if (activeFilters.ram) {
+      if (activeFilters.ram === "ram-16") result = result.filter((item) => item.name?.includes("16G") || item.name?.includes("16GB"));
+      else if (activeFilters.ram === "ram-32") result = result.filter((item) => item.name?.includes("32G") || item.name?.includes("32GB"));
+    }
+
+    if (activeFilters.vga) {
+      if (activeFilters.vga === "vga-4060") result = result.filter((item) => item.name?.includes("4060"));
+      else if (activeFilters.vga === "vga-3060") result = result.filter((item) => item.name?.includes("3060"));
+      else if (activeFilters.vga === "vga-4070") result = result.filter((item) => item.name?.includes("4070"));
+    }
+
+    // Sort
+    return result.sort((a, b) => {
+      if (sort === "price-asc") return a.price - b.price;
+      if (sort === "price-desc") return b.price - a.price;
+      if (sort === "discount-desc") return (b.discount || 0) - (a.discount || 0);
+      return 0;
+    });
+  }, [allItems, sort, activeFilters]);
+
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  const paginated = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
-
-  const handleAddToCart = (e, item) => {
-    e.preventDefault();
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!currentUser) {
-      toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
-      navigate("/login");
-      return;
-    }
-    toast.success(`Đã thêm "${item.name}" vào giỏ hàng!`);
-  };
 
   return (
     <>
@@ -110,12 +127,21 @@ const CategoryPage = () => {
       {/* MAIN */}
       <div className="cp-page">
         <div className="cp-container">
+          {/* FACETED FILTER BAR */}
+          <FacetedFilterBar
+            onFilterChange={(filters) => {
+              setActiveFilters(filters);
+              setCurrentPage(1);
+            }}
+            totalCount={filteredItems.length}
+          />
+
           {/* TOOLBAR */}
           <div className="cp-toolbar">
             <div className="cp-toolbar__left">
               <h1 className="cp-title">{activeTab.label}</h1>
               {!loading && (
-                <span className="cp-count">{allItems.length} sản phẩm</span>
+                <span className="cp-count">{filteredItems.length} sản phẩm</span>
               )}
             </div>
             <div className="cp-toolbar__right">
@@ -137,57 +163,24 @@ const CategoryPage = () => {
             </div>
           </div>
 
-          {/* GRID */}
+          {/* 6-LAYER PRODUCT GRID */}
           {loading ? (
             <div className="cp-loading">Đang tải sản phẩm...</div>
           ) : paginated.length === 0 ? (
             <div className="cp-empty">
-              <p>Không có sản phẩm nào trong danh mục này.</p>
+              <p>Không có sản phẩm nào phù hợp với bộ lọc này.</p>
               <Link to="/">Quay lại trang chủ</Link>
             </div>
           ) : (
             <div className="cp-grid">
               {paginated.map((item) => (
-                <Link
-                  to={`/product/${item.id}`}
-                  className="cp-card-link"
-                  key={item.id}
-                >
-                  <div className="cp-card">
-                    {item.discount && (
-                      <div className="cp-card__badge">-{item.discount}%</div>
-                    )}
-                    <div className="cp-card__img">
-                      <img src={item.image} alt={item.name} />
-                    </div>
-                    <div className="cp-card__info">
-                      <h4 className="cp-card__name">{item.name}</h4>
-                      <p className="cp-card__status">
-                        <AiFillCheckCircle className="cp-card__status-icon" />
-                        {item.status || "Còn hàng"}
-                      </p>
-                      <div className="cp-card__price-row">
-                        <div className="cp-card__prices">
-                          <span className="cp-card__price">
-                            {item.price ? item.price.toLocaleString() : 0}đ
-                          </span>
-                          {item.oldPrice && (
-                            <span className="cp-card__old-price">
-                              {item.oldPrice.toLocaleString()}đ
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          className="cp-card__cart-btn"
-                          title="Thêm vào giỏ"
-                          onClick={(e) => handleAddToCart(e, item)}
-                        >
-                          <PiShoppingCartDuotone />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <div key={item.id} className="cp-card-item-wrapper">
+                  <ProductCard
+                    product={item}
+                    targetUrl={`/product/${item.id}`}
+                    fromTable="catenogies"
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -224,6 +217,9 @@ const CategoryPage = () => {
           )}
         </div>
       </div>
+
+      {/* SEO ARTICLE SECTION */}
+      <SeoArticleSection categoryTitle={activeTab.label} />
 
       <Sevicer />
       <FooterUser />

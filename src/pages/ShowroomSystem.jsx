@@ -1,4 +1,3 @@
-import React from "react";
 import "./ShowroomSystem.css";
 import { FaMapSigns, FaCameraRetro } from "react-icons/fa";
 

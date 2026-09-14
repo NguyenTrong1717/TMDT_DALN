@@ -182,6 +182,7 @@ const Admin = () => {
             className="logout-btn"
             onClick={() => {
               localStorage.removeItem("currentUser");
+              window.dispatchEvent(new Event("authChange"));
               navigate("/login");
             }}
           >

@@ -39,6 +39,7 @@ import WishlistFloatingWidget from "./components/Wishlist/WishlistFloatingWidget
 import Wishlist from "./components/Wishlist/Wishlist";
 import VoucherManager from "./components/AdminDashboash/VoucherManager";
 import ContactPage from "./components/AdminDashboash/ContactPage";
+import BackToTop from "./components/BackToTop/BackToTop";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({ children }) => {
@@ -112,6 +113,7 @@ function App() {
       </Routes>
       <WishlistFloatingWidget />
       <ChatBot />
+      <BackToTop />
     </BrowserRouter>
   );
 }

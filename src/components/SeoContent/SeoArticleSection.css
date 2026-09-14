@@ -1,0 +1,303 @@
+/* ==========================================================================
+   SeoArticleSection.css — Khối nội dung SEO & Cẩm nang tư vấn chân trang
+   ========================================================================== */
+
+.seo-article-section {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 40px 0;
+  margin-top: 30px;
+}
+
+.seo-article-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.seo-header {
+  margin-bottom: 24px;
+}
+
+.seo-main-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.3px;
+}
+
+.seo-lead {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Mục lục bài viết (Table of Contents) */
+.seo-toc-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+
+.seo-toc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.toc-icon {
+  color: #dc2626;
+  font-size: 15px;
+}
+
+.seo-toc-header h3 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.seo-toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seo-toc-list a {
+  color: #2563eb;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.seo-toc-list a:hover {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+/* Content Body & Collapsible Gradient */
+.seo-content-body {
+  position: relative;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.seo-content-body.collapsed {
+  max-height: 280px;
+}
+
+.seo-content-body.expanded {
+  max-height: 3500px;
+}
+
+.seo-content-body.collapsed::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 140px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.95) 80%, #ffffff 100%);
+  pointer-events: none;
+}
+
+.seo-paragraph {
+  margin-bottom: 28px;
+}
+
+.seo-paragraph h3 {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 12px 0;
+}
+
+.seo-paragraph p {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+}
+
+.seo-paragraph ul {
+  padding-left: 20px;
+  margin: 0 0 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seo-paragraph li {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Bảng giá tóm tắt */
+.seo-table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin: 16px 0;
+}
+
+.seo-price-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.seo-price-table th {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+  padding: 12px 14px;
+  border-bottom: 2px solid #cbd5e1;
+}
+
+.seo-price-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.seo-price-table tr:hover td {
+  background: #f8fafc;
+}
+
+.product-name-td {
+  color: #0f172a;
+  max-width: 320px;
+}
+
+.price-highlight-td {
+  color: #dc2626;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stock-tag-green {
+  color: #16a34a;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* FAQ Accordion */
+.seo-faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.seo-faq-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.seo-faq-item.active {
+  border-color: #dc2626;
+}
+
+.seo-faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f8fafc;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.faq-q-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.faq-q-icon {
+  color: #dc2626;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.faq-arrow {
+  font-size: 12px;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.faq-arrow.rotate {
+  transform: rotate(180deg);
+  color: #dc2626;
+}
+
+.seo-faq-answer {
+  padding: 14px 16px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.seo-faq-answer p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Expand Button */
+.seo-expand-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.seo-toggle-btn {
+  background: #ffffff;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+}
+
+.seo-toggle-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.25);
+}
+
+.btn-arrow {
+  font-size: 11px;
+  transition: transform 0.2s ease;
+}
+
+.btn-arrow.rotate {
+  transform: rotate(180deg);
+}
