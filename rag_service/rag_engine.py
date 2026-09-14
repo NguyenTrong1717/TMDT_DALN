@@ -15,9 +15,7 @@ import httpx
 from dotenv import load_dotenv
 
 # Đọc file .env từ thư mục rag_service và thư mục gốc nếu có
-env_path = os.path.join(os.path.dirname(__file__), ".env")
-if os.path.exists(env_path):
-    load_dotenv(env_path)
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("VITE_GEMINI_API_KEY", "")
@@ -72,18 +70,11 @@ chunk_cache: Dict[str, Dict[str, Any]] = {}
 
 
 def normalize_text(text: str) -> str:
-    """Chuẩn hóa chuỗi tiếng Việt: bỏ dấu, viết thường, loại bỏ ký tự lạ."""
+    """Chuẩn hóa chuỗi tiếng Việt: bỏ dấu, viết thường."""
     if not text:
         return ""
-    # Chuyển về lowercase
-    text = text.lower()
-    # Phân rã ký tự có dấu
-    text = unicodedata.normalize("NFD", text)
-    # Loại bỏ dấu kết hợp
-    text = re.sub(r"[\u0300-\u036f]", "", text)
-    # Đổi chữ đ/Đ thành d
-    text = text.replace("đ", "d").replace("Đ", "d")
-    return text.strip()
+    decomposed = unicodedata.normalize("NFD", text.lower().replace("đ", "d").replace("Đ", "d"))
+    return re.sub(r"[\u0300-\u036f]", "", decomposed).strip()
 
 
 def parse_budget_and_category(query: str) -> Dict[str, Any]:
@@ -127,57 +118,30 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
     catalog: List[Dict[str, Any]] = []
     try:
         async with httpx.AsyncClient(timeout=4.0) as client:
-            pc_res, laptop_res, event_res, prod_res = await asyncio.gather(
+            responses = await asyncio.gather(
                 client.get(f"{api_url}/catenogies"),
                 client.get(f"{api_url}/LaptopUser"),
                 client.get(f"{api_url}/eventList"),
                 client.get(f"{api_url}/products"),
                 return_exceptions=True,
             )
-
-            if isinstance(pc_res, httpx.Response) and pc_res.status_code == 200:
-                for p in pc_res.json():
-                    catalog.append({
-                        "id": p.get("id"),
-                        "name": p.get("name"),
-                        "price": float(p.get("price") or 0),
-                        "type": "PC Gaming / Đồ họa",
-                        "category": "pc",
-                        "discount": p.get("discount"),
-                    })
-
-            if isinstance(laptop_res, httpx.Response) and laptop_res.status_code == 200:
-                for l in laptop_res.json():
-                    catalog.append({
-                        "id": l.get("id"),
-                        "name": l.get("name"),
-                        "price": float(l.get("price") or 0),
-                        "type": "Laptop",
-                        "category": "laptop",
-                        "discount": l.get("discount"),
-                    })
-
-            if isinstance(event_res, httpx.Response) and event_res.status_code == 200:
-                for e in event_res.json():
-                    catalog.append({
-                        "id": e.get("id"),
-                        "name": e.get("name"),
-                        "price": float(e.get("price") or 0),
-                        "type": "Linh kiện",
-                        "category": "component",
-                        "discount": e.get("discount"),
-                    })
-
-            if isinstance(prod_res, httpx.Response) and prod_res.status_code == 200:
-                for pr in prod_res.json():
-                    catalog.append({
-                        "id": pr.get("id"),
-                        "name": pr.get("name"),
-                        "price": float(pr.get("price") or 0),
-                        "type": "Thiết bị",
-                        "category": "general",
-                        "discount": pr.get("discount"),
-                    })
+            specs = [
+                ("PC Gaming / Đồ họa", "pc"),
+                ("Laptop", "laptop"),
+                ("Linh kiện", "component"),
+                ("Thiết bị", "general"),
+            ]
+            for res, (item_type, cat) in zip(responses, specs):
+                if isinstance(res, httpx.Response) and res.status_code == 200:
+                    for item in res.json():
+                        catalog.append({
+                            "id": item.get("id"),
+                            "name": item.get("name"),
+                            "price": float(item.get("price") or 0),
+                            "type": item_type,
+                            "category": cat,
+                            "discount": item.get("discount"),
+                        })
     except Exception as err:
         print(f"[RAG] Cảnh báo: Không thể tải catalog từ json-server: {err}")
     return catalog
@@ -243,41 +207,24 @@ def tokenize(text: str) -> List[str]:
 
 
 def build_vocabulary(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
-    vocab_map: Dict[str, int] = {}
-    index = 0
-    for chunk in chunks:
-        words = tokenize(chunk["text"])
-        for w in words:
-            if w not in vocab_map:
-                vocab_map[w] = index
-                index += 1
-    return {"vocab_map": vocab_map, "size": index}
+    vocab = {w: i for i, w in enumerate(dict.fromkeys(w for c in chunks for w in tokenize(c["text"])))}
+    return {"vocab_map": vocab, "size": len(vocab)}
 
 
 def create_local_embedding(text: str, vocab_helper: Dict[str, Any]) -> List[float]:
     """Tạo Dense Vector đặc trưng tần số từ và chuẩn hóa L2 Norm."""
-    vocab_map = vocab_helper["vocab_map"]
-    size = vocab_helper["size"]
+    vocab_map, size = vocab_helper["vocab_map"], vocab_helper["size"]
     vec = [0.0] * size
-    words = tokenize(text)
-    for w in words:
+    for w in tokenize(text):
         if w in vocab_map:
             vec[vocab_map[w]] += 1.0
-
-    # Chuẩn hóa L2 Norm
-    sum_sq = sum(v * v for v in vec)
-    if sum_sq > 0:
-        norm = math.sqrt(sum_sq)
-        vec = [v / norm for v in vec]
-    return vec
+    norm = math.hypot(*vec)
+    return [v / norm for v in vec] if norm > 0 else vec
 
 
 def compute_cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
     """Tính Cosine Similarity giữa 2 vector."""
-    if not vec_a or not vec_b or len(vec_a) != len(vec_b):
-        return 0.0
-    dot = sum(a * b for a, b in zip(vec_a, vec_b))
-    return dot
+    return sum(a * b for a, b in zip(vec_a, vec_b)) if vec_a and vec_b else 0.0
 
 
 async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 12) -> List[Dict[str, Any]]:

@@ -117,12 +117,10 @@ const ChatBot = () => {
 
     window.addEventListener("authChange", handleAuthSync);
     window.addEventListener("storage", handleAuthSync);
-    const interval = setInterval(handleAuthSync, 800);
 
     return () => {
       window.removeEventListener("authChange", handleAuthSync);
       window.removeEventListener("storage", handleAuthSync);
-      clearInterval(interval);
     };
   }, []);
 
@@ -202,11 +200,11 @@ const ChatBot = () => {
         );
         if (res.ok) {
           const allMsgs = await res.json();
-          for (const m of allMsgs) {
-            await fetch(`${API_URL}/chatMessages/${m.id}`, {
-              method: "DELETE",
-            });
-          }
+          await Promise.all(
+            allMsgs.map((m) =>
+              fetch(`${API_URL}/chatMessages/${m.id}`, { method: "DELETE" }),
+            ),
+          );
         }
       } catch {
         // bỏ qua
