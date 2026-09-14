@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "TMDT_DALN - VNPAY Sandbox",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Tạo đơn test qua backend, mở paymentUrl trong trình duyệt, chọn ATM / NCB để nhập thẻ thử. Send tạo dữ liệu đơn trong db.json; không chạy Collection Runner trên dữ liệu cần giữ. Không cần đưa merchant secret vào Postman."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000"
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "fromTable",
+      "value": "catenogies"
+    },
+    {
+      "key": "productId",
+      "value": "1"
+    },
+    {
+      "key": "requestId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "lookupToken",
+      "value": ""
+    },
+    {
+      "key": "paymentUrl",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Tạo đơn và lấy paymentUrl",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.variables.get(\"userId\")) throw new Error(\"Điền userId của tài khoản demo trong Variables trước khi Send.\");",
+              "if (!pm.collectionVariables.get(\"requestId\")) pm.collectionVariables.set(\"requestId\", pm.variables.replaceIn(\"{{$guid}}\"));",
+              "[\"paymentUrl\", \"orderId\", \"lookupToken\"].forEach(key => pm.collectionVariables.unset(key));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Backend tạo hoặc trả lại đơn\", () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));",
+              "if ([200, 201].includes(pm.response.code)) {",
+              "  const data = pm.response.json();",
+              "  [\"paymentUrl\", \"orderId\", \"lookupToken\"].forEach(key => pm.collectionVariables.set(key, data[key] || \"\"));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/payments/vnpay/create",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requestId\": \"{{requestId}}\",\n  \"checkoutMode\": \"buy_now\",\n  \"paymentMethod\": \"vnpay\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"fromTable\": \"{{fromTable}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"voucherCode\": null,\n  \"customer\": {\n    \"fullName\": \"Khach thu nghiem\",\n    \"phone\": \"0900000000\",\n    \"email\": \"test@example.com\",\n    \"address\": \"Ha Noi\",\n    \"note\": \"Don thu nghiem Postman\"\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "description": "Giữ requestId để gửi lại cùng đơn. Xóa requestId trong Variables khi muốn tạo đơn test khác. Sao chép paymentUrl từ response và mở bằng trình duyệt."
+      }
+    },
+    {
+      "name": "2. Kiểm tra trạng thái sau thanh toán",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/payments/result/{{lookupToken}}",
+        "description": "Return chưa đủ để paid; backend cần IPN đã xác minh. Không gửi callback thành công giả."
+      }
+    },
+    {
+      "name": "3. Xem đơn của tài khoản demo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-user-id",
+            "value": "{{userId}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/orders/mine"
+      }
+    }
+  ]
+}

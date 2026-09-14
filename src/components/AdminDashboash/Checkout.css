@@ -175,6 +175,16 @@
   flex-shrink: 0;
 }
 
+.pay-icon-brand {
+  border: 1px solid #e2e8f0;
+}
+
+.pay-icon-brand img {
+  display: block;
+  width: 32px;
+  height: auto;
+}
+
 .pay-label {
   display: flex;
   flex-direction: column;
@@ -446,6 +456,46 @@
   border-radius: 8px;
   font-size: 13px;
   color: #374151;
+}
+
+/* ── VNPAY SANDBOX ── */
+.vnpay-sandbox-box {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px solid #93c5fd;
+  border-radius: var(--co-radius);
+  background: #eff6ff;
+  color: #1e3a8a;
+  animation: fadeInDown 0.3s ease;
+}
+
+.vnpay-sandbox-logo {
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: #005baa;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.vnpay-sandbox-box div:nth-child(2) { flex: 1; }
+.vnpay-sandbox-box strong { display: block; margin-bottom: 3px; }
+.vnpay-sandbox-box p {
+  margin: 0;
+  color: #475569;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.vnpay-sandbox-box > span {
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 800;
 }
 
 /* ── KHUNG COD ── */

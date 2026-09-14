@@ -5,10 +5,6 @@ import {
   FaUser,
   FaCreditCard,
   FaTag,
-  FaChevronDown,
-  FaCopy,
-  FaCheck,
-  FaQrcode,
   FaShieldAlt,
   FaTruck,
   FaHeadset,
@@ -18,19 +14,7 @@ import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./Checkout.css";
 
-const API_URL = "http://localhost:3000";
-
-const BANK_CONFIG = {
-  bankId: "MB",
-  bankName: "MB Bank (Ngân hàng Quân Đội)",
-  accountNo: "0911108133",
-  accountName: "NGUYEN TRONG",
-};
-
-const MOMO_CONFIG = {
-  phone: "0911108133",
-  accountName: "NGUYEN TRONG",
-};
+const API_URL = "http://127.0.0.1:3000";
 
 const cleanPrice = (priceInput) => {
   if (typeof priceInput === "number") return priceInput;
@@ -45,32 +29,19 @@ const cleanPrice = (priceInput) => {
 
 const formatPrice = (amount) => amount.toLocaleString("vi-VN") + "₫";
 
-const generateOrderCode = () => {
-  const now = new Date();
-  return `DH-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
-};
-
 const PAYMENT_METHODS = [
   {
     value: "cod",
-    label: "Thanh toán khi nhận hàng (COD)",
+    label: "Tiền mặt khi nhận hàng (COD)",
     desc: "Thanh toán bằng tiền mặt khi nhận kiện hàng",
     icon: "💵",
     iconBg: "#fef3c7",
   },
   {
-    value: "bank",
-    label: "Chuyển khoản VietQR (Ngân hàng)",
-    desc: "Quét mã QR chuyển khoản tự động tức thì",
-    icon: "🏦",
-    iconBg: "#fee2e2",
-  },
-  {
-    value: "momo",
-    label: "Ví điện tử MoMo",
-    desc: "Thanh toán qua app MoMo hoặc số điện thoại",
-    icon: "📱",
-    iconBg: "#fce7f3",
+    value: "vnpay",
+    label: "Thẻ ATM nội địa (qua VNPAY)",
+    iconSrc: "/images/vnpay.svg",
+    iconBg: "#ffffff",
   },
 ];
 
@@ -79,18 +50,9 @@ const Checkout = () => {
   const location = useLocation();
   const buyNowItem = location.state?.buyNowItem;
   const couponWrapRef = useRef(null);
-
-  const [orderCode] = useState(() => generateOrderCode());
-  const [copiedField, setCopiedField] = useState(null);
-
-  const handleCopy = (text, fieldName) => {
-    if (navigator?.clipboard) {
-      navigator.clipboard.writeText(text);
-    }
-    setCopiedField(fieldName);
-    toast.success(`Đã sao chép ${fieldName}!`);
-    setTimeout(() => setCopiedField(null), 2000);
-  };
+  const [requestId] = useState(
+    () => globalThis.crypto?.randomUUID?.() || `checkout_${Date.now()}`,
+  );
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -135,9 +97,16 @@ const Checkout = () => {
         ]);
         const userVoucherData = await userVoucherRes.json();
         const voucherData = await voucherRes.json();
-        const collectedCodes = userVoucherData.map((uv) => uv.voucherCode);
+        const collectedCodes = userVoucherData
+          .filter((uv) => uv.used !== true)
+          .map((uv) => uv.voucherCode);
+        const today = new Date();
         setMyVouchers(
-          voucherData.filter((v) => collectedCodes.includes(v.code)),
+          voucherData.filter(
+            (v) =>
+              collectedCodes.includes(v.code) &&
+              (!v.expiredAt || new Date(`${v.expiredAt}T23:59:59+07:00`) >= today),
+          ),
         );
       } catch (err) {
         console.error(err);
@@ -145,7 +114,18 @@ const Checkout = () => {
       }
 
       if (buyNowItem) {
-        setCartItems([{ ...buyNowItem, quantity: buyNowItem.quantity || 1 }]);
+        setCartItems([
+          {
+            ...buyNowItem,
+            quantity: buyNowItem.quantity || 1,
+            table:
+              buyNowItem.table ||
+              buyNowItem.fromTable ||
+              buyNowItem._source ||
+              location.state?.fromTable ||
+              "catenogies",
+          },
+        ]);
         setLoading(false);
         return;
       }
@@ -187,7 +167,7 @@ const Checkout = () => {
       }
     };
     init();
-  }, [buyNowItem, navigate]);
+  }, [buyNowItem, location.state?.fromTable, navigate]);
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
@@ -264,95 +244,61 @@ const Checkout = () => {
 
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
     try {
-      const formattedProducts = cartItems.map((item) => ({
-        productId: item.productId,
-        name: item.name || "Sản phẩm",
-        image: item.image,
+      const items = cartItems.map((item) => ({
+        productId: item.productId ?? item.id,
+        fromTable: item.table || item.fromTable || item._source || "catenogies",
         quantity: item.quantity,
-        unitPrice: cleanPrice(item.price),
-        subtotal: cleanPrice(item.price) * item.quantity,
-        fromTable: item.table,
+        cartId: item.cartId || null,
       }));
-
-      const newOrder = {
-        orderCode,
-        userId: currentUser.id,
-        ...customerInfo,
-        status: "pending",
-        totalAmount,
+      const payload = {
+        requestId,
+        checkoutMode: buyNowItem ? "buy_now" : "cart",
+        items,
         voucherCode: appliedVoucher?.code || null,
-        discountAmount: discount,
-        createdAt: new Date().toISOString(),
-        products: formattedProducts,
+        paymentMethod: customerInfo.paymentMethod,
+        customer: {
+          fullName: customerInfo.fullName,
+          phone: customerInfo.phone,
+          email: customerInfo.email,
+          address: customerInfo.address,
+          note: customerInfo.note,
+        },
       };
-
-      const res = await fetch(`${API_URL}/orders`, {
+      const endpoint =
+        customerInfo.paymentMethod === "vnpay"
+          ? `${API_URL}/api/payments/vnpay/create`
+          : `${API_URL}/api/orders/checkout`;
+      const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newOrder),
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": String(currentUser.id),
+        },
+        body: JSON.stringify(payload),
       });
-
-      if (!res.ok) throw new Error("Lỗi khi gửi đơn hàng");
-
-      // Đánh dấu voucher đã dùng để không áp dụng lại lần sau
-      if (appliedVoucher) {
-        try {
-          const uvRes = await fetch(
-            `${API_URL}/userVouchers?userId=${currentUser.id}&voucherCode=${appliedVoucher.code}`,
-          );
-          const uvData = await uvRes.json();
-          if (uvData[0]) {
-            await fetch(`${API_URL}/userVouchers/${uvData[0].id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ used: true }),
-            });
-          }
-        } catch (err) {
-          console.error("Không cập nhật được trạng thái voucher:", err);
-        }
-      }
-
-      // Xóa các item trong giỏ hàng thật (bảng /cart) sau khi đặt hàng thành công.
-      // Chỉ áp dụng cho luồng checkout từ giỏ hàng, không áp dụng cho "Mua ngay".
-      if (!buyNowItem) {
-        const deleteResults = await Promise.all(
-          cartItems.map(async (item) => {
-            if (!item.cartId) return { ok: true };
-            try {
-              const delRes = await fetch(`${API_URL}/cart/${item.cartId}`, {
-                method: "DELETE",
-              });
-              if (!delRes.ok) {
-                console.error(
-                  `Xóa cart item ${item.cartId} thất bại, status:`,
-                  delRes.status,
-                );
-              }
-              return { ok: delRes.ok, cartId: item.cartId };
-            } catch (err) {
-              console.error(`Lỗi khi xóa cart item ${item.cartId}:`, err);
-              return { ok: false, cartId: item.cartId };
-            }
-          }),
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(
+          data.error ||
+            (res.status === 404
+              ? "Không tìm thấy API tạo đơn. Hãy chạy npm run server trong thư mục TMDT_DALN."
+              : `Không thể tạo đơn hàng (HTTP ${res.status}).`),
         );
-
-        const failedDeletes = deleteResults.filter((r) => !r.ok);
-        if (failedDeletes.length > 0) {
-          console.warn(
-            "Một số item chưa xóa được khỏi giỏ hàng:",
-            failedDeletes,
-          );
-        }
-
-        window.dispatchEvent(new Event("cartUpdated"));
       }
 
+      if (customerInfo.paymentMethod === "vnpay") {
+        if (!data.paymentUrl) throw new Error("VNPAY chưa trả về URL thanh toán.");
+        localStorage.setItem("pendingPaymentLookupToken", data.lookupToken);
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+
+      window.dispatchEvent(new Event("cartUpdated"));
       toast.success("Đặt hàng thành công!");
       setTimeout(() => navigate("/orders"), 1000);
     } catch (err) {
       console.error(err);
-      toast.error("Có lỗi xảy ra khi đặt hàng.");
+      toast.error(err.message || "Có lỗi xảy ra khi đặt hàng.");
     } finally {
       setSubmitting(false);
     }
@@ -477,156 +423,18 @@ const Checkout = () => {
                         }
                       />
                       <div
-                        className="pay-icon"
+                        className={`pay-icon${pm.iconSrc ? " pay-icon-brand" : ""}`}
                         style={{ background: pm.iconBg }}
                       >
-                        {pm.icon}
+                        {pm.iconSrc ? <img src={pm.iconSrc} alt="VNPAY" /> : pm.icon}
                       </div>
                       <div className="pay-label">
                         <strong>{pm.label}</strong>
-                        <span>{pm.desc}</span>
+                        {pm.desc && <span>{pm.desc}</span>}
                       </div>
                     </label>
                   ))}
                 </div>
-
-                {/* KHUNG THANH TOÁN VIETQR ĐỘNG */}
-                {customerInfo.paymentMethod === "bank" && (
-                  <div className="bank-transfer-box">
-                    <div className="bank-box-header">
-                      <div className="bank-header-title">
-                        <FaQrcode className="bank-header-icon" />
-                        <div>
-                          <h4>Quét mã VietQR Chuyển khoản Tự Động</h4>
-                          <p>Tương thích mọi ngân hàng & ứng dụng tài chính tại VN</p>
-                        </div>
-                      </div>
-                      <span className="bank-fast-badge">Khuyên dùng</span>
-                    </div>
-
-                    <div className="bank-box-content">
-                      <div className="bank-qr-wrapper">
-                        <img
-                          src={`https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${totalAmount}&addInfo=${orderCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`}
-                          alt="VietQR Chuyển Khoản"
-                          className="bank-qr-img"
-                        />
-                        <div className="bank-qr-hint">
-                          <span>Quét bằng App Ngân Hàng bất kỳ</span>
-                        </div>
-                      </div>
-
-                      <div className="bank-info-table">
-                        <div className="bank-info-item">
-                          <span className="info-label">Ngân hàng:</span>
-                          <strong className="info-value">{BANK_CONFIG.bankName}</strong>
-                        </div>
-
-                        <div className="bank-info-item">
-                          <span className="info-label">Số tài khoản:</span>
-                          <div className="copyable-value">
-                            <strong className="info-value-accent">{BANK_CONFIG.accountNo}</strong>
-                            <button
-                              type="button"
-                              className="btn-copy"
-                              onClick={() => handleCopy(BANK_CONFIG.accountNo, "Số tài khoản")}
-                            >
-                              {copiedField === "Số tài khoản" ? <FaCheck /> : <FaCopy />}
-                              <span>{copiedField === "Số tài khoản" ? "Đã chép" : "Sao chép"}</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="bank-info-item">
-                          <span className="info-label">Chủ tài khoản:</span>
-                          <strong className="info-value">{BANK_CONFIG.accountName}</strong>
-                        </div>
-
-                        <div className="bank-info-item">
-                          <span className="info-label">Số tiền:</span>
-                          <div className="copyable-value">
-                            <strong className="info-value-price">{formatPrice(totalAmount)}</strong>
-                            <button
-                              type="button"
-                              className="btn-copy"
-                              onClick={() => handleCopy(String(totalAmount), "Số tiền")}
-                            >
-                              {copiedField === "Số tiền" ? <FaCheck /> : <FaCopy />}
-                              <span>{copiedField === "Số tiền" ? "Đã chép" : "Sao chép"}</span>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="bank-info-item highlight-memo">
-                          <span className="info-label">Nội dung CK:</span>
-                          <div className="copyable-value">
-                            <strong className="memo-text">{orderCode}</strong>
-                            <button
-                              type="button"
-                              className="btn-copy copy-memo"
-                              onClick={() => handleCopy(orderCode, "Nội dung chuyển khoản")}
-                            >
-                              {copiedField === "Nội dung chuyển khoản" ? <FaCheck /> : <FaCopy />}
-                              <span>{copiedField === "Nội dung chuyển khoản" ? "Đã chép" : "Sao chép"}</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bank-box-footer">
-                      💡 <strong>Lưu ý:</strong> Vui lòng giữ nguyên nội dung chuyển khoản <code>{orderCode}</code> để hệ thống tự động xác nhận đơn nhanh nhất.
-                    </div>
-                  </div>
-                )}
-
-                {/* KHUNG THANH TOÁN VÍ MOMO */}
-                {customerInfo.paymentMethod === "momo" && (
-                  <div className="momo-payment-box">
-                    <div className="momo-header">
-                      <span className="momo-badge">Ví MoMo</span>
-                      <h4>Thanh toán qua Ví điện tử MoMo</h4>
-                    </div>
-                    <div className="momo-content">
-                      <div className="momo-row">
-                        <span>Số điện thoại MoMo:</span>
-                        <div className="copyable-value">
-                          <strong>{MOMO_CONFIG.phone}</strong>
-                          <button
-                            type="button"
-                            className="btn-copy"
-                            onClick={() => handleCopy(MOMO_CONFIG.phone, "Số điện thoại MoMo")}
-                          >
-                            {copiedField === "Số điện thoại MoMo" ? <FaCheck /> : <FaCopy />}
-                            <span>{copiedField === "Số điện thoại MoMo" ? "Đã chép" : "Sao chép"}</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="momo-row">
-                        <span>Tên người nhận:</span>
-                        <strong>{MOMO_CONFIG.accountName}</strong>
-                      </div>
-                      <div className="momo-row">
-                        <span>Số tiền cần chuyển:</span>
-                        <strong className="info-value-price">{formatPrice(totalAmount)}</strong>
-                      </div>
-                      <div className="momo-row">
-                        <span>Lời nhắn chuyển tiền:</span>
-                        <div className="copyable-value">
-                          <strong className="memo-text">{orderCode}</strong>
-                          <button
-                            type="button"
-                            className="btn-copy copy-memo"
-                            onClick={() => handleCopy(orderCode, "Lời nhắn MoMo")}
-                          >
-                            {copiedField === "Lời nhắn MoMo" ? <FaCheck /> : <FaCopy />}
-                            <span>{copiedField === "Lời nhắn MoMo" ? "Đã chép" : "Sao chép"}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
 
                 {/* KHUNG THANH TOÁN COD */}
                 {customerInfo.paymentMethod === "cod" && (
@@ -773,7 +581,11 @@ const Checkout = () => {
                 className="btn-confirm-checkout"
                 disabled={submitting}
               >
-                {submitting ? "ĐANG XỬ LÝ..." : "XÁC NHẬN ĐẶT HÀNG"}
+                {submitting
+                  ? "ĐANG XỬ LÝ..."
+                  : customerInfo.paymentMethod === "vnpay"
+                    ? "Thanh toán qua VNPAY"
+                    : "XÁC NHẬN ĐẶT HÀNG"}
               </button>
               <p className="secure-note">
                 <FaShieldAlt /> Thông tin của bạn được mã hóa & bảo mật an toàn

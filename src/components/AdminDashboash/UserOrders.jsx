@@ -7,7 +7,7 @@ import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./UserOrders.css";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://127.0.0.1:3000";
 
 const UserOrders = () => {
   const navigate = useNavigate();
@@ -17,14 +17,17 @@ const UserOrders = () => {
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   useEffect(() => {
-    if (!currentUser) {
+    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (!storedUser) {
       navigate("/login");
       return;
     }
 
     const fetchMyOrders = async () => {
       try {
-        const res = await fetch(`${API_URL}/orders?userId=${currentUser.id}`);
+        const res = await fetch(`${API_URL}/api/orders/mine`, {
+          headers: { "x-user-id": String(storedUser.id) },
+        });
         if (res.ok) {
           const data = await res.json();
           // Đảo ngược để đơn hàng mới nhất lên đầu
@@ -79,6 +82,35 @@ const UserOrders = () => {
     }
   };
 
+  const paymentMethodLabel = (method) =>
+    ({ cod: "COD", bank: "VietQR", momo: "MoMo", vnpay: "VNPAY Sandbox" })[
+      method
+    ] || method || "Chưa xác định";
+
+  const paymentStatusLabel = (status) =>
+    ({ unpaid: "Chưa thanh toán", pending: "Đang chờ", paid: "Đã thanh toán", failed: "Thất bại" })[
+      status
+    ] || status || "Chưa xác định";
+
+  const handleRetryPayment = async (order) => {
+    try {
+      const response = await fetch(`${API_URL}/api/orders/${order.id}/vnpay/retry`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": String(currentUser.id),
+        },
+        body: JSON.stringify({ lookupToken: order.lookupToken }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Không thể thanh toán lại.");
+      localStorage.setItem("pendingPaymentLookupToken", order.lookupToken);
+      window.location.assign(data.paymentUrl);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   if (loading)
     return <div className="loading-box">Đang tải đơn hàng của bạn...</div>;
 
@@ -124,6 +156,18 @@ const UserOrders = () => {
                         </span>
                       </div>
                       {renderStatus(order.status)}
+                    </div>
+
+                    <div className="order-payment-info">
+                      <span>Phương thức: <strong>{paymentMethodLabel(order.paymentMethod)}</strong></span>
+                      <span className={`payment-status ${order.paymentStatus}`}>
+                        Thanh toán: <strong>{paymentStatusLabel(order.paymentStatus)}</strong>
+                      </span>
+                      {order.canRetryPayment && (
+                        <button onClick={() => handleRetryPayment(order)}>
+                          Thanh toán lại
+                        </button>
+                      )}
                     </div>
 
                     {/* Danh sách sản phẩm */}
