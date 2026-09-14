@@ -18,7 +18,6 @@ import {
 import { SiProbot } from "react-icons/si";
 import { BsStars } from "react-icons/bs";
 import { HiSparkles } from "react-icons/hi";
-import { fetchStoreCatalog } from "./knowledge.js";
 import { executeRAG } from "./ragEngine.js";
 import "./ChatBot.css";
 
@@ -90,7 +89,6 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const [catalog, setCatalog] = useState([]);
   const [apiKey] = useState(
     import.meta.env.VITE_GEMINI_API_KEY ||
       localStorage.getItem("gemini_api_key") ||
@@ -124,12 +122,7 @@ const ChatBot = () => {
     };
   }, []);
 
-  // 2. Tải dữ liệu sản phẩm làm Knowledge Base cho RAG
-  useEffect(() => {
-    fetchStoreCatalog().then((data) => setCatalog(data || []));
-  }, []);
-
-  // 3. Tải lịch sử chat chính xác theo visitorId của tài khoản hiện tại
+  // 2. Tải lịch sử chat chính xác theo visitorId của tài khoản hiện tại
   useEffect(() => {
     let ignore = false;
     const loadHistory = async () => {
@@ -241,7 +234,6 @@ const ChatBot = () => {
       );
       const botReplyText = await executeRAG({
         userQuery: query,
-        catalog,
         apiKey,
         currentUser,
       });
