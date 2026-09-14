@@ -46,13 +46,20 @@ const QUICK_PROMPTS = [
 ];
 
 const getVisitorId = () => {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  if (currentUser?.id) return `user_${currentUser.id}`;
+  try {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+    if (currentUser?.id) return `user_${currentUser.id}`;
+  } catch {
+    // bỏ qua lỗi parse
+  }
 
-  let guestId = localStorage.getItem("guestChatId");
+  // Đối với khách vãng lai (Guest): Lưu trong sessionStorage
+  // -> F5 / Reload trang: VẪN GIỮ NGUYÊN lịch sử chat trong phiên làm việc
+  // -> Đóng tab / tắt trình duyệt: TỰ ĐỘNG XÓA SẠCH để bảo vệ quyền riêng tư
+  let guestId = sessionStorage.getItem("guestChatId");
   if (!guestId) {
     guestId = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    localStorage.setItem("guestChatId", guestId);
+    sessionStorage.setItem("guestChatId", guestId);
   }
   return guestId;
 };
@@ -78,6 +85,7 @@ const INITIAL_BOT_MESSAGE = {
 
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [visitorId, setVisitorId] = useState(getVisitorId);
   const [messages, setMessages] = useState([INITIAL_BOT_MESSAGE]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -91,21 +99,45 @@ const ChatBot = () => {
 
   const bodyRef = useRef(null);
   const inputRef = useRef(null);
-  const visitorId = useRef(getVisitorId());
   const isSendingRef = useRef(false);
 
-  // 1. Tải dữ liệu sản phẩm làm Knowledge Base cho RAG
+  // 1. Tự động đồng bộ và cô lập lịch sử chat khi Đăng nhập / Đăng xuất tài khoản
+  useEffect(() => {
+    const handleAuthSync = () => {
+      const currentId = getVisitorId();
+      setVisitorId((prevId) => {
+        if (prevId !== currentId) {
+          // Lập tức làm sạch màn hình chat để chống rò rỉ dữ liệu giữa 2 tài khoản
+          setMessages([INITIAL_BOT_MESSAGE]);
+          return currentId;
+        }
+        return prevId;
+      });
+    };
+
+    window.addEventListener("authChange", handleAuthSync);
+    window.addEventListener("storage", handleAuthSync);
+    const interval = setInterval(handleAuthSync, 800);
+
+    return () => {
+      window.removeEventListener("authChange", handleAuthSync);
+      window.removeEventListener("storage", handleAuthSync);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // 2. Tải dữ liệu sản phẩm làm Knowledge Base cho RAG
   useEffect(() => {
     fetchStoreCatalog().then((data) => setCatalog(data || []));
   }, []);
 
-  // 2. Tải lịch sử chat từ db.json
+  // 3. Tải lịch sử chat chính xác theo visitorId của tài khoản hiện tại
   useEffect(() => {
     let ignore = false;
     const loadHistory = async () => {
       try {
         const res = await fetch(
-          `${API_URL}/chatMessages?visitorId=${visitorId.current}&_sort=createdAt`,
+          `${API_URL}/chatMessages?visitorId=${visitorId}&_sort=createdAt`,
         );
         if (ignore) return;
 
@@ -119,16 +151,18 @@ const ChatBot = () => {
       } catch (err) {
         console.warn("Chưa kết nối server chatMessages:", err.message);
       }
-      setMessages([INITIAL_BOT_MESSAGE]);
+      if (!ignore) {
+        setMessages([INITIAL_BOT_MESSAGE]);
+      }
     };
 
     loadHistory();
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [visitorId]);
 
-  // 3. Tự động cuộn xuống cuối khi có tin nhắn mới
+  // 4. Tự động cuộn xuống cuối khi có tin nhắn mới
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.scrollTo({
@@ -145,7 +179,7 @@ const ChatBot = () => {
     }
   }, [isOpen]);
 
-  // Lưu tin nhắn vào db.json
+  // Lưu tin nhắn vào db.json theo đúng visitorId
   const persistMessage = async (msg) => {
     try {
       await fetch(`${API_URL}/chatMessages`, {
@@ -158,13 +192,13 @@ const ChatBot = () => {
     }
   };
 
-  // Xóa toàn bộ lịch sử trò chuyện
+  // Xóa toàn bộ lịch sử trò chuyện của tài khoản hiện tại
   const handleClearHistory = async () => {
     if (window.confirm("Bạn có muốn làm mới cuộc trò chuyện này không?")) {
       setMessages([INITIAL_BOT_MESSAGE]);
       try {
         const res = await fetch(
-          `${API_URL}/chatMessages?visitorId=${visitorId.current}`,
+          `${API_URL}/chatMessages?visitorId=${visitorId}`,
         );
         if (res.ok) {
           const allMsgs = await res.json();
@@ -187,7 +221,7 @@ const ChatBot = () => {
     isSendingRef.current = true;
 
     const userMessage = {
-      visitorId: visitorId.current,
+      visitorId,
       sender: "user",
       text: query,
       createdAt: new Date().toISOString(),
@@ -215,7 +249,7 @@ const ChatBot = () => {
       });
 
       const botMessage = {
-        visitorId: visitorId.current,
+        visitorId,
         sender: "bot",
         text: botReplyText,
         createdAt: new Date().toISOString(),

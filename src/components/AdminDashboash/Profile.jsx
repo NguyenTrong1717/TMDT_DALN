@@ -39,6 +39,7 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
+    window.dispatchEvent(new Event("authChange"));
     toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       navigate("/login");

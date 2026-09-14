@@ -152,6 +152,7 @@ const Header = (props) => {
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
+    window.dispatchEvent(new Event("authChange"));
     toast.success("Đã đăng xuất tài khoản thành công!");
     navigate("/login");
   };

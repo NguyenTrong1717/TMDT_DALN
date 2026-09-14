@@ -76,6 +76,7 @@ const Login = () => {
 
         // Đăng nhập thành công -> Lưu dữ liệu
         localStorage.setItem("currentUser", JSON.stringify(foundUser));
+        window.dispatchEvent(new Event("authChange"));
 
         // 3. Sonner bắn thông báo thành công theo từng quyền hạn
         if (foundUser.role === "admin") {
