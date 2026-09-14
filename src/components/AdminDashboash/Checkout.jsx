@@ -1,13 +1,36 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast, Toaster } from "sonner";
-import { FaUser, FaCreditCard, FaTag, FaChevronDown } from "react-icons/fa";
+import {
+  FaUser,
+  FaCreditCard,
+  FaTag,
+  FaChevronDown,
+  FaCopy,
+  FaCheck,
+  FaQrcode,
+  FaShieldAlt,
+  FaTruck,
+  FaHeadset,
+} from "react-icons/fa";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./Checkout.css";
 
 const API_URL = "http://localhost:3000";
+
+const BANK_CONFIG = {
+  bankId: "MB",
+  bankName: "MB Bank (Ngân hàng Quân Đội)",
+  accountNo: "0911108133",
+  accountName: "NGUYEN TRONG",
+};
+
+const MOMO_CONFIG = {
+  phone: "0911108133",
+  accountName: "NGUYEN TRONG",
+};
 
 const cleanPrice = (priceInput) => {
   if (typeof priceInput === "number") return priceInput;
@@ -30,22 +53,22 @@ const generateOrderCode = () => {
 const PAYMENT_METHODS = [
   {
     value: "cod",
-    label: "Thanh toán khi nhận hàng",
-    desc: "COD — thanh toán bằng tiền mặt khi nhận",
+    label: "Thanh toán khi nhận hàng (COD)",
+    desc: "Thanh toán bằng tiền mặt khi nhận kiện hàng",
     icon: "💵",
     iconBg: "#fef3c7",
   },
   {
     value: "bank",
-    label: "Chuyển khoản ngân hàng",
-    desc: "Thanh toán qua tài khoản ngân hàng",
+    label: "Chuyển khoản VietQR (Ngân hàng)",
+    desc: "Quét mã QR chuyển khoản tự động tức thì",
     icon: "🏦",
-    iconBg: "#e0f2fe",
+    iconBg: "#fee2e2",
   },
   {
     value: "momo",
-    label: "Ví MoMo",
-    desc: "Thanh toán nhanh qua ví điện tử MoMo",
+    label: "Ví điện tử MoMo",
+    desc: "Thanh toán qua app MoMo hoặc số điện thoại",
     icon: "📱",
     iconBg: "#fce7f3",
   },
@@ -56,6 +79,18 @@ const Checkout = () => {
   const location = useLocation();
   const buyNowItem = location.state?.buyNowItem;
   const couponWrapRef = useRef(null);
+
+  const [orderCode] = useState(() => generateOrderCode());
+  const [copiedField, setCopiedField] = useState(null);
+
+  const handleCopy = (text, fieldName) => {
+    if (navigator?.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
+    setCopiedField(fieldName);
+    toast.success(`Đã sao chép ${fieldName}!`);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -240,7 +275,7 @@ const Checkout = () => {
       }));
 
       const newOrder = {
-        orderCode: generateOrderCode(),
+        orderCode,
         userId: currentUser.id,
         ...customerInfo,
         status: "pending",
@@ -454,6 +489,157 @@ const Checkout = () => {
                     </label>
                   ))}
                 </div>
+
+                {/* KHUNG THANH TOÁN VIETQR ĐỘNG */}
+                {customerInfo.paymentMethod === "bank" && (
+                  <div className="bank-transfer-box">
+                    <div className="bank-box-header">
+                      <div className="bank-header-title">
+                        <FaQrcode className="bank-header-icon" />
+                        <div>
+                          <h4>Quét mã VietQR Chuyển khoản Tự Động</h4>
+                          <p>Tương thích mọi ngân hàng & ứng dụng tài chính tại VN</p>
+                        </div>
+                      </div>
+                      <span className="bank-fast-badge">Khuyên dùng</span>
+                    </div>
+
+                    <div className="bank-box-content">
+                      <div className="bank-qr-wrapper">
+                        <img
+                          src={`https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${totalAmount}&addInfo=${orderCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`}
+                          alt="VietQR Chuyển Khoản"
+                          className="bank-qr-img"
+                        />
+                        <div className="bank-qr-hint">
+                          <span>Quét bằng App Ngân Hàng bất kỳ</span>
+                        </div>
+                      </div>
+
+                      <div className="bank-info-table">
+                        <div className="bank-info-item">
+                          <span className="info-label">Ngân hàng:</span>
+                          <strong className="info-value">{BANK_CONFIG.bankName}</strong>
+                        </div>
+
+                        <div className="bank-info-item">
+                          <span className="info-label">Số tài khoản:</span>
+                          <div className="copyable-value">
+                            <strong className="info-value-accent">{BANK_CONFIG.accountNo}</strong>
+                            <button
+                              type="button"
+                              className="btn-copy"
+                              onClick={() => handleCopy(BANK_CONFIG.accountNo, "Số tài khoản")}
+                            >
+                              {copiedField === "Số tài khoản" ? <FaCheck /> : <FaCopy />}
+                              <span>{copiedField === "Số tài khoản" ? "Đã chép" : "Sao chép"}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="bank-info-item">
+                          <span className="info-label">Chủ tài khoản:</span>
+                          <strong className="info-value">{BANK_CONFIG.accountName}</strong>
+                        </div>
+
+                        <div className="bank-info-item">
+                          <span className="info-label">Số tiền:</span>
+                          <div className="copyable-value">
+                            <strong className="info-value-price">{formatPrice(totalAmount)}</strong>
+                            <button
+                              type="button"
+                              className="btn-copy"
+                              onClick={() => handleCopy(String(totalAmount), "Số tiền")}
+                            >
+                              {copiedField === "Số tiền" ? <FaCheck /> : <FaCopy />}
+                              <span>{copiedField === "Số tiền" ? "Đã chép" : "Sao chép"}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="bank-info-item highlight-memo">
+                          <span className="info-label">Nội dung CK:</span>
+                          <div className="copyable-value">
+                            <strong className="memo-text">{orderCode}</strong>
+                            <button
+                              type="button"
+                              className="btn-copy copy-memo"
+                              onClick={() => handleCopy(orderCode, "Nội dung chuyển khoản")}
+                            >
+                              {copiedField === "Nội dung chuyển khoản" ? <FaCheck /> : <FaCopy />}
+                              <span>{copiedField === "Nội dung chuyển khoản" ? "Đã chép" : "Sao chép"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bank-box-footer">
+                      💡 <strong>Lưu ý:</strong> Vui lòng giữ nguyên nội dung chuyển khoản <code>{orderCode}</code> để hệ thống tự động xác nhận đơn nhanh nhất.
+                    </div>
+                  </div>
+                )}
+
+                {/* KHUNG THANH TOÁN VÍ MOMO */}
+                {customerInfo.paymentMethod === "momo" && (
+                  <div className="momo-payment-box">
+                    <div className="momo-header">
+                      <span className="momo-badge">Ví MoMo</span>
+                      <h4>Thanh toán qua Ví điện tử MoMo</h4>
+                    </div>
+                    <div className="momo-content">
+                      <div className="momo-row">
+                        <span>Số điện thoại MoMo:</span>
+                        <div className="copyable-value">
+                          <strong>{MOMO_CONFIG.phone}</strong>
+                          <button
+                            type="button"
+                            className="btn-copy"
+                            onClick={() => handleCopy(MOMO_CONFIG.phone, "Số điện thoại MoMo")}
+                          >
+                            {copiedField === "Số điện thoại MoMo" ? <FaCheck /> : <FaCopy />}
+                            <span>{copiedField === "Số điện thoại MoMo" ? "Đã chép" : "Sao chép"}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="momo-row">
+                        <span>Tên người nhận:</span>
+                        <strong>{MOMO_CONFIG.accountName}</strong>
+                      </div>
+                      <div className="momo-row">
+                        <span>Số tiền cần chuyển:</span>
+                        <strong className="info-value-price">{formatPrice(totalAmount)}</strong>
+                      </div>
+                      <div className="momo-row">
+                        <span>Lời nhắn chuyển tiền:</span>
+                        <div className="copyable-value">
+                          <strong className="memo-text">{orderCode}</strong>
+                          <button
+                            type="button"
+                            className="btn-copy copy-memo"
+                            onClick={() => handleCopy(orderCode, "Lời nhắn MoMo")}
+                          >
+                            {copiedField === "Lời nhắn MoMo" ? <FaCheck /> : <FaCopy />}
+                            <span>{copiedField === "Lời nhắn MoMo" ? "Đã chép" : "Sao chép"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* KHUNG THANH TOÁN COD */}
+                {customerInfo.paymentMethod === "cod" && (
+                  <div className="cod-info-box">
+                    <div className="cod-notice">
+                      <FaTruck className="cod-icon" />
+                      <div>
+                        <strong>Thanh toán tiền mặt khi nhận hàng (COD)</strong>
+                        <p>Quý khách được kiểm tra sản phẩm trước khi thanh toán cho nhân viên giao hàng.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="checkout-right">
@@ -590,8 +776,32 @@ const Checkout = () => {
                 {submitting ? "ĐANG XỬ LÝ..." : "XÁC NHẬN ĐẶT HÀNG"}
               </button>
               <p className="secure-note">
-                Thông tin của bạn được bảo mật an toàn
+                <FaShieldAlt /> Thông tin của bạn được mã hóa & bảo mật an toàn
               </p>
+
+              <div className="checkout-trust-badges">
+                <div className="trust-item">
+                  <FaShieldAlt className="trust-icon" />
+                  <div>
+                    <strong>Chính Hãng 100%</strong>
+                    <span>Bảo hành chính thức từ hãng</span>
+                  </div>
+                </div>
+                <div className="trust-item">
+                  <FaTruck className="trust-icon" />
+                  <div>
+                    <strong>Giao Hàng Toàn Quốc</strong>
+                    <span>Đóng gói cẩn thận, chống sốc</span>
+                  </div>
+                </div>
+                <div className="trust-item">
+                  <FaHeadset className="trust-icon" />
+                  <div>
+                    <strong>Hỗ Trợ Kỹ Thuật 24/7</strong>
+                    <span>Hotline tư vấn: 1900 8888</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </form>
         </div>
