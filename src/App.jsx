@@ -40,6 +40,7 @@ import Wishlist from "./components/Wishlist/Wishlist";
 import VoucherManager from "./components/AdminDashboash/VoucherManager";
 import ContactPage from "./components/AdminDashboash/ContactPage";
 import BackToTop from "./components/BackToTop/BackToTop";
+import PaymentResult from "./pages/PaymentResult";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({ children }) => {
@@ -103,6 +104,7 @@ function App() {
         {/* Giỏ hàng & Thanh toán */}
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/orders" element={<UserOrders />} />
         <Route path="/wishlist" element={<Wishlist />} />
 

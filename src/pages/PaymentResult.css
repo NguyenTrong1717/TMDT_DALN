@@ -1,0 +1,53 @@
+.payment-result-page {
+  min-height: 65vh;
+  display: grid;
+  place-items: center;
+  padding: 54px 18px;
+  background: #f8fafc;
+}
+.payment-result-card {
+  width: min(620px, 100%);
+  padding: 34px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.1);
+  text-align: center;
+}
+.payment-result-icon { font-size: 54px; margin-bottom: 14px; }
+.payment-result-card.success .payment-result-icon { color: #16a34a; }
+.payment-result-card.pending .payment-result-icon { color: #d97706; }
+.payment-result-card.failed .payment-result-icon { color: #dc2626; }
+.payment-result-card h1 { margin: 0 0 10px; color: #0f172a; font-size: 27px; }
+.payment-result-card > p { color: #64748b; line-height: 1.6; }
+.payment-result-summary {
+  margin: 24px 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #f8fafc;
+  text-align: left;
+}
+.payment-result-summary div { display: flex; justify-content: space-between; gap: 20px; padding: 7px 0; }
+.payment-result-summary span { color: #64748b; }
+.payment-result-summary strong { color: #0f172a; text-align: right; }
+.payment-result-error { color: #b91c1c !important; background: #fef2f2; padding: 10px; border-radius: 8px; }
+.payment-result-note { color: #92400e !important; }
+.payment-result-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.payment-result-actions button,
+.payment-result-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 16px;
+  border: 1px solid #dc2626;
+  border-radius: 9px;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.payment-result-actions .secondary { background: #fff; color: #334155; border-color: #cbd5e1; }
+.payment-result-actions button:disabled { opacity: 0.6; cursor: wait; }
+@keyframes paymentPulse { 50% { opacity: 0.45; transform: scale(0.94); } }
+.payment-result-icon.pulse { animation: paymentPulse 1.3s infinite; }

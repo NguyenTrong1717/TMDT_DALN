@@ -10,13 +10,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server.mjs",
+    "server": "node --env-file-if-exists=.env server.mjs",
+    "test:vnpay": "node --test --experimental-test-isolation=none tests/vnpay.test.mjs tests/checkout-api.test.mjs",
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
   },
   "dependencies": {
     "axios": "^1.17.0",
     "bootstrap": "^5.3.8",
+    "express": "^5.2.1",
     "lucide-react": "^1.23.0",
+    "nodemon": "^3.1.14",
     "nprogress": "^0.2.0",
     "react": "^19.2.6",
     "react-bootstrap": "^2.10.10",

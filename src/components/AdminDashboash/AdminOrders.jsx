@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import "./AdminOrders.css";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "http://127.0.0.1:3000";
 const STATUS_LABEL = {
   pending: "Chờ xử lý",
   confirmed: "Đã xác nhận",
@@ -24,10 +24,13 @@ const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${API_URL}/orders`);
+      const response = await fetch(`${API_URL}/api/admin/orders`, {
+        headers: { "x-user-id": String(currentUser?.id || "") },
+      });
       if (!response.ok) throw new Error("Không thể lấy danh sách đơn hàng.");
       const data = await response.json();
       setOrders(data.reverse()); // Sắp xếp đơn mới nhất lên đầu
@@ -40,7 +43,11 @@ const AdminOrders = () => {
   };
 
   useEffect(() => {
+    // Hàm async chỉ cập nhật state sau khi request hoàn tất.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchOrders();
+    // fetchOrders được giữ ổn định theo vòng đời trang quản trị hiện tại.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
@@ -50,9 +57,12 @@ const AdminOrders = () => {
     )
       return;
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": String(currentUser?.id || ""),
+        },
         body: JSON.stringify({ status: newStatus }),
       });
       if (response.ok) {
@@ -94,7 +104,7 @@ const AdminOrders = () => {
       } else {
         toast.error("Không thể cập nhật trạng thái.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Có lỗi xảy ra.");
     }
   };
@@ -107,8 +117,9 @@ const AdminOrders = () => {
     )
       return;
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}`, {
         method: "DELETE",
+        headers: { "x-user-id": String(currentUser?.id || "") },
       });
 
       // 👉 log để xem chính xác server trả về gì
@@ -148,6 +159,14 @@ const AdminOrders = () => {
       style: "currency",
       currency: "VND",
     }).format(price);
+  const paymentMethodLabel = (method) =>
+    ({ cod: "COD", bank: "VietQR", momo: "MoMo", vnpay: "VNPAY Sandbox" })[
+      method
+    ] || method || "Chưa xác định";
+  const paymentStatusLabel = (status) =>
+    ({ unpaid: "Chưa thanh toán", pending: "Đang chờ", paid: "Đã thanh toán", failed: "Thất bại" })[
+      status
+    ] || status || "Chưa xác định";
 
   if (loading)
     return <div className="loading-box">Đang tải danh sách đơn hàng...</div>;
@@ -215,6 +234,13 @@ const AdminOrders = () => {
                 </div>
               </div>
 
+              <div className="admin-payment-info">
+                <span>{paymentMethodLabel(order.paymentMethod)}</span>
+                <strong className={order.paymentStatus}>
+                  {paymentStatusLabel(order.paymentStatus)}
+                </strong>
+              </div>
+
               {/* Body */}
               <div className="order-card-body">
                 {/* Customer */}
@@ -271,6 +297,16 @@ const AdminOrders = () => {
                     <>
                       <button
                         className="btn-approve"
+                        disabled={
+                          order.paymentMethod === "vnpay" &&
+                          order.paymentStatus !== "paid"
+                        }
+                        title={
+                          order.paymentMethod === "vnpay" &&
+                          order.paymentStatus !== "paid"
+                            ? "Đơn VNPAY chưa được IPN xác nhận thanh toán"
+                            : ""
+                        }
                         onClick={() =>
                           handleUpdateStatus(order.id, "confirmed")
                         }
