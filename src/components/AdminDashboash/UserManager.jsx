@@ -61,6 +61,7 @@ const UserManager = () => {
     username: "",
     email: "",
     phone: "",
+    address: "",
     password: "",
     role: "user",
     status: "active",
@@ -90,7 +91,7 @@ const UserManager = () => {
       setUsers(data);
     } catch (err) {
       console.error(err);
-      toast.error("Không thể kết nối tới json-server.");
+      toast.error("Không thể kết nối tới máy chủ.");
     } finally {
       setLoading(false);
     }
@@ -160,7 +161,8 @@ const UserManager = () => {
         user.fullName?.toLowerCase().includes(keyword) ||
         user.email?.toLowerCase().includes(keyword) ||
         user.username?.toLowerCase().includes(keyword) ||
-        user.phone?.includes(keyword);
+        user.phone?.includes(keyword) ||
+        user.address?.toLowerCase().includes(keyword);
 
       const matchRole = roleFilter === "all" ? true : user.role === roleFilter;
       const matchStatus =
@@ -217,6 +219,7 @@ const UserManager = () => {
       username: user.username || user.email.split("@")[0],
       email: user.email,
       phone: user.phone || "",
+      address: user.address || "",
       password: user.password,
       role: user.role,
       status: user.status,
@@ -257,6 +260,7 @@ const UserManager = () => {
       username,
       email,
       phone: form.phone.trim(),
+      address: form.address ? form.address.trim() : "",
       password: form.password,
       role: form.role,
       status: form.status,
@@ -449,7 +453,7 @@ const UserManager = () => {
             <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Tìm theo tên, username, email hoặc số điện thoại..."
+              placeholder="Tìm theo tên, username, email, số điện thoại hoặc địa chỉ..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -716,6 +720,15 @@ const UserManager = () => {
                 </div>
               </div>
               <div className="form-groups">
+                <label>Địa chỉ giao hàng / liên hệ</label>
+                <input
+                  name="address"
+                  value={form.address}
+                  onChange={handleInputChange}
+                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                />
+              </div>
+              <div className="form-groups">
                 <label>Mật khẩu *</label>
                 <input
                   type="password"
@@ -833,6 +846,10 @@ const UserManager = () => {
                 <span className={`um-status-badge ${selectedUser.status}`}>
                   {selectedUser.status === "active" ? "HOẠT ĐỘNG" : "ĐÃ KHÓA"}
                 </span>
+              </div>
+              <div className="detail-item full-width">
+                <span>Địa chỉ liên hệ / giao hàng</span>
+                <strong>{selectedUser.address || "Chưa cập nhật địa chỉ"}</strong>
               </div>
               <div className="detail-item full-width">
                 <span>Ngày tạo tài khoản</span>

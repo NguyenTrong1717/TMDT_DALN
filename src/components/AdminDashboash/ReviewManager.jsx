@@ -7,6 +7,7 @@ import {
   FaEyeSlash,
   FaEye,
   FaReply,
+  FaSearch,
 } from "react-icons/fa";
 import "./ReviewManager.css";
 
@@ -42,6 +43,7 @@ const ReviewManager = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [replyingId, setReplyingId] = useState(null);
   const [replyText, setReplyText] = useState("");
 
@@ -128,17 +130,23 @@ const ReviewManager = () => {
   };
 
   const filtered = useMemo(() => {
-    switch (tab) {
-      case "unreplied":
-        return reviews.filter((r) => !r.reply);
-      case "hidden":
-        return reviews.filter((r) => r.hidden);
-      case "low":
-        return reviews.filter((r) => r.rating <= 2);
-      default:
-        return reviews;
-    }
-  }, [reviews, tab]);
+    const keyword = searchTerm.toLowerCase().trim();
+    return reviews.filter((r) => {
+      let matchTab = true;
+      if (tab === "unreplied") matchTab = !r.reply;
+      else if (tab === "hidden") matchTab = r.hidden;
+      else if (tab === "low") matchTab = r.rating <= 2;
+
+      const matchSearch =
+        !keyword ||
+        r.userName?.toLowerCase().includes(keyword) ||
+        r.comment?.toLowerCase().includes(keyword) ||
+        r.productId?.toString().toLowerCase().includes(keyword) ||
+        r.collection?.toLowerCase().includes(keyword);
+
+      return matchTab && matchSearch;
+    });
+  }, [reviews, tab, searchTerm]);
 
   const avgRating = reviews.length
     ? (
@@ -177,17 +185,37 @@ const ReviewManager = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="rm-tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`rm-tab ${tab === t.key ? "active" : ""}`}
-            onClick={() => setTab(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Toolbar & Search */}
+      <div className="rm-toolbar-row">
+        <div className="rm-tabs">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              className={`rm-tab ${tab === t.key ? "active" : ""}`}
+              onClick={() => setTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="rm-search-box">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Tìm theo tên khách, nội dung hoặc mã SP..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchTerm("")}
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       {/* List */}

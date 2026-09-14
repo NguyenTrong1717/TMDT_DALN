@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { FaSearch } from "react-icons/fa";
 import { createNotification } from "../../utils/notify";
 import "./AdminServiceRequests.css";
 
@@ -14,6 +15,7 @@ const AdminServiceRequests = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selected, setSelected] = useState(null); // request đang xem chi tiết
 
   const fetchRequests = async () => {
@@ -23,7 +25,7 @@ const AdminServiceRequests = () => {
         "http://localhost:3000/serviceRequests?_sort=createdAt&_order=desc",
       );
       const data = await res.json();
-      setRequests(data);
+      setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
       toast.error("Không tải được danh sách yêu cầu!");
@@ -50,11 +52,22 @@ const AdminServiceRequests = () => {
     return { total: requests.length, ...counts };
   }, [requests]);
 
-  const filtered = requests.filter((r) => {
-    const matchStatus = statusFilter === "all" || r.status === statusFilter;
-    const matchService = serviceFilter === "all" || r.service === serviceFilter;
-    return matchStatus && matchService;
-  });
+  const filtered = useMemo(() => {
+    const keyword = searchTerm.toLowerCase().trim();
+    return requests.filter((r) => {
+      const matchStatus = statusFilter === "all" || r.status === statusFilter;
+      const matchService = serviceFilter === "all" || r.service === serviceFilter;
+      const matchSearch =
+        !keyword ||
+        r.fullName?.toLowerCase().includes(keyword) ||
+        r.phone?.toLowerCase().includes(keyword) ||
+        r.email?.toLowerCase().includes(keyword) ||
+        r.message?.toLowerCase().includes(keyword) ||
+        r.service?.toLowerCase().includes(keyword);
+
+      return matchStatus && matchService && matchSearch;
+    });
+  }, [requests, statusFilter, serviceFilter, searchTerm]);
 
   // MỚI: bấm vào thẻ thống kê sẽ lọc bảng theo trạng thái tương ứng
   const handleStatCardClick = (status) => {
@@ -185,6 +198,24 @@ const AdminServiceRequests = () => {
       </div>
 
       <div className="asr-filters">
+        <div className="asr-search-box">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Tìm theo tên khách, SĐT, email, nội dung..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchTerm("")}
+            >
+              ×
+            </button>
+          )}
+        </div>
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}

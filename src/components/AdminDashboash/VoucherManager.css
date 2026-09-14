@@ -429,3 +429,146 @@
     transition: none;
   }
 }
+
+/* ── New Voucher Features ────────────────────────── */
+.voucher-manager-subtitle {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  margin-top: 4px;
+}
+
+.voucher-stats-grid {
+  max-width: 960px;
+  margin: 0 auto 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.voucher-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.voucher-stat-pill:hover {
+  background: var(--muted-bg);
+}
+
+.voucher-stat-pill.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.voucher-stat-pill.active strong {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.voucher-stat-pill strong {
+  background: var(--muted-bg);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.voucher-toolbar {
+  max-width: 960px;
+  margin: 0 auto 24px;
+}
+
+.voucher-search-box {
+  position: relative;
+  width: 100%;
+}
+
+.voucher-search-box .search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-text);
+  font-size: 14px;
+}
+
+.voucher-search-box input {
+  width: 100%;
+  padding: 11px 40px 11px 38px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.voucher-search-box input:focus {
+  border-color: var(--red);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--muted-text);
+  cursor: pointer;
+}
+
+.voucher-code-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voucher-code-title h4 {
+  margin: 0;
+}
+
+.btn-copy-voucher {
+  background: none;
+  border: none;
+  color: var(--muted-text);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: color 0.15s ease;
+}
+
+.btn-copy-voucher:hover {
+  color: var(--red);
+}
+
+.tag--active {
+  color: var(--green) !important;
+  font-weight: 600;
+}
+
+.voucher-manager-card.is-expired {
+  opacity: 0.65;
+  filter: grayscale(0.2);
+}
+
+.voucher-manager-card.is-soldout {
+  opacity: 0.75;
+}
+

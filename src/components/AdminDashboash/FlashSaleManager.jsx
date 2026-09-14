@@ -15,6 +15,7 @@ const SOURCES = [
   { key: "LaptopUser", label: "Laptop" },
   { key: "eventList", label: "Linh kiện" },
   { key: "catenogies", label: "PC" },
+  { key: "ProductMenus", label: "PC Flagship" },
 ];
 
 const CATEGORIES_BY_SOURCE = {
@@ -27,6 +28,7 @@ const CATEGORIES_BY_SOURCE = {
   ],
   eventList: ["cpu", "hdd", "mainboard", "monitor", "psu", "ram", "vga"],
   catenogies: ["top-ban-chay", "top-cuc-khung", "giai-nhiet", "man-hinh"],
+  ProductMenus: ["pc-gaming", "pc-do-hoa", "pc-van-phong"],
 };
 
 const EMPTY_FORM = {
@@ -37,6 +39,7 @@ const EMPTY_FORM = {
   category: CATEGORIES_BY_SOURCE.LaptopUser[0],
   image: "",
   status: "Còn hàng",
+  stock: "20",
 };
 
 const toDatetimeLocal = (iso) => {
@@ -65,18 +68,20 @@ const FlashSaleManager = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [laptops, parts, cate, settings] = await Promise.all([
+      const [laptops, parts, cate, pcMenus, settings] = await Promise.all([
         fetch(`${API_URL}/LaptopUser`).then((r) => r.json()),
         fetch(`${API_URL}/eventList`).then((r) => r.json()),
         fetch(`${API_URL}/catenogies`).then((r) => r.json()),
+        fetch(`${API_URL}/ProductMenus`).then((r) => r.json()),
         fetch(`${API_URL}/settings/flashSale`).then((r) =>
           r.ok ? r.json() : null,
         ),
       ]);
       const merged = [
-        ...laptops.map((p) => ({ ...p, source: "LaptopUser" })),
-        ...parts.map((p) => ({ ...p, source: "eventList" })),
-        ...cate.map((p) => ({ ...p, source: "catenogies" })),
+        ...(Array.isArray(laptops) ? laptops : []).map((p) => ({ ...p, source: "LaptopUser" })),
+        ...(Array.isArray(parts) ? parts : []).map((p) => ({ ...p, source: "eventList" })),
+        ...(Array.isArray(cate) ? cate : []).map((p) => ({ ...p, source: "catenogies" })),
+        ...(Array.isArray(pcMenus) ? pcMenus : []).map((p) => ({ ...p, source: "ProductMenus" })),
       ];
       setItems(merged);
       if (settings?.endTime) setEndTime(toDatetimeLocal(settings.endTime));
@@ -212,6 +217,8 @@ const FlashSaleManager = () => {
     const oldPrice =
       discount > 0 ? Math.round(price / (1 - discount / 100)) : price;
 
+    const stockQty = Number(form.stock) || 20;
+
     const newProduct = {
       id: Date.now().toString(),
       name: form.name.trim(),
@@ -221,7 +228,8 @@ const FlashSaleManager = () => {
       category: form.category,
       status: form.status || "Còn hàng",
       soldPercent: 0,
-      stockLeft: 20,
+      stock: stockQty,
+      stockLeft: stockQty,
       image: form.image.trim() || "/images/no-image.jpg",
       flashSale: true, // Vừa tạo là hiện thẳng trên trang Flash Sale
       deleted: false,
@@ -529,6 +537,29 @@ const FlashSaleManager = () => {
                       handleFormChange("discount", e.target.value)
                     }
                   />
+                </label>
+              </div>
+
+              <div className="fsm-form__row">
+                <label>
+                  Số lượng tồn kho (stock)
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.stock || "20"}
+                    onChange={(e) => handleFormChange("stock", e.target.value)}
+                    placeholder="20"
+                  />
+                </label>
+                <label>
+                  Trạng thái
+                  <select
+                    value={form.status || "Còn hàng"}
+                    onChange={(e) => handleFormChange("status", e.target.value)}
+                  >
+                    <option value="Còn hàng">Còn hàng</option>
+                    <option value="Hết hàng">Hết hàng</option>
+                  </select>
                 </label>
               </div>
 
