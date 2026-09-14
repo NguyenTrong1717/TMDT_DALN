@@ -1,8 +1,8 @@
 .wishlist-fw {
   position: fixed;
   right: 24px;
-  bottom: 100px; /* Đẩy lên cao hơn để không đè lên chatbox thường nằm ở góc dưới */
-  z-index: 999; /* Thấp hơn 1 chút so với chatbox để không che mất nó khi mở ra */
+  bottom: 86px; /* Nằm ngay trên Chatbot (bottom: 24px + 50px height + 12px gap) */
+  z-index: 997;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

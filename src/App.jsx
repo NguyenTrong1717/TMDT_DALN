@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import "nprogress/nprogress.css";
@@ -51,6 +51,21 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   return children;
+};
+
+// CÁC WIDGET NỔI BÁN HÀNG: CHỈ HIỆN Ở TRANG NGƯỜI DÙNG, ẨN HOÀN TOÀN TRONG ADMIN
+const CustomerFloatingWidgets = () => {
+  const location = useLocation();
+  if (location.pathname.startsWith("/admin")) {
+    return null;
+  }
+  return (
+    <>
+      <WishlistFloatingWidget />
+      <ChatBot />
+      <BackToTop />
+    </>
+  );
 };
 
 function App() {
@@ -111,9 +126,7 @@ function App() {
           <Route path="service-requests" element={<AdminServiceRequests />} />
         </Route>
       </Routes>
-      <WishlistFloatingWidget />
-      <ChatBot />
-      <BackToTop />
+      <CustomerFloatingWidgets />
     </BrowserRouter>
   );
 }

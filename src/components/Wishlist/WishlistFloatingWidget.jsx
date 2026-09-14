@@ -59,8 +59,8 @@ const WishlistFloatingWidget = () => {
     };
   }, [currentUser?.id]);
 
-  // Không hiện widget nếu chưa đăng nhập, hoặc đang đứng ngay trên trang Yêu Thích rồi
-  if (!currentUser || location.pathname === "/wishlist") return null;
+  // Không hiện widget nếu chưa đăng nhập, hoặc đang đứng ngay trên trang Yêu Thích, hoặc đang ở trang Admin
+  if (!currentUser || location.pathname === "/wishlist" || location.pathname.startsWith("/admin")) return null;
 
   const goToWishlist = () => {
     setBubble(null);
