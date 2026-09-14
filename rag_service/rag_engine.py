@@ -7,11 +7,12 @@ File: rag_service/rag_engine.py
 
 import os
 import re
-import math
 import asyncio
 import unicodedata
 from typing import List, Dict, Any, Optional
 import httpx
+import numpy as np
+from fastembed import TextEmbedding
 from dotenv import load_dotenv
 
 # Đọc file .env từ thư mục rag_service và thư mục gốc nếu có
@@ -200,49 +201,35 @@ def create_semantic_chunks(catalog: List[Dict[str, Any]]) -> List[Dict[str, Any]
     return result_chunks
 
 
-def tokenize(text: str) -> List[str]:
-    """Tách từ chuẩn xác cho tiếng Việt."""
-    cleaned = re.sub(r"[^\w\sà-ỹ]", " ", text.lower())
-    return [w for w in cleaned.split() if len(w) > 1]
+# FastEmbed ONNX Multilingual Model (cached singleton)
+_embed_model: Optional[TextEmbedding] = None
 
 
-def build_vocabulary(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
-    vocab = {w: i for i, w in enumerate(dict.fromkeys(w for c in chunks for w in tokenize(c["text"])))}
-    return {"vocab_map": vocab, "size": len(vocab)}
-
-
-def create_local_embedding(text: str, vocab_helper: Dict[str, Any]) -> List[float]:
-    """Tạo Dense Vector đặc trưng tần số từ và chuẩn hóa L2 Norm."""
-    vocab_map, size = vocab_helper["vocab_map"], vocab_helper["size"]
-    vec = [0.0] * size
-    for w in tokenize(text):
-        if w in vocab_map:
-            vec[vocab_map[w]] += 1.0
-    norm = math.hypot(*vec)
-    return [v / norm for v in vec] if norm > 0 else vec
-
-
-def compute_cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
-    """Tính Cosine Similarity giữa 2 vector."""
-    return sum(a * b for a, b in zip(vec_a, vec_b)) if vec_a and vec_b else 0.0
+def get_embed_model() -> TextEmbedding:
+    global _embed_model
+    if _embed_model is None:
+        _embed_model = TextEmbedding(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    return _embed_model
 
 
 async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 12) -> List[Dict[str, Any]]:
-    """Tìm kiếm tương đồng vector cục bộ (<3ms, không tốn quota)."""
+    """Tìm kiếm tương đồng ngữ nghĩa bằng Local AI FastEmbed ONNX."""
     if not chunks or not query.strip():
         return []
 
-    vocab_helper = build_vocabulary(chunks)
-    query_vec = create_local_embedding(query, vocab_helper)
+    model = get_embed_model()
+    q_vec = next(model.embed([query]))
+    q_norm = q_vec / (np.linalg.norm(q_vec) or 1.0)
 
-    scored_chunks = []
-    for chunk in chunks:
-        chunk_vec = create_local_embedding(chunk["text"], vocab_helper)
-        score = compute_cosine_similarity(query_vec, chunk_vec)
-        scored_chunks.append({**chunk, "score": score})
+    # Sinh vector cho các chunks chưa có trong bộ nhớ
+    uncached = [c for c in chunks if "vector" not in c]
+    if uncached:
+        for c, raw_v in zip(uncached, model.embed([c["text"] for c in uncached])):
+            c["vector"] = raw_v / (np.linalg.norm(raw_v) or 1.0)
 
-    scored_chunks.sort(key=lambda x: x["score"], reverse=True)
-    return scored_chunks[:top_k]
+    scored = [{**c, "score": float(np.dot(q_norm, c["vector"]))} for c in chunks]
+    scored.sort(key=lambda x: x["score"], reverse=True)
+    return scored[:top_k]
 
 
 async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
