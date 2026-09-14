@@ -16,7 +16,7 @@ import { MongoClient, ObjectId } from "mongodb";
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017";
-const DB_NAME = "tmdt_daln";
+const DB_NAME = process.env.DB_NAME || "tmdt_daln";
 
 app.use(cors());
 app.use(express.json());

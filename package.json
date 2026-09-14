@@ -11,8 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "node --env-file-if-exists=.env server.mjs",
-    "server:mongo": "node server_mongodb.mjs",
-    "migrate:mongo": "node scripts/migrate_to_mongodb.mjs",
+    "server:mongo": "node --env-file-if-exists=.env server_mongodb.mjs",
+    "migrate:mongo": "node --env-file-if-exists=.env scripts/migrate_to_mongodb.mjs",
     "test:vnpay": "node --test --experimental-test-isolation=none tests/vnpay.test.mjs tests/checkout-api.test.mjs",
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
   },

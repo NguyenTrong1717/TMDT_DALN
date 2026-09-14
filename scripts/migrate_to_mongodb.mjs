@@ -12,8 +12,8 @@ import { MongoClient } from "mongodb";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const MONGO_URI = "mongodb://localhost:27017";
-const DB_NAME = "tmdt_daln";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017";
+const DB_NAME = process.env.DB_NAME || "tmdt_daln";
 const DB_JSON_PATH = path.resolve(__dirname, "../db.json");
 
 async function runMigration() {
@@ -33,7 +33,7 @@ async function runMigration() {
 
   try {
     await client.connect();
-    console.log("✅ Đã kết nối thành công tới MongoDB localhost:27017!");
+    console.log(`✅ Đã kết nối thành công tới MongoDB (${DB_NAME})!`);
 
     const db = client.db(DB_NAME);
 
