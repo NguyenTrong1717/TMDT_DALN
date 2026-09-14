@@ -1,78 +1,44 @@
-/**
- * HCORE STORE - MIGRATION TOOL: db.json -> MongoDB
- * File: scripts/migrate_to_mongodb.mjs
- * Chạy lệnh: node scripts/migrate_to_mongodb.mjs
- */
-
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { MongoClient } from "mongodb";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+process.loadEnvFile?.();
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017";
-const DB_NAME = process.env.DB_NAME || "tmdt_daln";
-const DB_JSON_PATH = path.resolve(__dirname, "../db.json");
+const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
+const dbName = process.env.DB_NAME || "tmdt_daln";
+const dbFile = [new URL("../db.json", import.meta.url), new URL("../db.json.bak", import.meta.url)].find((f) => fs.existsSync(f));
 
-async function runMigration() {
-  console.log("🚀 Bắt đầu quá trình kết nối và đồng bộ dữ liệu vào MongoDB...");
-  console.log(`📡 URI: ${MONGO_URI}`);
-  console.log(`🗄️ Database: ${DB_NAME}`);
-
-  if (!fs.existsSync(DB_JSON_PATH)) {
-    console.error(`❌ Không tìm thấy file db.json tại ${DB_JSON_PATH}`);
+async function migrate() {
+  if (!dbFile) {
+    console.error("❌ Không tìm thấy file dữ liệu gốc (db.json hoặc db.json.bak)");
     process.exit(1);
   }
 
-  const raw = fs.readFileSync(DB_JSON_PATH, "utf8");
-  const data = JSON.parse(raw);
-
-  const client = new MongoClient(MONGO_URI);
+  const data = JSON.parse(fs.readFileSync(dbFile, "utf8"));
+  const client = new MongoClient(uri);
 
   try {
     await client.connect();
-    console.log(`✅ Đã kết nối thành công tới MongoDB (${DB_NAME})!`);
-
-    const db = client.db(DB_NAME);
-
-    const keys = Object.keys(data).filter((k) => k !== "$schema");
-    console.log(`📦 Tìm thấy ${keys.length} bảng dữ liệu cần chuyển giao sang MongoDB:`);
+    const db = client.db(dbName);
+    console.log(`✅ Kết nối MongoDB: ${dbName}`);
 
     let totalDocs = 0;
-
-    for (const key of keys) {
-      const items = Array.isArray(data[key]) ? data[key] : [];
+    for (const [key, items] of Object.entries(data)) {
+      if (!Array.isArray(items) || key.startsWith("$")) continue;
       const col = db.collection(key);
-
-      // Xóa collection cũ trước khi nạp lại dữ liệu khởi tạo
       await col.deleteMany({});
-
       if (items.length > 0) {
-        // Chuẩn hóa và thêm id làm index
-        const docs = items.map((item) => ({ ...item }));
-        await col.insertMany(docs);
-        try {
-          await col.createIndex({ id: 1 });
-        } catch {
-          // Bỏ qua lỗi index
-        }
+        await col.insertMany(items.map((item) => ({ ...item })));
+        await col.createIndex({ id: 1 }).catch(() => {});
         totalDocs += items.length;
-        console.log(`  + [${key}]: Đã nạp ${items.length} bản ghi vào MongoDB.`);
-      } else {
-        console.log(`  + [${key}]: Rỗng (0 bản ghi).`);
+        console.log(`  + [${key}]: ${items.length} bản ghi`);
       }
     }
-
-    console.log("--------------------------------------------------");
-    console.log(`🎉 HOÀN TẤT ĐỒNG BỘ! Tổng cộng: ${totalDocs} bản ghi đã nằm trong database '${DB_NAME}'.`);
-    console.log("👉 Bạn có thể mở MongoDB Compass và kiểm tra database 'tmdt_daln' ngay bây giờ!");
-  } catch (error) {
-    console.error("❌ Lỗi trong quá trình di chuyển dữ liệu:", error);
+    console.log(`🎉 Đồng bộ hoàn tất: ${totalDocs} bản ghi vào '${dbName}'`);
+  } catch (err) {
+    console.error("❌ Lỗi di chuyển dữ liệu:", err.message);
   } finally {
     await client.close();
   }
 }
 
-runMigration();
+migrate();

@@ -184,7 +184,9 @@ export const quoteCheckout = (state, input, options = {}) => {
     if (product.status && !String(product.status).toLowerCase().includes("còn")) {
       throw new Error(`${product.name || "Sản phẩm"} hiện không còn hàng.`);
     }
-    if (product.stockLeft !== undefined) {
+    const hasStockField = product.stockLeft != null || product.stock != null;
+    if (hasStockField) {
+      const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
       const reserved = activeReservationQuantity(
         state,
         fromTable,
@@ -192,7 +194,7 @@ export const quoteCheckout = (state, input, options = {}) => {
         now,
         options.excludeOrderId,
       );
-      if (Number(product.stockLeft) - reserved < quantity) {
+      if (currentStock - reserved < quantity) {
         throw new Error(`${product.name || "Sản phẩm"} không đủ tồn kho.`);
       }
     }
@@ -340,10 +342,14 @@ export const fulfillOrder = (state, order, now = new Date()) => {
   if (!order.inventoryProcessed) {
     for (const item of order.products) {
       const product = getProduct(state, item.fromTable, item.productId);
-      if (product.stockLeft !== undefined) {
-        if (Number(product.stockLeft) < item.quantity) order.inventoryShortage = true;
-        product.stockLeft = Math.max(0, Number(product.stockLeft) - item.quantity);
-        if (product.stockLeft === 0 && product.status) product.status = "Hết hàng";
+      const hasStock = product.stockLeft != null || product.stock != null;
+      if (hasStock) {
+        const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
+        if (currentStock < item.quantity) order.inventoryShortage = true;
+        const newStock = Math.max(0, currentStock - item.quantity);
+        product.stockLeft = newStock;
+        product.stock = newStock;
+        if (newStock === 0 && product.status) product.status = "Hết hàng";
       }
     }
     order.inventoryProcessed = true;
@@ -366,8 +372,12 @@ export const releaseCancelledOrder = (state, order, now = new Date()) => {
   if (!order.inventoryProcessed || order.inventoryReleasedAt) return;
   for (const item of order.products || []) {
     const product = getProduct(state, item.fromTable, item.productId);
-    if (product.stockLeft !== undefined) {
-      product.stockLeft = Number(product.stockLeft) + Number(item.quantity);
+    const hasStock = product.stockLeft != null || product.stock != null;
+    if (hasStock) {
+      const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
+      const newStock = currentStock + Number(item.quantity);
+      product.stockLeft = newStock;
+      product.stock = newStock;
       if (product.status === "Hết hàng") product.status = "Còn hàng";
     }
   }

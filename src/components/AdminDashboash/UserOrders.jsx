@@ -71,6 +71,8 @@ const UserOrders = () => {
     switch (status) {
       case "pending":
         return <span className="status-badge pending"> Chờ xử lý</span>;
+      case "confirmed":
+        return <span className="status-badge confirmed"> Đã xác nhận</span>;
       case "shipping":
         return <span className="status-badge shipping"> Đang giao hàng</span>;
       case "completed":
@@ -78,7 +80,7 @@ const UserOrders = () => {
       case "cancelled":
         return <span className="status-badge cancelled"> Đã hủy</span>;
       default:
-        return <span className="status-badge">Không xác định</span>;
+        return <span className="status-badge">{status || "Không xác định"}</span>;
     }
   };
 
