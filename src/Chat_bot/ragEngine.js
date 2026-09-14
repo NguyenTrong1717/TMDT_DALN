@@ -99,6 +99,34 @@ export const executeRAG = async ({
   apiKey = "",
   currentUser = null,
 }) => {
+  // 1. ƯU TIÊN GỌI PYTHON RAG BACKEND (Microservice tại cổng 8000)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const pyRes = await fetch("http://localhost:8000/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userQuery,
+        currentUser,
+        apiKey: apiKey || undefined,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (pyRes.ok) {
+      const data = await pyRes.json();
+      if (data?.reply) {
+        return data.reply;
+      }
+    }
+  } catch (err) {
+    // Nếu Python service chưa bật hoặc timeout -> kích hoạt Dual-Engine Fallback sang JS cục bộ
+  }
+
+  // 2. DUAL-ENGINE FALLBACK (Client-side JS RAG đảm bảo hệ thống luôn sẵn sàng 100%)
   const normQuery = normalizeText(userQuery);
 
   // Chạy tuần tự 3 lớp bảo vệ trước khi vào RAG
