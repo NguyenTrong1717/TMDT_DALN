@@ -10,13 +10,16 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server.mjs",
+    "server": "node server_mongodb.mjs",
+    "server:json": "node server.mjs",
+    "migrate:mongo": "node scripts/migrate_to_mongodb.mjs",
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
   },
   "dependencies": {
     "axios": "^1.17.0",
     "bootstrap": "^5.3.8",
     "lucide-react": "^1.23.0",
+    "mongodb": "^7.6.0",
     "nprogress": "^0.2.0",
     "react": "^19.2.6",
     "react-bootstrap": "^2.10.10",
