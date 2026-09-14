@@ -9,7 +9,12 @@ import {
   FaLayerGroup,
   FaCheckCircle,
   FaTimesCircle,
+  FaFileExcel,
+  FaExclamationTriangle,
+  FaBarcode,
+  FaCoins,
 } from "react-icons/fa";
+import { exportToCsv, logAudit } from "../../utils/exportCsv";
 import "./ProductManager.css";
 
 const BASE_URL = "http://localhost:3000";
@@ -26,15 +31,19 @@ const TARGET_OPTIONS = [
 ];
 
 const EMPTY_FORM = {
+  sku: "",
   name: "",
+  costPrice: "",
   price: "",
   oldPrice: "",
   category: "",
   brand: "",
   stock: "25",
+  lowStockThreshold: "5",
   status: "Còn hàng",
   image: "",
   description: "",
+  variants: [],
 };
 
 const ProductManager = () => {
@@ -49,6 +58,14 @@ const ProductManager = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+
+  // Quản lý biến thể (Variants) trong modal
+  const [variantName, setVariantName] = useState("");
+  const [variantPrice, setVariantPrice] = useState("");
+  const [variantStock, setVariantStock] = useState("");
+  const [variantSku, setVariantSku] = useState("");
+
+  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
 
   const fetchData = async (target) => {
     setLoading(true);
@@ -73,17 +90,26 @@ const ProductManager = () => {
   // Lọc và tìm kiếm
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
+      const keyword = searchTerm.toLowerCase().trim();
       const matchSearch =
-        !searchTerm.trim() ||
-        String(item.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(item.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(item.category || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(item.brand || "").toLowerCase().includes(searchTerm.toLowerCase());
+        !keyword ||
+        String(item.name || "").toLowerCase().includes(keyword) ||
+        String(item.sku || "").toLowerCase().includes(keyword) ||
+        String(item.id || "").toLowerCase().includes(keyword) ||
+        String(item.category || "").toLowerCase().includes(keyword) ||
+        String(item.brand || "").toLowerCase().includes(keyword);
 
-      const matchStatus =
-        statusFilter === "all" ||
-        (statusFilter === "in_stock" && String(item.status || "").toLowerCase().includes("còn")) ||
-        (statusFilter === "out_of_stock" && !String(item.status || "").toLowerCase().includes("còn"));
+      const stockNum =
+        item.stockLeft !== undefined && item.stockLeft !== null
+          ? Number(item.stockLeft)
+          : Number(item.stock || 0);
+
+      const isAvailable = String(item.status || "").toLowerCase().includes("còn") && stockNum > 0;
+
+      let matchStatus = true;
+      if (statusFilter === "in_stock") matchStatus = isAvailable;
+      else if (statusFilter === "out_of_stock") matchStatus = !isAvailable;
+      else if (statusFilter === "low_stock") matchStatus = stockNum <= Number(item.lowStockThreshold || 5);
 
       return matchSearch && matchStatus;
     });
@@ -91,9 +117,10 @@ const ProductManager = () => {
 
   // Phân trang
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredItems.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -108,24 +135,77 @@ const ProductManager = () => {
 
   const openAddModal = () => {
     setEditingId(null);
-    setForm(EMPTY_FORM);
+    setForm({
+      ...EMPTY_FORM,
+      sku: `SKU-${Date.now().toString().slice(-6)}`,
+    });
+    setVariantName("");
+    setVariantPrice("");
+    setVariantStock("");
+    setVariantSku("");
     setIsModalOpen(true);
   };
 
   const openEditModal = (item) => {
     setEditingId(item.id);
+    const stockVal =
+      item.stock !== undefined
+        ? String(item.stock)
+        : item.stockLeft !== undefined
+          ? String(item.stockLeft)
+          : "25";
+
     setForm({
+      sku: item.sku || `SKU-${String(item.id).padStart(4, "0")}`,
       name: item.name || "",
+      costPrice: item.costPrice !== undefined ? String(item.costPrice) : "",
       price: item.price !== undefined ? String(item.price) : "",
       oldPrice: item.oldPrice !== undefined ? String(item.oldPrice) : "",
       category: item.category || "",
       brand: item.brand || "",
-      stock: item.stock !== undefined ? String(item.stock) : item.stockLeft !== undefined ? String(item.stockLeft) : "25",
+      stock: stockVal,
+      lowStockThreshold: item.lowStockThreshold !== undefined ? String(item.lowStockThreshold) : "5",
       status: item.status || "Còn hàng",
       image: item.image || "",
       description: item.description || "",
+      variants: Array.isArray(item.variants) ? item.variants : [],
     });
+    setVariantName("");
+    setVariantPrice("");
+    setVariantStock("");
+    setVariantSku("");
     setIsModalOpen(true);
+  };
+
+  // Thêm biến thể sản phẩm (Variant)
+  const handleAddVariant = () => {
+    if (!variantName.trim()) {
+      toast.warning("Vui lòng nhập tên tùy chọn / biến thể!");
+      return;
+    }
+    const newVariant = {
+      id: Date.now().toString(),
+      sku: variantSku.trim() || `${form.sku || "SKU"}-${form.variants.length + 1}`,
+      name: variantName.trim(),
+      price: variantPrice ? Number(variantPrice) : Number(form.price || 0),
+      stock: variantStock ? Number(variantStock) : Number(form.stock || 25),
+    };
+    setForm((prev) => ({
+      ...prev,
+      variants: [...(prev.variants || []), newVariant],
+    }));
+    setVariantName("");
+    setVariantPrice("");
+    setVariantStock("");
+    setVariantSku("");
+    toast.success(`Đã thêm biến thể: ${newVariant.name}`);
+  };
+
+  const handleRemoveVariant = (idx) => {
+    setForm((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== idx),
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -136,7 +216,7 @@ const ProductManager = () => {
       return;
     }
     if (!form.price || Number(form.price) <= 0) {
-      toast.warning("Vui lòng nhập giá sản phẩm hợp lệ!");
+      toast.warning("Vui lòng nhập giá bán sản phẩm hợp lệ!");
       return;
     }
     if (!form.image.trim()) {
@@ -146,95 +226,139 @@ const ProductManager = () => {
 
     const stockVal = Number(form.stock) >= 0 ? Number(form.stock) : 25;
     const priceVal = Number(form.price);
+    const costPriceVal = form.costPrice ? Number(form.costPrice) : Math.round(priceVal * 0.75);
     const oldPriceVal = form.oldPrice ? Number(form.oldPrice) : priceVal;
+    const lowStockThresholdVal = Number(form.lowStockThreshold) >= 0 ? Number(form.lowStockThreshold) : 5;
 
     const maxId = items.length > 0 ? Math.max(...items.map((i) => Number(i.id) || 0)) : 0;
     const nextId = maxId + 1;
 
     const itemData = {
+      sku: form.sku.trim() || `SKU-${Date.now().toString().slice(-6)}`,
       name: form.name.trim(),
+      costPrice: costPriceVal,
       price: priceVal,
       oldPrice: oldPriceVal,
       stock: stockVal,
       stockLeft: stockVal,
-      status: form.status || "Còn hàng",
-      category: form.category ? form.category.trim() : "",
-      brand: form.brand ? form.brand.trim() : "",
+      lowStockThreshold: lowStockThresholdVal,
+      status: form.status || (stockVal > 0 ? "Còn hàng" : "Hết hàng"),
+      category: form.category.trim(),
+      brand: form.brand.trim(),
       image: form.image.trim(),
-      description: form.description ? form.description.trim() : "",
-      deleted: false,
+      description: form.description.trim(),
+      variants: form.variants || [],
+      updatedAt: new Date().toISOString(),
     };
 
-    if (!editingId) {
-      itemData.id = nextId;
-      itemData.rating = 5;
-      itemData.reviewsCount = 0;
-      itemData.soldCount = 0;
-    }
-
     try {
-      const url = editingId ? `${BASE_URL}/${selectedTarget}/${editingId}` : `${BASE_URL}/${selectedTarget}`;
-      const method = editingId ? "PATCH" : "POST";
+      if (editingId) {
+        const res = await fetch(`${BASE_URL}/${selectedTarget}/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(itemData),
+        });
+        if (!res.ok) throw new Error("Cập nhật sản phẩm thất bại!");
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(itemData),
-      });
-
-      if (res.ok) {
-        toast.success(editingId ? "Cập nhật sản phẩm thành công!" : "Thêm mới sản phẩm thành công!");
-        setIsModalOpen(false);
-        fetchData(selectedTarget);
+        setItems((prev) =>
+          prev.map((item) => (item.id === editingId ? { ...item, ...itemData } : item))
+        );
+        toast.success(`Đã cập nhật sản phẩm "${itemData.name}" thành công!`);
+        logAudit(currentUser, "Cập nhật sản phẩm", `#${editingId} - ${itemData.name}`, `Giá: ${priceVal}, Tồn: ${stockVal}`);
       } else {
-        toast.error("Máy chủ phản hồi lỗi, không thể lưu dữ liệu!");
+        const newItem = {
+          id: nextId.toString(),
+          ...itemData,
+          soldCount: 0,
+          createdAt: new Date().toISOString(),
+        };
+
+        const res = await fetch(`${BASE_URL}/${selectedTarget}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newItem),
+        });
+        if (!res.ok) throw new Error("Thêm sản phẩm mới thất bại!");
+
+        const created = await res.json();
+        setItems((prev) => [created, ...prev]);
+        toast.success(`Đã thêm mới sản phẩm "${itemData.name}"!`);
+        logAudit(currentUser, "Thêm mới sản phẩm", `#${created.id} - ${itemData.name}`, `Bảng: ${selectedTarget}`);
       }
+
+      setIsModalOpen(false);
+      setForm(EMPTY_FORM);
     } catch (err) {
       console.error(err);
-      toast.error("Thất bại: Lỗi kết nối tới máy chủ API!");
+      toast.error(err.message || "Có lỗi xảy ra khi lưu dữ liệu sản phẩm!");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) return;
+    const itemToDelete = items.find((i) => i.id === id);
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${itemToDelete?.name || id}"?`)) {
+      return;
+    }
 
     try {
       const res = await fetch(`${BASE_URL}/${selectedTarget}/${id}`, {
         method: "DELETE",
       });
+      if (!res.ok) throw new Error("Xóa sản phẩm thất bại!");
 
-      if (res.ok) {
-        const updated = items.filter((item) => item.id !== id);
-        setItems(updated);
-        toast.success("Đã xóa sản phẩm thành công!");
-      } else {
-        toast.error("Không thể xóa sản phẩm trên máy chủ!");
-      }
-    } catch {
-      toast.error("Lỗi kết nối máy chủ khi xóa dữ liệu!");
+      setItems((prev) => prev.filter((item) => item.id !== id));
+      toast.success("Đã xóa sản phẩm thành công!");
+      logAudit(currentUser, "Xóa sản phẩm", `#${id} - ${itemToDelete?.name || ""}`, `Bảng: ${selectedTarget}`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Không thể xóa sản phẩm khỏi máy chủ!");
+    }
+  };
+
+  // Xuất file Excel (CSV)
+  const handleExportCsv = () => {
+    try {
+      const headers = [
+        { label: "Mã ID", key: "id" },
+        { label: "Mã SKU", key: (r) => r.sku || `SKU-${r.id}` },
+        { label: "Tên sản phẩm", key: "name" },
+        { label: "Danh mục", key: "category" },
+        { label: "Thương hiệu", key: "brand" },
+        { label: "Giá vốn (VNĐ)", key: (r) => r.costPrice || "" },
+        { label: "Giá bán lẻ (VNĐ)", key: "price" },
+        { label: "Giá niêm yết (VNĐ)", key: "oldPrice" },
+        { label: "Lợi nhuận dự kiến (VNĐ)", key: (r) => (r.costPrice ? Number(r.price) - Number(r.costPrice) : "") },
+        { label: "Tồn kho thực tế", key: (r) => r.stockLeft ?? r.stock ?? 0 },
+        { label: "Trạng thái", key: "status" },
+        { label: "Số lượng biến thể", key: (r) => (r.variants || []).length },
+      ];
+
+      exportToCsv(`Danh_sach_san_pham_${selectedTarget}`, headers, filteredItems);
+      toast.success(`Đã xuất ${filteredItems.length} sản phẩm ra file Excel (CSV)!`);
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
   return (
     <div className="pm-container">
       <div className="pm-card">
-        {/* HEADER CONTROLS */}
+        {/* HEADER BAR */}
         <div className="pm-header-wrapper">
           <div className="pm-controls">
             <div className="pm-title-group">
               <FaBox className="pm-title-icon" />
-              <h2>Quản Lý Sản Phẩm</h2>
-              <span className="pm-total-badge">{filteredItems.length} sản phẩm</span>
+              <h2>QUẢN LÝ SẢN PHẨM &amp; KHO HÀNG</h2>
             </div>
+            <span className="pm-total-badge">{items.length} sản phẩm</span>
 
-            {/* Chọn bảng danh mục */}
             <div className="pm-target-wrap">
               <FaLayerGroup className="pm-input-icon" />
               <select
                 value={selectedTarget}
                 onChange={(e) => setSelectedTarget(e.target.value)}
                 className="pm-select-target"
-                title="Chọn kho danh mục để quản lý"
+                title="Chọn nhóm sản phẩm"
               >
                 {TARGET_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -246,28 +370,49 @@ const ProductManager = () => {
           </div>
 
           <div className="pm-header-actions">
-            {/* Thanh tìm kiếm */}
             <div className="pm-search-box">
               <FaSearch className="pm-search-icon" />
               <input
                 type="text"
-                placeholder="Tìm tên, ID, thương hiệu..."
+                placeholder="Tìm theo tên, SKU, ID, hãng..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pm-search-input"
               />
+              {searchTerm && (
+                <button
+                  className="pm-clear-search-btn"
+                  onClick={() => setSearchTerm("")}
+                >
+                  &times;
+                </button>
+              )}
             </div>
 
-            {/* Lọc trạng thái */}
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pm-filter-select"
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="in_stock">Còn hàng</option>
+              <option value="low_stock">⚠️ Cảnh báo sắp hết (≤5)</option>
               <option value="out_of_stock">Hết hàng</option>
             </select>
+
+            <button
+              onClick={handleExportCsv}
+              className="pm-btn-export"
+              title="Xuất danh sách ra file Excel CSV"
+            >
+              <FaFileExcel /> Xuất Excel
+            </button>
 
             <button onClick={openAddModal} className="pm-btn-add">
               <FaPlus /> Thêm sản phẩm
@@ -275,21 +420,20 @@ const ProductManager = () => {
           </div>
         </div>
 
-        {/* BẢNG SẢN PHẨM */}
+        {/* BẢNG DỮ LIỆU SẢN PHẨM */}
         <div className="pm-table-responsive">
           <table className="pm-table">
             <thead>
               <tr>
-                <th style={{ width: "70px" }}>ID</th>
-                <th style={{ width: "80px" }}>Hình ảnh</th>
-                <th>Tên sản phẩm & Thông tin</th>
-                <th style={{ width: "160px" }}>Giá bán</th>
-                <th style={{ width: "120px" }}>Tồn kho</th>
-                <th style={{ width: "130px" }}>Trạng thái</th>
-                <th style={{ width: "140px", textAlign: "center" }}>Hành động</th>
+                <th style={{ width: "90px" }}>Mã SKU / ID</th>
+                <th style={{ width: "70px" }}>Hình ảnh</th>
+                <th>Tên sản phẩm &amp; Cấu hình</th>
+                <th>Giá vốn &amp; Bán lẻ</th>
+                <th>Tồn kho &amp; Biến thể</th>
+                <th>Trạng thái</th>
+                <th style={{ textAlign: "center", width: "160px" }}>Hành động</th>
               </tr>
             </thead>
-
             <tbody>
               {loading ? (
                 <tr>
@@ -322,12 +466,29 @@ const ProductManager = () => {
                 </tr>
               ) : (
                 currentItems.map((item) => {
-                  const stockNum = item.stockLeft !== undefined && item.stockLeft !== null ? Number(item.stockLeft) : Number(item.stock || 0);
-                  const isAvailable = String(item.status || "").toLowerCase().includes("còn") && stockNum > 0;
+                  const stockNum =
+                    item.stockLeft !== undefined && item.stockLeft !== null
+                      ? Number(item.stockLeft)
+                      : Number(item.stock || 0);
+
+                  const isAvailable =
+                    String(item.status || "").toLowerCase().includes("còn") && stockNum > 0;
+
+                  const cost = Number(item.costPrice || 0);
+                  const price = Number(item.price || 0);
+                  const profit = price - cost;
+                  const isLowStock = stockNum <= Number(item.lowStockThreshold || 5);
 
                   return (
                     <tr key={item.id}>
-                      <td className="pm-id-cell">#{item.id}</td>
+                      <td className="pm-id-cell">
+                        <div className="pm-sku-text">
+                          <FaBarcode className="pm-barcode-icon" />
+                          <span>{item.sku || `SKU-${item.id}`}</span>
+                        </div>
+                        <span className="pm-id-sub">#{item.id}</span>
+                      </td>
+
                       <td>
                         <img
                           src={item.image}
@@ -338,41 +499,70 @@ const ProductManager = () => {
                           }}
                         />
                       </td>
+
                       <td className="pm-name-cell">
                         <div className="pm-product-name">{item.name}</div>
                         <div className="pm-product-meta">
                           {item.category && <span className="pm-meta-tag">{item.category}</span>}
                           {item.brand && <span className="pm-meta-tag brand">{item.brand}</span>}
-                          {item.rating && <span className="pm-meta-tag rating">★ {item.rating}</span>}
+                          {item.variants?.length > 0 && (
+                            <span className="pm-meta-tag variant-count">
+                              {item.variants.length} biến thể SKU
+                            </span>
+                          )}
                         </div>
                       </td>
+
                       <td className="pm-price-cell">
                         <div className="pm-price-current">
-                          {Number(item.price || 0).toLocaleString("vi-VN")}₫
+                          {price.toLocaleString("vi-VN")}₫
                         </div>
-                        {item.oldPrice && Number(item.oldPrice) > Number(item.price) && (
+                        {cost > 0 && (
+                          <div className="pm-cost-text">
+                            Vốn: {cost.toLocaleString("vi-VN")}₫
+                            <span className="pm-profit-badge" title="Lợi nhuận gộp">
+                              +{(profit).toLocaleString("vi-VN")}₫
+                            </span>
+                          </div>
+                        )}
+                        {item.oldPrice && Number(item.oldPrice) > price && (
                           <div className="pm-price-old">
-                            {Number(item.oldPrice).toLocaleString("vi-VN")}₫
+                            Niêm yết: {Number(item.oldPrice).toLocaleString("vi-VN")}₫
                           </div>
                         )}
                       </td>
+
                       <td>
-                        <span className={`pm-stock-badge ${stockNum <= 5 ? "low" : ""}`}>
-                          {stockNum} cái
-                        </span>
+                        <div className="pm-stock-block">
+                          <span
+                            className={`pm-stock-badge ${
+                              stockNum === 0 ? "out" : isLowStock ? "low" : ""
+                            }`}
+                          >
+                            {isLowStock && <FaExclamationTriangle />}
+                            {stockNum} trong kho
+                          </span>
+                          {item.variants?.length > 0 && (
+                            <span className="pm-variants-chip">
+                              Tùy chọn: {item.variants.map((v) => v.name).join(", ")}
+                            </span>
+                          )}
+                        </div>
                       </td>
+
                       <td>
                         <span className={`pm-status-badge ${isAvailable ? "available" : "unavailable"}`}>
                           {isAvailable ? <FaCheckCircle /> : <FaTimesCircle />}
                           {item.status || (stockNum > 0 ? "Còn hàng" : "Hết hàng")}
                         </span>
                       </td>
+
                       <td>
                         <div className="pm-action-group">
                           <button
                             onClick={() => openEditModal(item)}
                             className="pm-btn-edit"
-                            title="Chỉnh sửa sản phẩm"
+                            title="Chỉnh sửa sản phẩm & kho"
                           >
                             <FaEdit /> Sửa
                           </button>
@@ -419,12 +609,14 @@ const ProductManager = () => {
         )}
       </div>
 
-      {/* MODAL THÊM / SỬA SẢN PHẨM */}
+      {/* MODAL THÊM / SỬA SẢN PHẨM & BIẾN THỂ KHO */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
             <h3>
-              <span>{editingId ? `Cập nhật sản phẩm #${editingId}` : "Thêm sản phẩm mới"}</span>
+              <span>
+                {editingId ? `Cập nhật sản phẩm #${editingId}` : "Thêm sản phẩm mới vào kho"}
+              </span>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -435,128 +627,226 @@ const ProductManager = () => {
             </h3>
 
             <form onSubmit={handleSubmit} className="form-layouts">
-              {/* Tên sản phẩm */}
-              <div className="form-groups">
-                <label>Tên sản phẩm *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="VD: PC GAMING RYZEN 7-RTX 5070..."
-                  required
-                />
+              <div className="form-row">
+                <div className="form-item">
+                  <label>Mã SKU Kho *</label>
+                  <input
+                    type="text"
+                    name="sku"
+                    value={form.sku}
+                    onChange={handleChange}
+                    placeholder="VD: SKU-PC-GAMING-01"
+                    required
+                  />
+                </div>
+
+                <div className="form-item flex-2">
+                  <label>Tên sản phẩm *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="VD: PC Gaming HCore Ryzen 7 RTX 4070"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* Hàng 2: Giá & Giá cũ */}
-              <div className="form-row-2">
-                <div className="form-groups">
-                  <label>Giá bán hiện tại (VNĐ) *</label>
+              {/* TÀI CHÍNH & GIÁ VỐN */}
+              <div className="form-row">
+                <div className="form-item">
+                  <label>Giá vốn nhập kho (VNĐ)</label>
+                  <input
+                    type="number"
+                    name="costPrice"
+                    value={form.costPrice}
+                    onChange={handleChange}
+                    placeholder="VD: 15000000"
+                  />
+                  <small className="form-hint">Dùng để tính lợi nhuận nội bộ</small>
+                </div>
+
+                <div className="form-item">
+                  <label>Giá bán lẻ (VNĐ) *</label>
                   <input
                     type="number"
                     name="price"
                     value={form.price}
                     onChange={handleChange}
-                    placeholder="VD: 32990000"
-                    min="1000"
+                    placeholder="VD: 18500000"
                     required
                   />
                 </div>
-                <div className="form-groups">
-                  <label>Giá gốc niêm yết (VNĐ)</label>
+
+                <div className="form-item">
+                  <label>Giá niêm yết (Gốc) (VNĐ)</label>
                   <input
                     type="number"
                     name="oldPrice"
                     value={form.oldPrice}
                     onChange={handleChange}
-                    placeholder="VD: 36990000"
+                    placeholder="VD: 20000000"
                   />
                 </div>
               </div>
 
-              {/* Hàng 3: Tồn kho & Trạng thái */}
-              <div className="form-row-2">
-                <div className="form-groups">
+              {/* TỒN KHO & PHÂN LOẠI */}
+              <div className="form-row">
+                <div className="form-item">
                   <label>Số lượng tồn kho *</label>
                   <input
                     type="number"
                     name="stock"
                     value={form.stock}
                     onChange={handleChange}
-                    placeholder="VD: 25"
+                    placeholder="25"
                     min="0"
                     required
                   />
                 </div>
-                <div className="form-groups">
-                  <label>Trạng thái</label>
-                  <select
-                    name="status"
-                    value={form.status}
+
+                <div className="form-item">
+                  <label>Ngưỡng cảnh báo hết hàng</label>
+                  <input
+                    type="number"
+                    name="lowStockThreshold"
+                    value={form.lowStockThreshold}
                     onChange={handleChange}
-                    className="form-select"
-                  >
+                    placeholder="5"
+                    min="1"
+                  />
+                </div>
+
+                <div className="form-item">
+                  <label>Trạng thái</label>
+                  <select name="status" value={form.status} onChange={handleChange}>
                     <option value="Còn hàng">Còn hàng</option>
                     <option value="Hết hàng">Hết hàng</option>
+                    <option value="Sắp về hàng">Sắp về hàng</option>
                   </select>
                 </div>
               </div>
 
-              {/* Hàng 4: Danh mục & Thương hiệu */}
-              <div className="form-row-2">
-                <div className="form-groups">
-                  <label>Danh mục phân loại</label>
+              <div className="form-row">
+                <div className="form-item">
+                  <label>Danh mục</label>
                   <input
                     type="text"
                     name="category"
                     value={form.category}
                     onChange={handleChange}
-                    placeholder="VD: PC Gaming, Laptop, VGA..."
+                    placeholder="VD: pc-gaming, laptop, vga"
                   />
                 </div>
-                <div className="form-groups">
-                  <label>Thương hiệu</label>
+
+                <div className="form-item">
+                  <label>Thương hiệu (Brand)</label>
                   <input
                     type="text"
                     name="brand"
                     value={form.brand}
                     onChange={handleChange}
-                    placeholder="VD: ASUS, MSI, Gigabyte..."
+                    placeholder="VD: ASUS, MSI, Intel, AMD"
                   />
                 </div>
               </div>
 
-              {/* URL Hình ảnh */}
-              <div className="form-groups">
-                <label>Đường dẫn hình ảnh (URL hoặc /images/...) *</label>
+              <div className="form-item full">
+                <label>Đường dẫn hình ảnh *</label>
                 <input
                   type="text"
                   name="image"
                   value={form.image}
                   onChange={handleChange}
-                  placeholder="VD: https://... hoặc /images/pc-gaming.png"
+                  placeholder="https://... hoặc /images/..."
                   required
                 />
               </div>
 
-              {/* Mô tả ngắn */}
-              <div className="form-groups">
-                <label>Mô tả tóm tắt</label>
+              <div className="form-item full">
+                <label>Mô tả chi tiết sản phẩm</label>
                 <textarea
                   name="description"
                   value={form.description}
                   onChange={handleChange}
-                  placeholder="Thông số kỹ thuật hoặc ưu điểm nổi bật..."
                   rows="3"
-                  className="form-textarea"
-                />
+                  placeholder="Thông số kỹ thuật, bảo hành, quà tặng đi kèm..."
+                ></textarea>
+              </div>
+
+              {/* KHU VỰC QUẢN LÝ BIẾN THỂ SKU (VARIANTS) */}
+              <div className="variants-section">
+                <div className="variants-header">
+                  <h4>
+                    <FaCoins /> Biến thể sản phẩm (SKU Variants)
+                  </h4>
+                  <small>Cấu hình ram/ổ cứng, màu sắc hoặc phiên bản</small>
+                </div>
+
+                <div className="variants-input-row">
+                  <input
+                    type="text"
+                    placeholder="Mã SKU (VD: SKU-RAM-32G)"
+                    value={variantSku}
+                    onChange={(e) => setVariantSku(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Tên tùy chọn (VD: 32GB RAM / 1TB SSD)"
+                    value={variantName}
+                    onChange={(e) => setVariantName(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Giá biến thể"
+                    value={variantPrice}
+                    onChange={(e) => setVariantPrice(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    placeholder="Tồn kho"
+                    value={variantStock}
+                    onChange={(e) => setVariantStock(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddVariant}
+                    className="btn-add-variant"
+                  >
+                    + Thêm
+                  </button>
+                </div>
+
+                {form.variants?.length > 0 && (
+                  <div className="variants-list">
+                    {form.variants.map((v, idx) => (
+                      <div className="variant-pill" key={v.id || idx}>
+                        <span className="v-sku">{v.sku}</span>
+                        <strong className="v-name">{v.name}</strong>
+                        <span className="v-price">
+                          {Number(v.price || form.price).toLocaleString("vi-VN")}₫
+                        </span>
+                        <span className="v-stock">Kho: {v.stock}</span>
+                        <button
+                          type="button"
+                          className="v-remove"
+                          onClick={() => handleRemoveVariant(idx)}
+                          title="Xóa biến thể"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="modal-actions">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="btn-cancel">
                   Hủy bỏ
                 </button>
-                <button type="submit" className="btn-submit">
+                <button type="submit" className="btn-save">
                   {editingId ? "Lưu thay đổi" : "Tạo sản phẩm"}
                 </button>
               </div>

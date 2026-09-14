@@ -12,6 +12,7 @@ import {
   FaStar,
   FaBolt,
   FaSearch,
+  FaHistory,
 } from "react-icons/fa";
 import { MdSupportAgent } from "react-icons/md";
 
@@ -53,6 +54,12 @@ const ADMIN_MENU = [
     key: "service-requests",
     label: "Yêu Cầu Dịch Vụ",
     icon: MdSupportAgent,
+  },
+  {
+    path: "/admin/audit-logs",
+    key: "audit-logs",
+    label: "Nhật Ký Thao Tác",
+    icon: FaHistory,
   },
 ];
 
@@ -164,6 +171,13 @@ const Admin = () => {
           >
             <MdSupportAgent />
             <span>Yêu Cầu Dịch Vụ</span>
+          </Link>
+          <Link
+            to="/admin/audit-logs"
+            className={isActive("audit-logs")}
+          >
+            <FaHistory />
+            <span>Nhật Ký Thao Tác</span>
           </Link>
         </nav>
       </aside>

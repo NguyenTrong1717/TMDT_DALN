@@ -41,6 +41,7 @@ import VoucherManager from "./components/AdminDashboash/VoucherManager";
 import ContactPage from "./components/AdminDashboash/ContactPage";
 import BackToTop from "./components/BackToTop/BackToTop";
 import PaymentResult from "./pages/PaymentResult";
+import AuditLogManager from "./components/AdminDashboash/AuditLogManager";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({ children }) => {
@@ -126,6 +127,7 @@ function App() {
           <Route path="vouchers" element={<VoucherManager />} />
           <Route path="flash-sale" element={<FlashSaleManager />} />
           <Route path="service-requests" element={<AdminServiceRequests />} />
+          <Route path="audit-logs" element={<AuditLogManager />} />
         </Route>
       </Routes>
       <CustomerFloatingWidgets />

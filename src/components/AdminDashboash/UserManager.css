@@ -880,3 +880,313 @@
   color: #ffffff;
   box-shadow: 0 4px 12px var(--accent-glow);
 }
+
+/* ── CRM & Customer Lifetime Value (LTV) Extensions ────────── */
+.um-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.um-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.um-btn-export:hover {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.um-stat-card.highlight-staff h2 {
+  color: #6366f1;
+}
+
+.um-stat-card.highlight-vip h2 {
+  color: #d97706;
+}
+
+.um-stat-card.highlight-ltv h2 {
+  color: #059669;
+}
+
+.um-table-wrapper {
+  overflow-x: auto;
+}
+
+.um-id-cell {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.admin-star {
+  color: #eab308;
+  margin-left: 4px;
+  font-size: 13px;
+}
+
+.avatar-admin {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.avatar-diamond {
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.35);
+}
+
+.um-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.um-email {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.um-phone {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Dropdown chọn quyền */
+.um-role-select {
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.um-role-select.role-admin {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+.um-role-select.role-warehouse {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
+}
+
+.um-role-select.role-support {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.um-role-select.role-user {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+/* Phân hạng khách hàng (Tiers) */
+.um-ltv-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.um-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.um-tier-badge.tier-diamond {
+  background: linear-gradient(135deg, #ecfeff, #f5f3ff);
+  color: #0891b2;
+  border: 1px solid #a5f3fc;
+  box-shadow: 0 1px 4px rgba(6, 182, 212, 0.15);
+}
+
+.um-tier-badge.tier-gold {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.um-tier-badge.tier-silver {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.um-tier-badge.tier-bronze {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.um-spent-amount {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.um-order-badge {
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--text-muted);
+}
+
+/* Ghi chú nội bộ */
+.um-note-cell {
+  max-width: 180px;
+}
+
+.um-note-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.35;
+  background: #f8fafc;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border-left: 2.5px solid #3b82f6;
+}
+
+.um-note-icon {
+  margin-right: 4px;
+  color: #3b82f6;
+  font-size: 11px;
+}
+
+.um-note-empty {
+  color: #cbd5e1;
+}
+
+/* Modal Detail additions */
+.detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ltv-highlight {
+  color: #059669 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+.um-detail-internal-notes {
+  margin-top: 16px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.internal-notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.internal-notes-header label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-save-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-save-note:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.btn-save-note:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.um-detail-internal-notes textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  background: #ffffff;
+  color: var(--text-primary);
+}
+
+.um-detail-internal-notes textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.um-form textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  background: #ffffff;
+  color: var(--text-primary);
+}
+
+.um-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+

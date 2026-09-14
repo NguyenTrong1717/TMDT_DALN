@@ -650,3 +650,237 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── New Product ERP & Variant Styles ────────── */
+.pm-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--pm-radius-sm);
+  border: 1px solid #10b981;
+  background: #ecfdf5;
+  color: #059669;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pm-btn-export:hover {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.pm-sku-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pm-text-primary);
+}
+
+.pm-barcode-icon {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.pm-id-sub {
+  font-size: 11px;
+  color: var(--pm-text-muted);
+}
+
+.pm-cost-text {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pm-profit-badge {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.pm-stock-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pm-stock-badge.low {
+  background: #fef3c7 !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pm-stock-badge.out {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+
+.pm-variants-chip {
+  font-size: 11px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variant-count {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+.modal-content.large {
+  max-width: 740px !important;
+  width: 95%;
+}
+
+.flex-2 {
+  flex: 2 !important;
+}
+
+.form-hint {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 3px;
+}
+
+/* ── Variants Section inside Modal ───────────── */
+.variants-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 8px;
+}
+
+.variants-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.variants-header h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.variants-header small {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.variants-input-row {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr 1.2fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.variants-input-row input {
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12.5px;
+  background: #ffffff;
+}
+
+.variants-input-row input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+.btn-add-variant {
+  padding: 8px 14px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-add-variant:hover {
+  background: #1d4ed8;
+}
+
+.variants-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.variant-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.variant-pill .v-sku {
+  font-family: monospace;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.variant-pill .v-price {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.variant-pill .v-stock {
+  color: #059669;
+  font-size: 11px;
+}
+
+.variant-pill .v-remove {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.variant-pill .v-remove:hover {
+  color: #dc2626;
+}
+
