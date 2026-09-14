@@ -18,9 +18,21 @@ import {
 import { SiProbot } from "react-icons/si";
 import { BsStars } from "react-icons/bs";
 import { HiSparkles } from "react-icons/hi";
-import { fetchStoreCatalog } from "./knowledge";
-import { executeRAG } from "./ragEngine";
+import { fetchStoreCatalog } from "./knowledge.js";
+import { executeRAG } from "./ragEngine.js";
 import "./ChatBot.css";
+
+// Hàm định dạng cơ bản: hiển thị **in đậm** và ngắt dòng tự nhiên
+const renderMessageText = (rawText) => {
+  if (!rawText) return "";
+  const parts = rawText.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={idx}>{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+};
 
 const API_URL = "http://localhost:3000";
 
@@ -314,7 +326,9 @@ const ChatBot = () => {
                         <BsStars className="badge-sparkle" /> HCore Store AI
                       </div>
                     )}
-                    <div className="hcore-bubble-text">{msg.text}</div>
+                    <div className="hcore-bubble-text">
+                      {renderMessageText(msg.text)}
+                    </div>
                   </div>
                   <span className="hcore-msg-timestamp">
                     {formatTime(msg.createdAt)}
