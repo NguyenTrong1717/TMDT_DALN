@@ -35,17 +35,15 @@ def check_pii_security(user_query: str) -> Optional[str]:
 def check_jailbreak(user_query: str) -> Optional[str]:
     """LỚP BẢO VỆ 2: Chặn kỹ thuật Jailbreak & Prompt Injection."""
     norm = normalize_text(user_query)
-    jailbreak_signals = [
-        "ignore previous instructions",
-        "bo qua cac huong dan truoc",
-        "quen di quy tac",
-        "ban la mot ai khac",
-        "dong vai dan",
-        "act as dan",
-        "system prompt cua ban",
-        "tiet lo huong dan he thong",
+    jailbreak_patterns = [
+        r"ignore\s+(all\s+)?(previous|prior|above|existing)\s+instructions?",
+        r"bo\s+qua\s+(tat\s+ca\s+|moi\s+|cac\s+)?(quy\s+tac|huong\s+dan|chi\s+dan|yeu\s+cau|lenh)",
+        r"quen\s+(di\s+)?(quy\s+tac|chi\s+dan|prompt)",
+        r"(act\s+as|you\s+are\s+now|dong\s+vai(\s+la)?)\s+(dan|hacker|unrestricted|ai\s+khac)",
+        r"(output|reveal|show|print|in|tiet\s+lo)\s+(your\s+)?(full\s+)?(system\s+instructions?|system\s+prompt|prompt\s+goc)",
+        r"(viet\s+virus|tao\s+malware|tan\s+cong\s+mang|hack\s+he\s+thong)",
     ]
-    if any(sig in norm for sig in jailbreak_signals):
+    if any(re.search(pat, norm) for pat in jailbreak_patterns):
         return (
             "Mình là Trợ lý AI của HCore Store, chuyên hỗ trợ tư vấn máy tính, laptop và linh kiện phần cứng. "
             "Mình không thể thực hiện các yêu cầu thay đổi danh tính hay can thiệp hệ thống. "
