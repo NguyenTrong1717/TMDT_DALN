@@ -300,7 +300,24 @@ const ProductManager = () => {
               ) : currentItems.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="pm-empty-td">
-                    Không tìm thấy sản phẩm nào phù hợp
+                    <div className="pm-empty-container">
+                      <FaSearch className="pm-empty-icon" />
+                      <h4>Không tìm thấy sản phẩm nào phù hợp</h4>
+                      <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc trạng thái</p>
+                      {(searchTerm || statusFilter !== "all") && (
+                        <button
+                          type="button"
+                          className="pm-btn-clear-filters"
+                          onClick={() => {
+                            setSearchTerm("");
+                            setStatusFilter("all");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          Xóa bộ lọc &amp; Xem tất cả
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (

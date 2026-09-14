@@ -248,7 +248,24 @@ const AdminServiceRequests = () => {
       {loading ? (
         <p className="asr-loading">Đang tải...</p>
       ) : filtered.length === 0 ? (
-        <p className="asr-empty">Không có yêu cầu nào.</p>
+        <div className="asr-empty">
+          <FaSearch className="asr-empty-icon" />
+          <h4>Không tìm thấy yêu cầu dịch vụ nào</h4>
+          <p>Không có yêu cầu hỗ trợ nào khớp với bộ lọc hoặc từ khóa tìm kiếm.</p>
+          {(searchTerm || statusFilter !== "all" || serviceFilter !== "all") && (
+            <button
+              type="button"
+              className="btn-reset-asr"
+              onClick={() => {
+                setSearchTerm("");
+                setStatusFilter("all");
+                setServiceFilter("all");
+              }}
+            >
+              Xóa bộ lọc &amp; Xem tất cả
+            </button>
+          )}
+        </div>
       ) : (
         <div className="asr-table-wrap">
           <table className="asr-table">

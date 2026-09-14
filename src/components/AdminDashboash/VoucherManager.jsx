@@ -418,7 +418,21 @@ const VoucherManager = () => {
 
       {filteredVouchers.length === 0 ? (
         <div className="no-vouchers">
-          Không tìm thấy voucher nào phù hợp với điều kiện tìm kiếm.
+          <FaSearch className="no-vouchers-icon" />
+          <h4>Không tìm thấy voucher nào</h4>
+          <p>Không có mã khuyến mãi nào khớp với từ khóa hoặc trạng thái đang lọc.</p>
+          {(searchTerm || filterStatus !== "all") && (
+            <button
+              type="button"
+              className="btn-reset-vouchers"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterStatus("all");
+              }}
+            >
+              Xóa bộ lọc &amp; Xem tất cả
+            </button>
+          )}
         </div>
       ) : (
         <div className="voucher-manager-list">

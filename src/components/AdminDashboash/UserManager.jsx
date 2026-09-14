@@ -538,11 +538,28 @@ const UserManager = () => {
                   colSpan="7"
                   style={{
                     textAlign: "center",
-                    padding: "40px",
-                    color: "#94a3b8",
+                    padding: "48px 24px",
                   }}
                 >
-                  Không tìm thấy người dùng.
+                  <div className="um-empty-state">
+                    <FaSearch className="um-empty-icon" />
+                    <h4>Không tìm thấy người dùng nào</h4>
+                    <p>Hãy thử thay đổi từ khóa tìm kiếm hoặc đặt lại các bộ lọc vai trò/trạng thái</p>
+                    {(searchTerm || roleFilter !== "all" || statusFilter !== "all") && (
+                      <button
+                        type="button"
+                        className="um-btn-clear-filters"
+                        onClick={() => {
+                          setSearchTerm("");
+                          setRoleFilter("all");
+                          setStatusFilter("all");
+                          setCurrentPage(1);
+                        }}
+                      >
+                        Xóa bộ lọc &amp; Xem tất cả
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ) : (

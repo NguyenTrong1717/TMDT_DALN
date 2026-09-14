@@ -310,7 +310,22 @@ const AdminOrders = () => {
 
       {filteredOrders.length === 0 ? (
         <div className="no-orders">
-          Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+          <FaSearch className="no-orders-icon" />
+          <h4>Không tìm thấy đơn hàng nào</h4>
+          <p>Không có đơn hàng nào khớp với điều kiện tìm kiếm hoặc trạng thái đang chọn.</p>
+          {(searchTerm || paymentFilter !== "all" || activeTab !== "all") && (
+            <button
+              type="button"
+              className="btn-reset-orders"
+              onClick={() => {
+                setSearchTerm("");
+                setPaymentFilter("all");
+                setActiveTab("all");
+              }}
+            >
+              Đặt lại tất cả bộ lọc
+            </button>
+          )}
         </div>
       ) : (
         <div className="orders-card-container">

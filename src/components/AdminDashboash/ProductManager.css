@@ -405,9 +405,55 @@
 .pm-loading-td,
 .pm-empty-td {
   text-align: center;
-  padding: 40px !important;
-  color: #94a3b8;
+  padding: 48px 24px !important;
+  color: #64748b;
   font-size: 14px;
+}
+
+.pm-empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.pm-empty-icon {
+  font-size: 32px;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+
+.pm-empty-container h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pm-text-primary);
+  margin: 0;
+}
+
+.pm-empty-container p {
+  font-size: 13px;
+  color: var(--pm-text-secondary);
+  margin: 0 0 8px;
+}
+
+.pm-btn-clear-filters {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--pm-accent);
+  background: var(--pm-accent-light);
+  color: var(--pm-accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pm-btn-clear-filters:hover {
+  background: var(--pm-accent);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--pm-accent-glow);
 }
 
 /* Pagination */

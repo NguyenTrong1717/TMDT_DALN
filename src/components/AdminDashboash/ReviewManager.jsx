@@ -223,7 +223,23 @@ const ReviewManager = () => {
         {loading ? (
           <div className="rm-empty">Đang tải đánh giá...</div>
         ) : filtered.length === 0 ? (
-          <div className="rm-empty">Không có đánh giá nào ở mục này.</div>
+          <div className="rm-empty">
+            <FaSearch className="rm-empty-icon" />
+            <h4>Không tìm thấy đánh giá nào</h4>
+            <p>Không có phản hồi nào khớp với từ khóa tìm kiếm hoặc tab đang chọn.</p>
+            {(searchTerm || tab !== "all") && (
+              <button
+                type="button"
+                className="btn-reset-reviews"
+                onClick={() => {
+                  setSearchTerm("");
+                  setTab("all");
+                }}
+              >
+                Xóa bộ lọc &amp; Xem tất cả
+              </button>
+            )}
+          </div>
         ) : (
           filtered.map((r) => (
             <div
