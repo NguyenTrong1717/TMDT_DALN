@@ -5,56 +5,88 @@
       "name": "Thế Giới Máy Tính",
       "price": 299999,
       "image": "/images/MT.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
       "name": "Thế Giới Đồng Hồ",
       "price": 599999,
       "image": "/images/DH.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
       "name": "Thế Giới Trò Chơi",
       "price": 499999,
       "image": "/images/Game.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "5",
       "name": "Thế Giới Âm Thanh",
       "price": 699999,
       "image": "/images/LN23.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
       "name": "Thế Giới Tai Nghe",
       "price": 499999,
       "image": "/images/TN90.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": 7,
       "name": "Thế Giới Loa Bluetooth ",
       "price": 299999,
       "image": "/images/Loa.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": 8,
       "name": "Thế Giới Công Nghệ ",
       "price": 899999,
       "image": "/images/CN.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 33,
+      "sold": 166
     },
     {
       "id": 9,
       "name": "Thế Giới Điện Thoại",
       "price": 799999,
       "image": "/images/DT.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 18,
+      "sold": 180
     }
   ],
   "catenogies": [
@@ -64,7 +96,11 @@
       "price": 14000000,
       "category": "top-ban-chay",
       "image": "/images/pc.jpg",
-      "flashSale": false
+      "flashSale": false,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -72,7 +108,11 @@
       "price": 20000000,
       "category": "top-ban-chay",
       "image": "/images/pc3.webp",
-      "flashSale": false
+      "flashSale": false,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -80,7 +120,11 @@
       "price": 18000000,
       "category": "top-cuc-khung",
       "image": "/images/pc.jpg",
-      "flashSale": false
+      "flashSale": false,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -88,35 +132,55 @@
       "price": 15000000,
       "category": "top-cuc-khung",
       "image": "/images/pc5.jpg",
-      "flashSale": false
+      "flashSale": false,
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
       "name": "PC GAMING ADLER LAKE I5 THẾ HỆ 12 ( B660 - I5 12400F - 16G - RTX3050 )",
       "price": 18000000,
       "category": "giai-nhiet",
-      "image": "/images/pc6.jpg"
+      "image": "/images/pc6.jpg",
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
       "name": "PC GAMING MSI FORGE I5 THẾ HỆ 12 ( B660M - I7 12700F - RAM 16G - SSD 250G NVME - VGA RTX3070TI )",
       "price": 19000000,
       "category": "giai-nhiet",
-      "image": "/images/pc7.jpeg"
+      "image": "/images/pc7.jpeg",
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
       "name": "Máy tính văn phòng G6405 RAM 4GB SSD 120GB",
       "price": 15000000,
       "category": "man-hinh",
-      "image": "/images/pc8.jpg"
+      "image": "/images/pc8.jpg",
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
       "name": "Laptop Gaming Acer Aspire 7 A715 41G R8KQ",
       "price": 17000000,
       "category": "man-hinh",
-      "image": "/images/pc9.jpg"
+      "image": "/images/pc9.jpg",
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -124,7 +188,11 @@
       "price": 30000000,
       "category": "man-hinh",
       "image": "/images/pc11.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -132,7 +200,11 @@
       "price": 40000000,
       "image": "/images/pc12.webp",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     }
   ],
   "eventList": [
@@ -147,7 +219,11 @@
       "soldPercent": 62,
       "stockLeft": 8,
       "image": "/images/LC1.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -160,7 +236,11 @@
       "soldPercent": 75,
       "stockLeft": 5,
       "image": "/images/LC2.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -173,7 +253,11 @@
       "soldPercent": 40,
       "stockLeft": 18,
       "image": "/images/LC3.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -186,7 +270,11 @@
       "soldPercent": 55,
       "stockLeft": 12,
       "image": "/images/LC4.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -199,7 +287,11 @@
       "soldPercent": 33,
       "stockLeft": 25,
       "image": "/images/LC5.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -212,7 +304,11 @@
       "soldPercent": 81,
       "stockLeft": 3,
       "image": "/images/LC6.webp",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -225,7 +321,11 @@
       "soldPercent": 28,
       "stockLeft": 40,
       "image": "/images/LC7.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -238,7 +338,11 @@
       "soldPercent": 47,
       "stockLeft": 14,
       "image": "/images/LC8.webp",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -247,7 +351,11 @@
       "category": "ram",
       "image": "/images/LC11.webp",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -256,7 +364,11 @@
       "category": "psu",
       "image": "/images/LC13.webp",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     }
   ],
   "LaptopUser": [
@@ -272,7 +384,11 @@
       "stockLeft": 7,
       "image": "/images/LT10.jpg",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -285,7 +401,11 @@
       "soldPercent": 70,
       "stockLeft": 4,
       "image": "/images/LT2.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -298,7 +418,11 @@
       "soldPercent": 44,
       "stockLeft": 11,
       "image": "/images/LT3.jpg",
-      "flashSale": false
+      "flashSale": false,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -311,7 +435,11 @@
       "soldPercent": 35,
       "stockLeft": 16,
       "image": "/images/LT4.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -324,7 +452,11 @@
       "soldPercent": 25,
       "stockLeft": 22,
       "image": "/images/LT5.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -337,7 +469,11 @@
       "soldPercent": 52,
       "stockLeft": 9,
       "image": "/images/LT6.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -350,7 +486,11 @@
       "soldPercent": 67,
       "stockLeft": 6,
       "image": "/images/LT7.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -363,7 +503,11 @@
       "soldPercent": 89,
       "stockLeft": 2,
       "image": "/images/LT8.jpg",
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -372,7 +516,11 @@
       "category": "laptop-gaming",
       "image": "/images/LT11.png",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -381,7 +529,11 @@
       "category": "laptop-moi",
       "image": "/images/LT12.png",
       "deleted": false,
-      "flashSale": true
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     }
   ],
   "ProductPagies": [
@@ -389,133 +541,213 @@
       "id": "1",
       "name": "Laptop HP Omnibook X Flip 14-FK0092AU BZ7P5PA",
       "price": 14000000,
-      "image": "/images/pr1.webp"
+      "image": "/images/pr1.webp",
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
       "name": "Laptop Lenovo IdeaPad Slim 5 14AGP11 83S1006RVN",
       "price": 15000000,
-      "image": "/images/pr2.webp"
+      "image": "/images/pr2.webp",
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
       "name": "Laptop Acer Gaming Nitro ProPanel ANV15-41-R7CR",
       "price": 16000000,
-      "image": "/images/pr3.webp"
+      "image": "/images/pr3.webp",
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
       "name": "Laptop Lenovo IdeaPad Slim 5 14IPH11",
       "price": 1400000,
-      "image": "/images/pr4.webp"
+      "image": "/images/pr4.webp",
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
       "name": "Laptop Lenovo Yoga Slim 7 14IPH11 83QM002FVN",
       "price": 17000000,
-      "image": "/images/pr5.webp"
+      "image": "/images/pr5.webp",
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
       "name": "Laptop MSI Prestige 13 AI+ Ukiyoe Edition A2VMG-075VN",
       "price": 18000000,
-      "image": "/images/pr6.webp"
+      "image": "/images/pr6.webp",
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
       "name": "Laptop TP 15s-fq1017TU ",
       "price": 1900000,
-      "image": "/images/pr7.webp"
+      "image": "/images/pr7.webp",
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
       "name": "Laptop HP 15s-fq1017TU 8VY69PA (Silver)",
       "price": 20000000,
-      "image": "/images/pr8.webp"
+      "image": "/images/pr8.webp",
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
       "name": "Điện Thoại iPhone 16 PRO MAX 1TB Titan Đen Chính Hãng VNA",
       "price": 2000000,
       "image": "/images/Ip01.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
       "name": "Laptop Apple MacBook Neo 13 inch A18 Pro Hồng Phớt 6CPU/5GPU/8GB/256GB - MHFH4SA/A",
       "price": 20000000,
       "image": "/images/lap01.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     },
     {
       "id": 11,
       "name": "Laptop Apple MacBook Air MDH84SA/A MBA 13.6 M5/10C/10GPU/16G/1T/35W/Silver",
       "price": 5000000,
       "image": "/images/lap02.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 102,
+      "stock": 12,
+      "sold": 208
     },
     {
       "id": 12,
       "name": "iPhone 16 Pro Max Giá ưu đãi | Hỗ trợ trả góp 0% lãi suất",
       "price": 30000000,
       "image": "/images/Ip02.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 14,
+      "stock": 19,
+      "sold": 222
     },
     {
       "id": 13,
       "name": "iPhone 17 Pro Max Quốc tế giá tốt tại Đà Nẵng | Trả góp 0% lãi suất",
       "price": 3999999,
       "image": "/images/Ip03.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.7,
+      "reviewsCount": 21,
+      "stock": 26,
+      "sold": 236
     },
     {
       "id": 14,
       "name": "Điện thoại Iphone 17 Pro - Chính hãng giá tốt tại Đà Nẵng",
       "price": 40000000,
       "image": "/images/Ip04.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 28,
+      "stock": 33,
+      "sold": 250
     },
     {
       "id": 15,
       "name": "iPhone 12 128GB Giá rẻ tại Hà Nội | Hỗ trợ góp 0đ",
       "price": 7000000,
       "image": "/images/Ip05.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.6,
+      "reviewsCount": 35,
+      "stock": 40,
+      "sold": 264
     },
     {
       "id": 16,
       "name": "iPhone 13 128GB (New VN/A)",
       "price": 20000000,
       "image": "/images/Ip06.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 42,
+      "stock": 47,
+      "sold": 278
     },
     {
       "id": 17,
       "name": "Tai Nghe Gaming HyperX Cloud III",
       "price": 4000000,
       "image": "/images/pr10.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 49,
+      "stock": 12,
+      "sold": 292
     },
     {
       "id": 18,
       "name": "Tai Nghe Gaming HyperX Cloud III",
       "price": 1999999,
       "image": "/images/LT18.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 56,
+      "stock": 19,
+      "sold": 306
     },
     {
       "id": 19,
       "name": "Tai nghe Bluetooth True Wireless Huawei Freebuds 6i",
       "price": 3000000,
       "image": "/images/TN03.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 63,
+      "stock": 2,
+      "sold": 40
     },
     {
       "id": 20,
       "name": "Loa Bluetooth Sony SRS-XB100 Extra Bass",
       "price": 5999999,
       "image": "/images/TN04.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 70,
+      "stock": 33,
+      "sold": 54
     }
   ],
   "ProductMenus": [
@@ -579,7 +811,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -643,7 +879,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -707,7 +947,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -771,7 +1015,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -828,7 +1076,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -885,7 +1137,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -942,7 +1198,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -999,7 +1259,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": "9",
@@ -1056,7 +1320,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": "10",
@@ -1113,7 +1381,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     },
     {
       "id": "11",
@@ -1170,7 +1442,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.9,
+      "reviewsCount": 102,
+      "stock": 12,
+      "sold": 208
     },
     {
       "id": "12",
@@ -1227,7 +1503,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 14,
+      "stock": 19,
+      "sold": 222
     },
     {
       "id": "13",
@@ -1284,7 +1564,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.7,
+      "reviewsCount": 21,
+      "stock": 26,
+      "sold": 236
     },
     {
       "id": "14",
@@ -1341,7 +1625,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 5,
+      "reviewsCount": 28,
+      "stock": 33,
+      "sold": 250
     },
     {
       "id": "15",
@@ -1398,7 +1686,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.6,
+      "reviewsCount": 35,
+      "stock": 40,
+      "sold": 264
     },
     {
       "id": "16",
@@ -1455,7 +1747,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.9,
+      "reviewsCount": 42,
+      "stock": 47,
+      "sold": 278
     },
     {
       "id": "17",
@@ -1512,7 +1808,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 49,
+      "stock": 12,
+      "sold": 292
     },
     {
       "id": "18",
@@ -1569,7 +1869,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 5,
+      "reviewsCount": 56,
+      "stock": 19,
+      "sold": 306
     },
     {
       "id": "19",
@@ -1626,7 +1930,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.9,
+      "reviewsCount": 63,
+      "stock": 2,
+      "sold": 40
     },
     {
       "id": "20",
@@ -1683,7 +1991,11 @@
             "image": "/images/psu1.jpg"
           }
         ]
-      }
+      },
+      "rating": 4.8,
+      "reviewsCount": 70,
+      "stock": 33,
+      "sold": 54
     }
   ],
   "demoUnits": [
@@ -1691,96 +2003,156 @@
       "id": 1,
       "name": "Máy Lọc Nước Karofi",
       "image": "/images/TB.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": 2,
       "name": "Máy lọc không khí Cuckoo CAC-K1910FW",
       "image": "/images/TB2.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": 3,
       "name": "Máy lọc không khí Levoit Core 400S",
       "image": "/images/TB3.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": 4,
       "name": "GOOJODOQ GFS025 Quạt Cầm Tay Camera Xoay 180° | Màn Hình 1.3 Inch | Chụp Ảnh & Quay Video",
       "image": "/images/TB4.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": 5,
       "name": "Nồi cơm điện tử AQUA 1.5 lít AQS-RBC401R(N)-VN ",
       "image": "/images/TB5.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": 6,
       "name": "Nồi cơm điện cao tần áp suất Cuckoo CRP-JHR1060FD 1.8L",
       "image": "/images/TB06.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": 7,
       "name": "Nồi cơm điện cao tần áp suất Cuckoo CRP-AHXB1060FD 1.8L",
       "image": "/images/TB07.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": 8,
       "name": "Nồi cơm áp suất điện tử Cuckoo CRP-N0680SR 1.08L",
       "image": "/images/TB08.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
       "name": "Máy hút ẩm và lọc không khí Cuckoo DH-Z16AF45FG 16.5L",
       "image": "/images/TB09.png",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
       "name": "Máy lọc nước Cuckoo CP-RRP702MBK",
       "image": "/images/TB10.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     },
     {
       "id": 11,
       "name": "Robot hút bụi lau nhà Roborock Qrevo 2 Pro – Bản Quốc Tế",
       "price": 1,
       "image": "/images/TB12.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 102,
+      "stock": 12,
+      "sold": 208
     },
     {
       "id": 12,
       "name": "Robot Ecovacs Deebot Ozmo T8 Aivi hút bụi lau nhà",
       "price": 1,
       "image": "/images/TB11.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 14,
+      "stock": 19,
+      "sold": 222
     },
     {
       "id": 13,
       "name": "Máy lạnh LG Inverter 1.5 HP IEC12M1",
       "price": 1,
       "image": "/images/TB13.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.7,
+      "reviewsCount": 21,
+      "stock": 26,
+      "sold": 236
     },
     {
       "id": 14,
       "name": "Bàn phím cơ không dây Aula S100 Pro xanh dương trắng tím",
       "price": 1,
       "image": "/images/TB14.webp",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 28,
+      "stock": 33,
+      "sold": 250
     },
     {
       "id": 15,
       "name": "Bàn Phím Giả Cơ Gaming L200 LED RGB 6 Chế Độ LED, Fullsize, Keycap Pudding cực đẹp",
       "price": 1,
       "image": "/images/TB15.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.6,
+      "reviewsCount": 35,
+      "stock": 40,
+      "sold": 264
     }
   ],
   "users": [
@@ -1835,8 +2207,282 @@
       "fromTable": "eventList"
     }
   ],
-  "orders": [],
-  "reviews": [],
+  "orders": [
+    {
+      "id": "ord-1001",
+      "orderCode": "DH-20260914-102530",
+      "userId": "1784379657593",
+      "fullName": "Trung Hiếu",
+      "phone": "09113456789",
+      "email": "Hieudut@gmail.com",
+      "address": "182 Tôn Đức Thắng, Đống Đa, Hà Nội",
+      "note": "Giao trong giờ hành chính, gọi trước 15 phút",
+      "paymentMethod": "bank",
+      "status": "completed",
+      "totalAmount": 18990000,
+      "voucherCode": "VIP500K",
+      "discountAmount": 500000,
+      "createdAt": "2026-09-12T10:25:30.000Z",
+      "products": [
+        {
+          "productId": "1",
+          "name": "Thế Giới Máy Tính - PC Gaming i5 13400F RTX 4060",
+          "image": "/images/MT.jpg",
+          "quantity": 1,
+          "unitPrice": 18990000,
+          "subtotal": 18990000,
+          "fromTable": "products"
+        }
+      ]
+    },
+    {
+      "id": "ord-1002",
+      "orderCode": "DH-20260913-154012",
+      "userId": "1788963018949",
+      "fullName": "Nguyễn Trọng",
+      "phone": "0911108133",
+      "email": "admin@gmail.com",
+      "address": "P. Nguyễn Trác, Yên Nghĩa, Hà Đông, Hà Nội",
+      "note": "Kiểm tra hàng cẩn thận trước khi xuất kho",
+      "paymentMethod": "cod",
+      "status": "shipping",
+      "totalAmount": 35990000,
+      "voucherCode": null,
+      "discountAmount": 0,
+      "createdAt": "2026-09-13T15:40:12.000Z",
+      "products": [
+        {
+          "productId": "1",
+          "name": "Laptop ASUS ROG Strix G16 i9 13980HX RTX 4070",
+          "image": "/images/laptop1.jpg",
+          "quantity": 1,
+          "unitPrice": 35990000,
+          "subtotal": 35990000,
+          "fromTable": "LaptopUser"
+        }
+      ]
+    },
+    {
+      "id": "ord-1003",
+      "orderCode": "DH-20260914-081045",
+      "userId": "1788963248414",
+      "fullName": "Trần Anh Quân",
+      "phone": "0988776655",
+      "email": "quanta@gmail.com",
+      "address": "Phố Huế, Hai Bà Trưng, Hà Nội",
+      "note": "Thanh toán qua ví MoMo",
+      "paymentMethod": "momo",
+      "status": "confirmed",
+      "totalAmount": 499999,
+      "voucherCode": null,
+      "discountAmount": 0,
+      "createdAt": "2026-09-14T08:10:45.000Z",
+      "products": [
+        {
+          "productId": "6",
+          "name": "Thế Giới Tai Nghe Gaming 7.1",
+          "image": "/images/TN90.jpg",
+          "quantity": 1,
+          "unitPrice": 499999,
+          "subtotal": 499999,
+          "fromTable": "products"
+        }
+      ]
+    },
+    {
+      "id": "ord-1004",
+      "orderCode": "DH-20260914-162010",
+      "userId": "1784379657593",
+      "fullName": "Trung Hiếu",
+      "phone": "09113456789",
+      "email": "Hieudut@gmail.com",
+      "address": "182 Tôn Đức Thắng, Đống Đa, Hà Nội",
+      "note": "Đơn mới đặt chiều nay",
+      "paymentMethod": "bank",
+      "status": "pending",
+      "totalAmount": 299999,
+      "voucherCode": null,
+      "discountAmount": 0,
+      "createdAt": "2026-09-14T16:20:10.000Z",
+      "products": [
+        {
+          "productId": "7",
+          "name": "Thế Giới Loa Bluetooth",
+          "image": "/images/Loa.png",
+          "quantity": 1,
+          "unitPrice": 299999,
+          "subtotal": 299999,
+          "fromTable": "products"
+        }
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-001",
+      "productId": "1",
+      "collection": "products",
+      "productName": "Thế Giới Máy Tính - PC Gaming i5 13400F",
+      "userId": "1784379657593",
+      "userName": "Trung Hiếu",
+      "rating": 5,
+      "comment": "Máy chạy cực kỳ êm, test thử Black Myth: Wukong và CS2 mượt mà trên 140 FPS. Đóng gói cẩn thận 2 lớp mút chống sốc, nhân viên tư vấn nhiệt tình!",
+      "createdAt": "2026-09-10T09:30:00.000Z",
+      "hidden": false,
+      "reply": "Cảm ơn anh Hiếu đã tin tưởng HCore Store ạ! Chúc anh có những giờ phút leo rank đỉnh cao nhé!",
+      "repliedAt": "2026-09-10T10:15:00.000Z"
+    },
+    {
+      "id": "rev-002",
+      "productId": "1",
+      "collection": "products",
+      "productName": "Thế Giới Máy Tính - PC Gaming i5 13400F",
+      "userId": "1788963018949",
+      "userName": "Nguyễn Trọng",
+      "rating": 5,
+      "comment": "Giao hàng đúng hẹn, cài sẵn Windows 11 bản quyền và đầy đủ phần mềm đồ họa. Rất đáng tiền!",
+      "createdAt": "2026-09-11T14:20:00.000Z",
+      "hidden": false,
+      "reply": "Dạ HCore Store cảm ơn anh Trọng nhiều ạ. Cần hỗ trợ kỹ thuật thêm anh cứ nhắn hotline 1900 8888 nha!",
+      "repliedAt": "2026-09-11T15:00:00.000Z"
+    },
+    {
+      "id": "rev-003",
+      "productId": "2",
+      "collection": "products",
+      "productName": "Thế Giới Đồng Hồ Thông Minh",
+      "userId": "1784379657593",
+      "userName": "Hoàng Nam",
+      "rating": 4,
+      "comment": "Đồng hồ hiển thị sắc nét ngoài trời nắng, đo nhịp tim khá chuẩn. Pin dùng được khoảng 4 ngày, trừ 1 sao vì dây đeo cao su hơi bám mồ hôi.",
+      "createdAt": "2026-09-08T16:45:00.000Z",
+      "hidden": false,
+      "reply": "Cảm ơn bạn Nam đã góp ý. Shop có tặng kèm voucher giảm 30% khi mua thêm dây đeo kim loại hoặc da cao cấp nhé!",
+      "repliedAt": "2026-09-08T17:30:00.000Z"
+    },
+    {
+      "id": "rev-004",
+      "productId": "1",
+      "collection": "catenogies",
+      "productName": "PC Gaming Gigabyte Core i7 RTX 4070",
+      "userId": "1788963248414",
+      "userName": "Trần Anh Quân",
+      "rating": 5,
+      "comment": "Dàn PC build dây LED rất gọn gàng thẩm mỹ. Nhiệt độ render Blender không quá 68 độ C. Dịch vụ showroom tại Hà Đông làm việc rất chuyên nghiệp.",
+      "createdAt": "2026-09-09T11:10:00.000Z",
+      "hidden": false,
+      "reply": "Dạ HCore cảm ơn anh Quân ạ. Showroom luôn sẵn sàng phục vụ anh!",
+      "repliedAt": "2026-09-09T11:45:00.000Z"
+    },
+    {
+      "id": "rev-005",
+      "productId": "2",
+      "collection": "catenogies",
+      "productName": "PC Thiết Kế Đồ Họa 3D Xeon Dual CPU",
+      "userId": "1784379657593",
+      "userName": "Lê Minh Tuấn",
+      "rating": 5,
+      "comment": "Máy render Premiere và After Effects siêu tốc, không bị tràn RAM như máy cũ. Đánh giá 5 sao cho chất lượng linh kiện chính hãng.",
+      "createdAt": "2026-09-12T08:15:00.000Z",
+      "hidden": false,
+      "reply": null
+    },
+    {
+      "id": "rev-006",
+      "productId": "1",
+      "collection": "LaptopUser",
+      "productName": "Laptop ASUS ROG Strix G16 2026",
+      "userId": "1788963018949",
+      "userName": "Phạm Quốc Bảo",
+      "rating": 5,
+      "comment": "Màn hình 240Hz màu sắc siêu đẹp, bàn phím gõ nảy. Quạt tản nhiệt khi tải nặng có hơi ồn xíu nhưng bù lại máy mát rượi. Máy đẹp xuất sắc!",
+      "createdAt": "2026-09-12T19:00:00.000Z",
+      "hidden": false,
+      "reply": "Chào Bảo, dòng ROG Strix G16 luôn dẫn đầu về hiệu năng gaming. Bạn có thể bật chế độ Silent trong Armoury Crate khi làm việc văn phòng nhé!",
+      "repliedAt": "2026-09-12T20:10:00.000Z"
+    },
+    {
+      "id": "rev-007",
+      "productId": "3",
+      "collection": "LaptopUser",
+      "productName": "Laptop Lenovo Legion 5 Pro RTX 4060",
+      "userId": "1788963248414",
+      "userName": "Vũ Đình Trọng",
+      "rating": 4,
+      "comment": "Build máy cứng cáp vỏ kim loại sang trọng. Củ sạc 230W hơi to và nặng nhưng sạc siêu nhanh. Mua trả góp 0% duyệt hồ sơ trong 10 phút.",
+      "createdAt": "2026-09-13T10:30:00.000Z",
+      "hidden": false,
+      "reply": null
+    },
+    {
+      "id": "rev-008",
+      "productId": "1",
+      "collection": "eventList",
+      "productName": "Card Đồ Họa VGA MSI GeForce RTX 4060 8GB",
+      "userId": "1784379657593",
+      "userName": "Đỗ Mạnh Hùng",
+      "rating": 5,
+      "comment": "Hàng nguyên seal tem Mai Hoàng phân phối, lắp vào nhận ngay full driver. Tiêu thụ điện ít mà hiệu năng vượt trội thế hệ trước.",
+      "createdAt": "2026-09-07T13:40:00.000Z",
+      "hidden": false,
+      "reply": "HCore cam kết 100% linh kiện chính hãng bảo hành 36 tháng lỗi 1 đổi 1. Cảm ơn anh Hùng!",
+      "repliedAt": "2026-09-07T14:00:00.000Z"
+    },
+    {
+      "id": "rev-009",
+      "productId": "2",
+      "collection": "eventList",
+      "productName": "RAM DDR5 Corsair Vengeance RGB 32GB 6000MHz",
+      "userId": "1788963018949",
+      "userName": "Ngô Quang Huy",
+      "rating": 5,
+      "comment": "Bật XMP trong BIOS lên đúng 6000MHz chạy ổn định với Core i7 14700K. Đèn LED iCUE đồng bộ đẹp lung linh.",
+      "createdAt": "2026-09-13T15:20:00.000Z",
+      "hidden": false,
+      "reply": null
+    },
+    {
+      "id": "rev-010",
+      "productId": "6",
+      "collection": "products",
+      "productName": "Thế Giới Tai Nghe Gaming 7.1",
+      "userId": "1784379657593",
+      "userName": "Bùi Thị Yến",
+      "rating": 3,
+      "comment": "Âm thanh nghe bước chân địch trong game rõ, mic lọc ồn tốt. Tuy nhiên đệm tai đeo lâu hơn 3 tiếng hơi bị nóng tai.",
+      "createdAt": "2026-09-06T18:10:00.000Z",
+      "hidden": false,
+      "reply": "Dạ HCore xin tiếp thu ý kiến của bạn Yến ạ. Mẫu này dùng đệm da cách âm tốt nên đeo lâu có thể hơi bí, shop khuyên bạn nên tháo nghỉ 5p sau mỗi trận đấu nha!",
+      "repliedAt": "2026-09-06T19:00:00.000Z"
+    },
+    {
+      "id": "rev-011",
+      "productId": "7",
+      "collection": "products",
+      "productName": "Thế Giới Loa Bluetooth Công Suất Lớn",
+      "userId": "1788963248414",
+      "userName": "Nguyễn Văn Hùng",
+      "rating": 5,
+      "comment": "Bass đánh sâu và chắc, chống nước tốt mang đi tiệc ngoài trời rất tiện. Kết nối Bluetooth nhanh không có độ trễ.",
+      "createdAt": "2026-09-11T21:00:00.000Z",
+      "hidden": false,
+      "reply": "Cảm ơn anh Hùng đã ủng hộ HCore Store!",
+      "repliedAt": "2026-09-11T21:30:00.000Z"
+    },
+    {
+      "id": "rev-012",
+      "productId": "1",
+      "collection": "appliances",
+      "productName": "Robot Hút Bụi Lau Nhà Thông Minh",
+      "userId": "1784379657593",
+      "userName": "Chị Thảo (Hà Đông)",
+      "rating": 5,
+      "comment": "Lực hút mạnh, tự động vẽ bản đồ phòng bằng LiDAR rất thông minh, né chướng ngại vật mượt mà. Đỡ tốn bao nhiêu thời gian dọn nhà.",
+      "createdAt": "2026-09-10T17:40:00.000Z",
+      "hidden": false,
+      "reply": null
+    }
+  ],
   "news": [
     {
       "id": 1,
@@ -2114,7 +2760,11 @@
           "v": "Bluetooth 5.3, Wi-Fi, GPS"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 32,
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": 2,
@@ -2149,7 +2799,11 @@
           "v": "USB-C"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 39,
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": 3,
@@ -2184,7 +2838,11 @@
           "v": "5.4"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 46,
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": 4,
@@ -2219,7 +2877,11 @@
           "v": "MicroSD tối đa 256GB"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 53,
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": 5,
@@ -2254,7 +2916,11 @@
           "v": "PD 3.1, QC 4.0"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 4.7,
+      "reviewsCount": 60,
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": 6,
@@ -2289,35 +2955,55 @@
           "v": "2.4GHz / 5GHz / 6GHz"
         }
       ],
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 67,
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": 7,
       "name": " loa thông minh Apple HomePod mini",
       "price": 20000000,
       "image": "/images/SPMV7.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.6,
+      "reviewsCount": 74,
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": 8,
       "name": "Bang & Olufsen Beosound A5 – Tuyệt phẩm thiết kế và âm thanh 360 độ",
       "price": 70000000,
       "image": "/images/SPMV8.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.9,
+      "reviewsCount": 81,
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
       "name": "Devialet Mania – Âm thanh mạnh mẽ, âm trường rộng",
       "price": 59000000,
       "image": "/images/SPMV9.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 4.8,
+      "reviewsCount": 88,
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
       "name": "Loa Cabasse The Pearl",
       "price": 80000000,
       "image": "/images/SPMV10.jpg",
-      "deleted": false
+      "deleted": false,
+      "rating": 5,
+      "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
     }
   ],
   "wishlist": [],

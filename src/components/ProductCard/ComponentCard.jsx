@@ -171,11 +171,17 @@ const ComponentCard = ({ product }) => {
       <div className="card-layer-6">
         <div className="stock-rating-row">
           <div className="stock-rating-left">
-            <span className="stock-status-dot">● Sẵn hàng tại Showroom</span>
+            <span className={`stock-status-dot ${product?.stock === 0 ? "out-of-stock" : ""}`}>
+              {product?.stock !== undefined
+                ? product.stock > 0
+                  ? `● Còn ${product.stock} linh kiện`
+                  : "✖ Hết hàng"
+                : "● Sẵn hàng tại Showroom"}
+            </span>
             <span className="rating-star-compact">
               <span className="stars-gold">★★★★★</span>
-              <strong>{product?.rating || (4.8 + ((Number(product?.id) || 1) % 3) * 0.1).toFixed(1)}</strong>
-              <span className="review-num">({product?.reviewsCount || (Number(product?.id) || 1) * 5 + 14})</span>
+              <strong>{Number(product?.rating || 5.0).toFixed(1)}</strong>
+              <span className="review-num">({product?.reviewsCount || 0})</span>
             </span>
           </div>
           <button
