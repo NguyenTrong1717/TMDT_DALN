@@ -11,8 +11,11 @@ const API_URL = "http://localhost:3000";
 const DETAIL_ROUTE_BY_TABLE = {
   catenogies: (id) => `/product/${id}`,
   ProductMenus: (id) => `/menu/${id}`,
+  ProductPagies: (id) => `/menu/${id}`,
   LaptopUser: (id) => `/laptop-detail/${id}`,
   eventList: (id) => `/component-category/${id}`,
+  appliances: (id) => `/appliance/${id}`,
+  products: (id) => `/page/${id}`,
 };
 
 const formatPrice = (price) =>

@@ -9,7 +9,7 @@ const ComponentCard = ({ product }) => {
   const navigate = useNavigate();
 
   const handleGoToDetail = () => {
-    navigate(`/component/${product.id}`);
+    navigate(`/component-category/${product.id}`);
   };
 
   const handleQuickAdd = async (e) => {

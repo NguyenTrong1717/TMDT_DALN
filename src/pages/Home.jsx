@@ -118,8 +118,12 @@ const Home = () => {
 
   // Flash sale products (take 4 featured items)
   const flashSaleItems = useMemo(() => {
-    if (catenogies && catenogies.length >= 4) return catenogies.slice(0, 4);
-    if (products && products.length >= 4) return products.slice(0, 4);
+    if (catenogies && catenogies.length >= 4) {
+      return catenogies.slice(0, 4).map((item) => ({ ...item, fromTable: "catenogies" }));
+    }
+    if (products && products.length >= 4) {
+      return products.slice(0, 4).map((item) => ({ ...item, fromTable: "products" }));
+    }
     return [];
   }, [catenogies, products]);
 
@@ -302,7 +306,11 @@ const Home = () => {
           <div className="flash-sale-grid">
             {flashSaleItems.map((item) => (
               <div key={item.id} className="flash-sale-card-wrapper">
-                <ProductCard product={item} />
+                <ProductCard
+                  product={item}
+                  targetUrl={item.fromTable === "catenogies" ? `/product/${item.id}` : `/page/${item.id}`}
+                  fromTable={item.fromTable || "catenogies"}
+                />
                 <div className="flash-deal-progress">
                   <div className="progress-bar-fill" style={{ width: "78%" }}></div>
                   <span className="progress-label">🔥 Đã bán 78%</span>

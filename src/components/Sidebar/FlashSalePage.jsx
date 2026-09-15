@@ -63,27 +63,45 @@ const FlashSalePage = () => {
 
   useEffect(() => {
     setLoading(true);
-    // Lấy tất cả sản phẩm có discount từ cả 2 nguồn
+    // Lấy tất cả sản phẩm có discount từ tất cả các nguồn
     Promise.all([
-      fetch("http://localhost:3000/LaptopUser").then((r) => r.json()),
-      fetch("http://localhost:3000/eventList").then((r) => r.json()),
-      fetch("http://localhost:3000/catenogies").then((r) => r.json()),
+      fetch("http://localhost:3000/LaptopUser").then((r) => (r.ok ? r.json() : [])),
+      fetch("http://localhost:3000/eventList").then((r) => (r.ok ? r.json() : [])),
+      fetch("http://localhost:3000/catenogies").then((r) => (r.ok ? r.json() : [])),
+      fetch("http://localhost:3000/ProductMenus").then((r) => (r.ok ? r.json() : [])),
+      fetch("http://localhost:3000/products").then((r) => (r.ok ? r.json() : [])),
+      fetch("http://localhost:3000/appliances").then((r) => (r.ok ? r.json() : [])),
     ])
-      .then(([LaptopUser, eventList, catenogies]) => {
+      .then(([LaptopUser, eventList, catenogies, ProductMenus, products, appliances]) => {
         const all = [
-          ...LaptopUser.map((item) => ({
+          ...(Array.isArray(LaptopUser) ? LaptopUser : []).map((item) => ({
             ...item,
             source: "LaptopUser",
           })),
 
-          ...eventList.map((item) => ({
+          ...(Array.isArray(eventList) ? eventList : []).map((item) => ({
             ...item,
             source: "eventList",
           })),
 
-          ...catenogies.map((item) => ({
+          ...(Array.isArray(catenogies) ? catenogies : []).map((item) => ({
             ...item,
             source: "catenogies",
+          })),
+
+          ...(Array.isArray(ProductMenus) ? ProductMenus : []).map((item) => ({
+            ...item,
+            source: "ProductMenus",
+          })),
+
+          ...(Array.isArray(products) ? products : []).map((item) => ({
+            ...item,
+            source: "products",
+          })),
+
+          ...(Array.isArray(appliances) ? appliances : []).map((item) => ({
+            ...item,
+            source: "appliances",
           })),
         ];
         // Chỉ lấy sản phẩm được admin bật cờ Flash Sale
@@ -274,10 +292,21 @@ const FlashSalePage = () => {
                           break;
 
                         case "catenogies":
+                        case "products":
                           navigate(`/product/${item.id}`);
                           break;
 
+                        case "ProductMenus":
+                        case "ProductPagies":
+                          navigate(`/menu/${item.id}`);
+                          break;
+
+                        case "appliances":
+                          navigate(`/appliance/${item.id}`);
+                          break;
+
                         default:
+                          navigate(`/product/${item.id}`);
                           break;
                       }
                     }}

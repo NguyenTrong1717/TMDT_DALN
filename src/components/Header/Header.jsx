@@ -315,14 +315,14 @@ const Header = (props) => {
                   navigate("/laptop/laptop-gaming");
                 else if (e.target.value === "PC")
                   navigate("/category/top-ban-chay");
-                else if (e.target.value === "Con Chuột")
-                  navigate("/component/chuot");
+                else if (e.target.value === "Linh Kiện" || e.target.value === "Con Chuột")
+                  navigate("/component/vga");
               }}
             >
               <option value="all">Tất cả</option>
               <option value="Laptop">Laptop</option>
               <option value="PC">Dàn PC</option>
-              <option value="Con Chuột">Linh Kiện</option>
+              <option value="Linh Kiện">Linh Kiện</option>
             </select>
             <input
               className="site-header__search-input"

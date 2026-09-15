@@ -29,27 +29,33 @@ const SearchResults = () => {
     const fetchAllProducts = async () => {
       setLoading(true);
       try {
-        const [res1, res2, res3, res4] = await Promise.all([
+        const [res1, res2, res3, res4, res5, res6] = await Promise.all([
           fetch("http://localhost:3000/products"),
           fetch("http://localhost:3000/eventList"),
           fetch("http://localhost:3000/catenogies"),
           fetch("http://localhost:3000/LaptopUser"),
+          fetch("http://localhost:3000/ProductMenus"),
+          fetch("http://localhost:3000/appliances"),
         ]);
 
-        const [p1, p2, p3, p4] = await Promise.all([
+        const [p1, p2, p3, p4, p5, p6] = await Promise.all([
           res1.ok ? res1.json() : [],
           res2.ok ? res2.json() : [],
           res3.ok ? res3.json() : [],
           res4.ok ? res4.json() : [],
+          res5.ok ? res5.json() : [],
+          res6.ok ? res6.json() : [],
         ]);
 
         // Gắn nguồn bảng để chuyển hướng và add to cart chính xác
         const taggedP1 = p1.map((item) => ({ ...item, _source: "products", _url: `/page/${item.id}` }));
-        const taggedP2 = p2.map((item) => ({ ...item, _source: "eventList", _url: `/component/${item.id}` }));
+        const taggedP2 = p2.map((item) => ({ ...item, _source: "eventList", _url: `/component-category/${item.id}` }));
         const taggedP3 = p3.map((item) => ({ ...item, _source: "catenogies", _url: `/product/${item.id}` }));
         const taggedP4 = p4.map((item) => ({ ...item, _source: "LaptopUser", _url: `/laptop-detail/${item.id}` }));
+        const taggedP5 = p5.map((item) => ({ ...item, _source: "ProductMenus", _url: `/menu/${item.id}` }));
+        const taggedP6 = p6.map((item) => ({ ...item, _source: "appliances", _url: `/appliance/${item.id}` }));
 
-        const merged = [...taggedP1, ...taggedP2, ...taggedP3, ...taggedP4];
+        const merged = [...taggedP1, ...taggedP2, ...taggedP3, ...taggedP4, ...taggedP5, ...taggedP6];
         const seen = new Set();
         const allItems = merged.filter((item) => {
           const key = `${item.id}-${item.name}`;

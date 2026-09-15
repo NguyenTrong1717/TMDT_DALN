@@ -18,6 +18,31 @@ const ProductCard = ({ product, onCardClick, targetUrl, fromTable = "products" }
       navigate(targetUrl);
       return;
     }
+    if (product?._url) {
+      navigate(product._url);
+      return;
+    }
+    const sourceTable = product?.fromTable || product?.source || fromTable;
+    if (sourceTable === "catenogies") {
+      navigate(`/product/${product.id}`);
+      return;
+    }
+    if (sourceTable === "LaptopUser") {
+      navigate(`/laptop-detail/${product.id}`);
+      return;
+    }
+    if (sourceTable === "eventList") {
+      navigate(`/component-category/${product.id}`);
+      return;
+    }
+    if (sourceTable === "ProductMenus" || sourceTable === "ProductPagies") {
+      navigate(`/menu/${product.id}`);
+      return;
+    }
+    if (sourceTable === "appliances") {
+      navigate(`/appliance/${product.id}`);
+      return;
+    }
     navigate(`/page/${product.id}`);
   };
 

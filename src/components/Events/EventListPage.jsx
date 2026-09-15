@@ -39,6 +39,16 @@ const EventListPage = () => {
   const activeTab = TABS.find((t) => t.category === category) || TABS[0];
 
   useEffect(() => {
+    // Cơ chế tương thích ngược thông minh: Nếu tham số không phải là category linh kiện hợp lệ
+    // (ví dụ là ID sản phẩm như /component/10), tự động chuyển tiếp ngay sang trang chi tiết linh kiện
+    const isCategoryValid = TABS.some(
+      (t) => t.category.toLowerCase() === category?.toLowerCase()
+    );
+    if (!isCategoryValid && category) {
+      navigate(`/component-category/${category}`, { replace: true });
+      return;
+    }
+
     setLoading(true);
     setError(false);
     setCurrentPage(1);
