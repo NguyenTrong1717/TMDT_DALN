@@ -10,6 +10,12 @@ import {
   sanitizeOrder,
   verifyVnpaySignature,
 } from "./backend/vnpay.mjs";
+import {
+  getMomoConfig,
+  createMomoPaymentAttempt,
+  processMomoIpn,
+  verifyMomoSignature,
+} from "./backend/momo.mjs";
 
 const server = jsonServer.create();
 const router = jsonServer.router("db.json");
@@ -128,7 +134,7 @@ const resultPayload = (order) => ({
   createdAt: order.createdAt,
   paidAt: order.paidAt || null,
   canRetryPayment:
-    order.paymentMethod === "vnpay" &&
+    ["vnpay", "momo"].includes(order.paymentMethod) &&
     order.paymentStatus !== "paid" &&
     !["cancelled", "completed"].includes(order.status),
 });
@@ -258,7 +264,10 @@ server.post("/api/orders/:orderId/vnpay/retry", (req, res) => {
     order.reservationExpiresAt = attempt.expiresAt;
     state.paymentAttempts.push(attempt);
     saveState();
-    res.status(201).json({ paymentUrl: attempt.paymentUrl });
+    res.status(201).json({
+      paymentUrl: attempt.paymentUrl,
+      lookupToken: order.lookupToken,
+    });
   } catch (error) {
     handleError(res, error);
   }
@@ -271,13 +280,44 @@ server.get("/api/payments/vnpay/return", (req, res) => {
     const config = getVnpayConfig();
     frontendUrl = config.frontendUrl;
     const state = getState();
-    const attempt = state.paymentAttempts.find((item) => item.txnRef === req.query.vnp_TxnRef);
-    const order = attempt && state.orders.find((item) => item.id === attempt.orderId);
+    const txnRef = req.query.vnp_TxnRef ? String(req.query.vnp_TxnRef) : null;
+    const attempt = (state.paymentAttempts || []).find(
+      (item) => txnRef && item.txnRef === txnRef,
+    );
+    const order =
+      (attempt && (state.orders || []).find((item) => item.id === attempt.orderId)) ||
+      (state.orders || []).find((item) => txnRef && item.orderCode === txnRef);
+    const finalAttempt =
+      attempt ||
+      (order &&
+        (state.paymentAttempts || []).find(
+          (item) => item.id === order.latestPaymentAttemptId,
+        ));
+
     token = order?.lookupToken || "";
     const signatureValid = verifyVnpaySignature(req.query, config.hashSecret);
-    if (attempt) {
-      attempt.returnReceivedAt = new Date().toISOString();
-      attempt.returnSignatureValid = signatureValid;
+    const vnpCode = req.query.vnp_ResponseCode;
+
+    if (signatureValid && vnpCode === "00" && order && order.paymentStatus !== "paid") {
+      fulfillOrder(state, order, new Date());
+      if (finalAttempt) finalAttempt.status = "paid";
+      order.paymentStatus = "paid";
+      order.paidAt = new Date().toISOString();
+      if (finalAttempt) order.paidPaymentAttemptId = finalAttempt.id;
+      order.vnpTransactionNo = req.query.vnp_TransactionNo || null;
+      order.reservationExpiresAt = null;
+      order.updatedAt = new Date().toISOString();
+      saveState();
+    } else if (vnpCode && vnpCode !== "00") {
+      if (finalAttempt) {
+        finalAttempt.status = "failed";
+        finalAttempt.responseCode = vnpCode;
+      }
+      if (order && order.paymentStatus !== "paid") {
+        order.paymentStatus = "failed";
+        order.reservationExpiresAt = null;
+        order.updatedAt = new Date().toISOString();
+      }
       saveState();
     }
   } catch (error) {
@@ -286,6 +326,9 @@ server.get("/api/payments/vnpay/return", (req, res) => {
   const target = new URL("/payment-result", frontendUrl);
   target.searchParams.set("returned", "1");
   if (token) target.searchParams.set("token", token);
+  if (req.query.vnp_ResponseCode) {
+    target.searchParams.set("responseCode", String(req.query.vnp_ResponseCode));
+  }
   res.redirect(target.toString());
 });
 
@@ -299,6 +342,197 @@ server.get("/api/payments/vnpay/ipn", (req, res) => {
   } catch (error) {
     console.error("VNPAY IPN ERROR:", error.message);
     res.json({ RspCode: "99", Message: "Unknown error" });
+  }
+});
+
+// Tạo phiên thanh toán MoMo Sandbox
+server.post("/api/payments/momo/create", async (req, res) => {
+  try {
+    const config = getMomoConfig();
+    const state = getState();
+    const user = getUser(req, state);
+    validateRequestId(req.body.requestId);
+
+    const existing = findIdempotentOrder(state, user.id, req.body.requestId);
+    if (existing) {
+      if (existing.paymentMethod !== "momo") {
+        return res.status(409).json({ error: "Mã yêu cầu đã được dùng cho phương thức khác." });
+      }
+      const attempt = state.paymentAttempts.find((item) => item.id === existing.latestPaymentAttemptId);
+      return res.json({
+        orderId: existing.id,
+        orderCode: existing.orderCode,
+        lookupToken: existing.lookupToken,
+        paymentUrl: attempt?.paymentUrl || null,
+        qrCodeUrl: attempt?.qrCodeUrl || null,
+        deeplink: attempt?.deeplink || null,
+      });
+    }
+
+    const input = prepareCheckoutInput(req, user);
+    const now = new Date();
+    const quote = quoteCheckout(state, input, { now });
+    const order = createBaseOrder({ input, quote, paymentMethod: "momo", now });
+    const attempt = await createMomoPaymentAttempt({ order, config, ipAddress: getClientIp(req), now });
+    order.latestPaymentAttemptId = attempt.id;
+    order.reservationExpiresAt = attempt.expiresAt;
+    state.orders.push(order);
+    state.paymentAttempts.push(attempt);
+    saveState();
+
+    res.status(201).json({
+      orderId: order.id,
+      orderCode: order.orderCode,
+      lookupToken: order.lookupToken,
+      paymentUrl: attempt.paymentUrl,
+      qrCodeUrl: attempt.qrCodeUrl,
+      deeplink: attempt.deeplink,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+// Thử lại thanh toán MoMo
+server.post("/api/orders/:orderId/momo/retry", async (req, res) => {
+  try {
+    const config = getMomoConfig();
+    const state = getState();
+    const user = getUser(req, state);
+    const order = state.orders.find((item) => item.id === req.params.orderId);
+    if (!order || String(order.userId) !== String(user.id) || order.lookupToken !== req.body.lookupToken) {
+      return res.status(404).json({ error: "Không tìm thấy đơn hàng." });
+    }
+    if (order.paymentMethod !== "momo") return res.status(400).json({ error: "Đơn hàng không sử dụng MoMo." });
+    if (order.paymentStatus === "paid") return res.status(409).json({ error: "Đơn hàng đã được thanh toán." });
+    if (["cancelled", "completed"].includes(order.status)) {
+      return res.status(409).json({ error: "Trạng thái đơn hàng không cho phép thanh toán lại." });
+    }
+
+    const now = new Date();
+    const input = {
+      userId: order.userId,
+      checkoutMode: order.checkoutMode,
+      voucherCode: order.voucherCode,
+      items: order.products.map((item) => ({
+        productId: item.productId,
+        fromTable: item.fromTable,
+        quantity: item.quantity,
+        cartId: item.cartId,
+      })),
+    };
+    const quote = quoteCheckout(state, input, { now, excludeOrderId: order.id });
+    Object.assign(order, quote, { paymentStatus: "pending", updatedAt: now.toISOString() });
+    const attempt = await createMomoPaymentAttempt({ order, config, ipAddress: getClientIp(req), now });
+    order.latestPaymentAttemptId = attempt.id;
+    order.reservationExpiresAt = attempt.expiresAt;
+    state.paymentAttempts.push(attempt);
+    saveState();
+
+    res.status(201).json({
+      paymentUrl: attempt.paymentUrl,
+      qrCodeUrl: attempt.qrCodeUrl,
+      deeplink: attempt.deeplink,
+      lookupToken: order.lookupToken,
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+// MoMo Return URL (Khách điều hướng trở lại từ trang thanh toán)
+server.get("/api/payments/momo/return", (req, res) => {
+  let frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  let token = "";
+  try {
+    const config = getMomoConfig();
+    frontendUrl = config.frontendUrl;
+    const state = getState();
+    let extra = {};
+    try {
+      if (req.query.extraData) {
+        extra = JSON.parse(Buffer.from(req.query.extraData, "base64").toString("utf8"));
+      }
+    } catch {}
+
+    const orderIdQuery = req.query.orderId ? String(req.query.orderId) : null;
+    const requestIdQuery = req.query.requestId ? String(req.query.requestId) : null;
+
+    const attempt = (state.paymentAttempts || []).find(
+      (item) =>
+        (orderIdQuery && item.txnRef === orderIdQuery) ||
+        (requestIdQuery && item.momoRequestId === requestIdQuery),
+    );
+
+    const order =
+      (attempt && (state.orders || []).find((item) => item.id === attempt.orderId)) ||
+      (state.orders || []).find(
+        (item) =>
+          (orderIdQuery && item.orderCode === orderIdQuery) ||
+          (extra.orderId && item.id === extra.orderId) ||
+          (extra.lookupToken && item.lookupToken === extra.lookupToken),
+      );
+
+    const finalAttempt =
+      attempt ||
+      (order &&
+        (state.paymentAttempts || []).find(
+          (item) => item.id === order.latestPaymentAttemptId,
+        ));
+
+    token = order?.lookupToken || extra.lookupToken || "";
+    const signatureValid = verifyMomoSignature(req.query, config.secretKey, config.accessKey);
+    const resCode = Number(req.query.resultCode);
+
+    if (signatureValid && resCode === 0 && order && order.paymentStatus !== "paid") {
+      fulfillOrder(state, order, new Date());
+      if (finalAttempt) finalAttempt.status = "paid";
+      order.paymentStatus = "paid";
+      order.paidAt = new Date().toISOString();
+      if (finalAttempt) order.paidPaymentAttemptId = finalAttempt.id;
+      order.momoTransId = req.query.transId || null;
+      order.reservationExpiresAt = null;
+      order.updatedAt = new Date().toISOString();
+      saveState();
+    } else if (resCode !== 0) {
+      if (finalAttempt) {
+        finalAttempt.status = "failed";
+        finalAttempt.resultCode = resCode;
+        finalAttempt.message = req.query.message || "Giao dịch bị hủy hoặc thất bại";
+      }
+      if (order && order.paymentStatus !== "paid") {
+        order.paymentStatus = "failed";
+        order.reservationExpiresAt = null;
+        order.updatedAt = new Date().toISOString();
+      }
+      saveState();
+    }
+  } catch (error) {
+    console.error("MOMO RETURN ERROR:", error.message);
+  }
+  const target = new URL("/payment-result", frontendUrl);
+  target.searchParams.set("returned", "1");
+  if (token) target.searchParams.set("token", token);
+  if (req.query.resultCode !== undefined) {
+    target.searchParams.set("resultCode", String(req.query.resultCode));
+  }
+  if (req.query.message) {
+    target.searchParams.set("message", String(req.query.message));
+  }
+  res.redirect(target.toString());
+});
+
+// MoMo IPN Webhook (MoMo gửi ngầm thông báo kết quả)
+server.post("/api/payments/momo/ipn", (req, res) => {
+  try {
+    const config = getMomoConfig();
+    const state = getState();
+    const result = processMomoIpn({ state, body: req.body, config });
+    if (result.changed) saveState();
+    res.status(result.status || 200).json(result.response);
+  } catch (error) {
+    console.error("MOMO IPN ERROR:", error.message);
+    res.status(500).json({ resultCode: 99, message: "Unknown error" });
   }
 });
 

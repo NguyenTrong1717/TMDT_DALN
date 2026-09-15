@@ -48,7 +48,7 @@ test("HTTP checkout routes create COD and VNPAY orders in an isolated database",
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(3000),
     });
-    for (const path of ["/api/orders/checkout", "/api/payments/vnpay/create"]) {
+    for (const path of ["/api/orders/checkout", "/api/payments/vnpay/create", "/api/payments/momo/create"]) {
       const response = await create(path, {}, false);
       assert.equal(response.status, 401, "Route must exist and require a user, not return 404");
       await response.text();

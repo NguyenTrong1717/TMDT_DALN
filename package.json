@@ -10,11 +10,13 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server_mongodb.mjs",
-    "server:mongo": "node server_mongodb.mjs",
+    "server": "node --watch server_mongodb.mjs",
+    "server:mongo": "node --watch server_mongodb.mjs",
     "server:json": "node --env-file-if-exists=.env server.mjs",
     "migrate:mongo": "node scripts/migrate_to_mongodb.mjs",
     "test:vnpay": "node --test --experimental-test-isolation=none tests/vnpay.test.mjs tests/checkout-api.test.mjs",
+    "test:momo": "node --test tests/momo.test.mjs",
+    "test:payments": "node --test tests/vnpay.test.mjs tests/momo.test.mjs",
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
   },
   "dependencies": {

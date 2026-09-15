@@ -298,6 +298,17 @@
   border-color: #94a3b8;
 }
 
+.btn-stop-waiting {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.btn-stop-waiting:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
 .btn-retry {
   background: #fff7ed;
   color: #c2410c;

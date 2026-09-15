@@ -96,7 +96,8 @@ const UserOrders = () => {
 
   const handleRetryPayment = async (order) => {
     try {
-      const response = await fetch(`${API_URL}/api/orders/${order.id}/vnpay/retry`, {
+      const method = order.paymentMethod === "momo" ? "momo" : "vnpay";
+      const response = await fetch(`${API_URL}/api/orders/${order.id}/${method}/retry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

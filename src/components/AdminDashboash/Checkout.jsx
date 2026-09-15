@@ -32,15 +32,23 @@ const formatPrice = (amount) => amount.toLocaleString("vi-VN") + "₫";
 const PAYMENT_METHODS = [
   {
     value: "cod",
-    label: "Tiền mặt khi nhận hàng (COD)",
+    label: "Thanh toán khi nhận hàng (COD)",
     desc: "Thanh toán bằng tiền mặt khi nhận kiện hàng",
     icon: "💵",
     iconBg: "#fef3c7",
   },
   {
     value: "vnpay",
-    label: "Thẻ ATM nội địa (qua VNPAY)",
+    label: "Cổng thanh toán VNPAY (ATM nội địa, QR)",
+    desc: "Thẻ ATM 40+ ngân hàng, tài khoản ngân hàng nội địa",
     iconSrc: "/images/vnpay.svg",
+    iconBg: "#ffffff",
+  },
+  {
+    value: "momo",
+    label: "Cổng thanh toán MoMo (QR, ATM, Thẻ quốc tế)",
+    desc: "Quét mã QR MoMo, thẻ ATM nội địa & thẻ Visa/Mastercard",
+    iconSrc: "/images/momo.svg",
     iconBg: "#ffffff",
   },
 ];
@@ -264,10 +272,13 @@ const Checkout = () => {
           note: customerInfo.note,
         },
       };
-      const endpoint =
-        customerInfo.paymentMethod === "vnpay"
-          ? `${API_URL}/api/payments/vnpay/create`
-          : `${API_URL}/api/orders/checkout`;
+      let endpoint = `${API_URL}/api/orders/checkout`;
+      if (customerInfo.paymentMethod === "vnpay") {
+        endpoint = `${API_URL}/api/payments/vnpay/create`;
+      } else if (customerInfo.paymentMethod === "momo") {
+        endpoint = `${API_URL}/api/payments/momo/create`;
+      }
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -286,8 +297,14 @@ const Checkout = () => {
         );
       }
 
-      if (customerInfo.paymentMethod === "vnpay") {
-        if (!data.paymentUrl) throw new Error("VNPAY chưa trả về URL thanh toán.");
+      if (["vnpay", "momo"].includes(customerInfo.paymentMethod)) {
+        if (!data.paymentUrl) {
+          throw new Error(
+            customerInfo.paymentMethod === "momo"
+              ? "MoMo chưa trả về URL thanh toán."
+              : "VNPAY chưa trả về URL thanh toán."
+          );
+        }
         localStorage.setItem("pendingPaymentLookupToken", data.lookupToken);
         window.location.assign(data.paymentUrl);
         return;
@@ -426,7 +443,7 @@ const Checkout = () => {
                         className={`pay-icon${pm.iconSrc ? " pay-icon-brand" : ""}`}
                         style={{ background: pm.iconBg }}
                       >
-                        {pm.iconSrc ? <img src={pm.iconSrc} alt="VNPAY" /> : pm.icon}
+                        {pm.iconSrc ? <img src={pm.iconSrc} alt={pm.label} /> : pm.icon}
                       </div>
                       <div className="pay-label">
                         <strong>{pm.label}</strong>
@@ -445,6 +462,37 @@ const Checkout = () => {
                         <strong>Thanh toán tiền mặt khi nhận hàng (COD)</strong>
                         <p>Quý khách được kiểm tra sản phẩm trước khi thanh toán cho nhân viên giao hàng.</p>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* KHUNG THANH TOÁN VNPAY SANDBOX */}
+                {customerInfo.paymentMethod === "vnpay" && (
+                  <div className="vnpay-sandbox-box">
+                    <div className="vnpay-sandbox-logo">VNPAY</div>
+                    <div>
+                      <strong>Cổng thanh toán thẻ ATM / VNPAY Sandbox</strong>
+                      <p>Hệ thống chuyển hướng sang VNPAY để quý khách nhập thông tin thẻ thử nghiệm (NCB).</p>
+                    </div>
+                    <span>TEST</span>
+                  </div>
+                )}
+
+                {/* KHUNG THANH TOÁN MOMO SANDBOX */}
+                {customerInfo.paymentMethod === "momo" && (
+                  <div className="momo-payment-box">
+                    <div className="momo-header">
+                      <span className="momo-badge">MoMo Sandbox</span>
+                      <h4>Cổng thanh toán MoMo Đa phương thức</h4>
+                    </div>
+                    <div className="momo-content">
+                      <div className="momo-row">
+                        <span>Phương thức hỗ trợ:</span>
+                        <strong>Ví MoMo QR, Thẻ ATM 40+ Ngân hàng, Visa / Mastercard</strong>
+                      </div>
+                      <p style={{ margin: 0, fontSize: "12.5px", color: "#64748b", lineHeight: "1.45" }}>
+                        Sau khi bấm đặt hàng, cổng <strong>MoMo Sandbox</strong> sẽ mở ra để quý khách tùy chọn: quét mã QR bằng app MoMo, hoặc thanh toán qua thẻ ATM ngân hàng nội địa, hoặc thẻ quốc tế Visa/Mastercard.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -583,9 +631,11 @@ const Checkout = () => {
               >
                 {submitting
                   ? "ĐANG XỬ LÝ..."
-                  : customerInfo.paymentMethod === "vnpay"
-                    ? "Thanh toán qua VNPAY"
-                    : "XÁC NHẬN ĐẶT HÀNG"}
+                  : customerInfo.paymentMethod === "momo"
+                    ? "THANH TOÁN QUA MOMO"
+                    : customerInfo.paymentMethod === "vnpay"
+                      ? "THANH TOÁN QUA VNPAY"
+                      : "XÁC NHẬN ĐẶT HÀNG (COD)"}
               </button>
               <p className="secure-note">
                 <FaShieldAlt /> Thông tin của bạn được mã hóa & bảo mật an toàn

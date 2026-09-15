@@ -86,7 +86,7 @@ const activeReservationQuantity = (state, fromTable, productId, now, excludeOrde
     .filter(
       (order) =>
         order.id !== excludeOrderId &&
-        order.paymentMethod === "vnpay" &&
+        ["vnpay", "momo"].includes(order.paymentMethod) &&
         order.paymentStatus === "pending" &&
         new Date(order.reservationExpiresAt).getTime() > now.getTime(),
     )
@@ -288,7 +288,7 @@ export const createBaseOrder = ({ input, quote, paymentMethod, now = new Date() 
     ...customer,
     customerName: customer.fullName,
     paymentMethod,
-    paymentStatus: paymentMethod === "vnpay" ? "pending" : "unpaid",
+    paymentStatus: ["vnpay", "momo"].includes(paymentMethod) ? "pending" : "unpaid",
     status: "pending",
     ...quote,
     userVoucherId: quote.userVoucherId,
@@ -481,7 +481,7 @@ export const sanitizeOrder = (order, { includeLookupToken = false } = {}) => {
     paidAt: order.paidAt || null,
     inventoryShortage: order.inventoryShortage === true,
     canRetryPayment:
-      order.paymentMethod === "vnpay" &&
+      ["vnpay", "momo"].includes(order.paymentMethod) &&
       order.paymentStatus !== "paid" &&
       !["cancelled", "completed"].includes(order.status),
   };
