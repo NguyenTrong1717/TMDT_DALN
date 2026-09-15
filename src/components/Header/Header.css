@@ -18,8 +18,6 @@
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  position: relative;
-  z-index: 1000;
   font-family: var(--font-body);
   color: var(--ink);
 }

@@ -95,12 +95,19 @@ const Header = (props) => {
     return () => window.removeEventListener("click", handleCloseMenu);
   }, []);
 
-  // MỚI: lắng nghe sự kiện cuộn trang
+  // Lắng nghe sự kiện cuộn trang mượt mà để thêm shadow cho header
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 60);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setIsScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -232,39 +239,37 @@ const Header = (props) => {
         </div>
       </div>
 
-      {/* 2. THANH TIỆN ÍCH PHỤ TRÊN CÙNG (Ẩn tự nhiên khi cuộn xuống để header cực kỳ tinh gọn) */}
-      {!isScrolled && (
-        <div className="site-header__utility-bar">
-          <div className="site-header__utility-inner">
-            <div className="utility-left">
-              <span>📍 15 Showroom Toàn Quốc — Trải nghiệm máy trực tiếp trên tay</span>
-            </div>
-            <ul className="utility-menu">
-              <li
-                className="utility-menu-item utility-menu-item--clickable"
-                onClick={() => setActiveModal("GIÁ ƯU ĐÃI NHẤT")}
-              >
-                <MdDiscount />
-                <span>Giá Ưu Đãi Nhất</span>
-              </li>
-              <li
-                className="utility-menu-item utility-menu-item--clickable"
-                onClick={() => navigate("/lien-he")}
-              >
-                <AiOutlineFileProtect />
-                <span>Liên Hệ Với Chúng Tôi</span>
-              </li>
-              <li className="utility-menu-item">
-                <FaShippingFast />
-                <span>Miễn Phí Vận Chuyển</span>
-              </li>
-              <li className="utility-menu-item utility-menu-item--notif">
-                <NotificationBell label="Thông Báo" />
-              </li>
-            </ul>
+      {/* 2. THANH TIỆN ÍCH PHỤ TRÊN CÙNG */}
+      <div className="site-header__utility-bar">
+        <div className="site-header__utility-inner">
+          <div className="utility-left">
+            <span>📍 15 Showroom Toàn Quốc — Trải nghiệm máy trực tiếp trên tay</span>
           </div>
+          <ul className="utility-menu">
+            <li
+              className="utility-menu-item utility-menu-item--clickable"
+              onClick={() => setActiveModal("GIÁ ƯU ĐÃI NHẤT")}
+            >
+              <MdDiscount />
+              <span>Giá Ưu Đãi Nhất</span>
+            </li>
+            <li
+              className="utility-menu-item utility-menu-item--clickable"
+              onClick={() => navigate("/lien-he")}
+            >
+              <AiOutlineFileProtect />
+              <span>Liên Hệ Với Chúng Tôi</span>
+            </li>
+            <li className="utility-menu-item">
+              <FaShippingFast />
+              <span>Miễn Phí Vận Chuyển</span>
+            </li>
+            <li className="utility-menu-item utility-menu-item--notif">
+              <NotificationBell label="Thông Báo" />
+            </li>
+          </ul>
         </div>
-      )}
+      </div>
 
       {/* 3. THANH HEADER CHÍNH - CỐ ĐỊNH STICKY TOP: 0 - TẤT CẢ LOGO + TÌM KIẾM + GIỎ HÀNG CHUNG 1 HÀNG */}
       <div className="site-header__main-bar">
