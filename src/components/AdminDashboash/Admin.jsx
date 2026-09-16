@@ -3,7 +3,6 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { BiSolidDiscount } from "react-icons/bi";
 import "./Admin.css";
 import {
-  FaTachometerAlt,
   FaBoxOpen,
   FaUsers,
   FaShoppingCart,
@@ -13,8 +12,10 @@ import {
   FaBolt,
   FaSearch,
   FaHistory,
+  FaChevronRight,
 } from "react-icons/fa";
 import { MdSupportAgent } from "react-icons/md";
+import { getCurrentUser, logout } from "../../utils/api";
 
 const ADMIN_MENU = [
   {
@@ -22,44 +23,51 @@ const ADMIN_MENU = [
     key: "products",
     label: "Sản Phẩm",
     icon: FaBoxOpen,
+    roles: ["admin", "warehouse"],
   },
   {
     path: "/admin/orders",
     key: "orders",
     label: "Đơn Hàng",
     icon: FaShoppingCart,
+    roles: ["admin", "warehouse", "support"],
   },
-  { path: "/admin/users", key: "users", label: "Người Dùng", icon: FaUsers },
+  { path: "/admin/users", key: "users", label: "Người Dùng", icon: FaUsers, roles: ["admin", "support"] },
   {
     path: "/admin/statistics",
     key: "statistics",
     label: "Thống Kê",
     icon: FaChartBar,
+    roles: ["admin"],
   },
-  { path: "/admin/reviews", key: "reviews", label: "Đánh Giá", icon: FaStar },
+  { path: "/admin/reviews", key: "reviews", label: "Đánh Giá", icon: FaStar, roles: ["admin", "support"] },
   {
     path: "/admin/vouchers",
     key: "vouchers",
     label: "Voucher",
     icon: BiSolidDiscount,
+    roles: ["admin"],
   },
   {
     path: "/admin/flash-sale",
     key: "flash-sale",
     label: "Flash Sale",
     icon: FaBolt,
+    roles: ["admin"],
   },
   {
     path: "/admin/service-requests",
     key: "service-requests",
     label: "Yêu Cầu Dịch Vụ",
     icon: MdSupportAgent,
+    roles: ["admin", "support"],
   },
   {
     path: "/admin/audit-logs",
     key: "audit-logs",
     label: "Nhật Ký Thao Tác",
     icon: FaHistory,
+    roles: ["admin", "warehouse", "support"],
   },
 ];
 
@@ -68,25 +76,30 @@ const Admin = () => {
 
   const location = useLocation();
   const [menuSearch, setMenuSearch] = useState("");
+  const currentUser = getCurrentUser();
+  const allowedMenu = useMemo(
+    () => ADMIN_MENU.filter((item) => item.roles.includes(currentUser?.role)),
+    [currentUser?.role],
+  );
 
   const filteredMenu = useMemo(() => {
     const keyword = menuSearch.trim().toLocaleLowerCase("vi");
-    if (!keyword) return ADMIN_MENU;
-    return ADMIN_MENU.filter((item) =>
+    if (!keyword) return allowedMenu;
+    return allowedMenu.filter((item) =>
       item.label.toLocaleLowerCase("vi").includes(keyword),
     );
-  }, [menuSearch]);
+  }, [allowedMenu, menuSearch]);
 
   const currentPage =
-    ADMIN_MENU.find((item) => location.pathname.startsWith(item.path))?.label ||
+    allowedMenu.find((item) => location.pathname.startsWith(item.path))?.label ||
     "Tổng quan";
 
   // Kiểm tra quyền Admin (Bảo mật cơ bản)
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const user = getCurrentUser();
 
-    if (!user || user.role !== "admin") {
+    if (!user || !["admin", "warehouse", "support"].includes(user.role)) {
       alert("Bạn không có quyền truy cập vùng này!");
 
       navigate("/login");
@@ -95,7 +108,23 @@ const Admin = () => {
 
   // Hàm tiện ích để thêm class 'active' cho menu đang chọn
 
-  const isActive = (path) => (location.pathname.includes(path) ? "active" : "");
+  const isActive = (path) =>
+    location.pathname.startsWith(path) ? "active" : "";
+
+  const roleLabel = {
+    admin: "Quản trị viên",
+    warehouse: "Nhân viên kho",
+    support: "Chăm sóc khách hàng",
+  }[currentUser?.role];
+  const displayName =
+    currentUser?.fullName || currentUser?.username || "Nhân viên";
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(-2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="admin-layout">
@@ -103,7 +132,11 @@ const Admin = () => {
 
       <aside className="admin-sidebar">
         <div className="sidebar-logo">
-          <h2>HCore Store</h2>
+          <div className="sidebar-logo-mark">HC</div>
+          <div>
+            <h2>HCore Store</h2>
+            <span>Admin workspace</span>
+          </div>
         </div>
         <div className="sidebar-search-wrap">
           <div className="sidebar-search">
@@ -136,50 +169,26 @@ const Admin = () => {
           )}
         </div>
         <nav className="sidebar-menu">
-          <Link to="/admin/products" className={isActive("products")}>
-            <FaBoxOpen />
-            <span>Sản Phẩm</span>
-          </Link>
-
-          <Link to="/admin/orders" className={isActive("orders")}>
-            <FaShoppingCart />
-            <span>Đơn Hàng</span>
-          </Link>
-          <Link to="/admin/users" className={isActive("users")}>
-            <FaUsers />
-            <span>Người Dùng</span>
-          </Link>
-          <Link to="/admin/statistics" className={isActive("statistics")}>
-            <FaChartBar />
-            <span>Thống Kê</span>
-          </Link>
-          <Link to="/admin/reviews" className={isActive("reviews")}>
-            <FaStar />
-            <span>Đánh Giá</span>
-          </Link>
-          <Link to="/admin/vouchers" className={isActive("vouchers")}>
-            <BiSolidDiscount />
-            <span>Voucher</span>
-          </Link>
-          <Link to="/admin/flash-sale" className={isActive("flash-sale")}>
-            <FaBolt />
-            <span>Flash Sale</span>
-          </Link>
-          <Link
-            to="/admin/service-requests"
-            className={isActive("service-requests")}
-          >
-            <MdSupportAgent />
-            <span>Yêu Cầu Dịch Vụ</span>
-          </Link>
-          <Link
-            to="/admin/audit-logs"
-            className={isActive("audit-logs")}
-          >
-            <FaHistory />
-            <span>Nhật Ký Thao Tác</span>
-          </Link>
+          {allowedMenu.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.key} to={item.path} className={isActive(item.path)}>
+                <Icon />
+                <span>{item.label}</span>
+                <FaChevronRight className="sidebar-menu-arrow" />
+              </Link>
+            );
+          })}
         </nav>
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar" aria-hidden="true">
+            {initials || "HC"}
+          </div>
+          <div className="sidebar-user-copy">
+            <strong>{displayName}</strong>
+            <span>{roleLabel || "Nhân viên hệ thống"}</span>
+          </div>
+        </div>
       </aside>
 
       {/* 2. KHU VỰC NỘI DUNG BÊN PHẢI */}
@@ -188,19 +197,20 @@ const Admin = () => {
         {/* Header trên cùng */}
 
         <header className="admin-navbar">
-          <div className="navbar-title">Hệ thống quản trị</div>
-
-          <span className="navbar-current-page">{currentPage}</span>
+          <div className="navbar-heading">
+            <span className="navbar-eyebrow">Hệ thống quản trị</span>
+            <strong>{currentPage}</strong>
+          </div>
 
           <button
             className="logout-btn"
-            onClick={() => {
-              localStorage.removeItem("currentUser");
-              window.dispatchEvent(new Event("authChange"));
+            onClick={async () => {
+              await logout();
               navigate("/login");
             }}
           >
-            Đăng xuất
+            <FaSignOutAlt />
+            <span>Đăng xuất</span>
           </button>
         </header>
 

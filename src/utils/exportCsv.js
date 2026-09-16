@@ -31,21 +31,9 @@ export const exportToCsv = (filename, headers, rows) => {
 };
 
 export const logAudit = async (actor, action, target, details = "") => {
-  try {
-    await fetch("http://localhost:3000/auditLogs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: Date.now().toString(),
-        actor: actor?.fullName || actor?.username || "Admin",
-        role: actor?.role || "admin",
-        action,
-        target,
-        details,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-  } catch (err) {
-    console.warn("Không thể ghi audit log:", err.message);
-  }
+  void actor;
+  void action;
+  void target;
+  void details;
+  // Audit nghiệp vụ được tạo tại backend từ session đã xác thực.
 };

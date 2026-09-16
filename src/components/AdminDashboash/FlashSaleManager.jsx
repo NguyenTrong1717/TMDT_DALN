@@ -9,8 +9,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import "./FlashSaleManager.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL, apiFetch } from "../../utils/api";
 const SOURCES = [
   { key: "LaptopUser", label: "Laptop" },
   { key: "eventList", label: "Linh kiện" },
@@ -69,11 +68,11 @@ const FlashSaleManager = () => {
     setLoading(true);
     try {
       const [laptops, parts, cate, pcMenus, settings] = await Promise.all([
-        fetch(`${API_URL}/LaptopUser`).then((r) => r.json()),
-        fetch(`${API_URL}/eventList`).then((r) => r.json()),
-        fetch(`${API_URL}/catenogies`).then((r) => r.json()),
-        fetch(`${API_URL}/ProductMenus`).then((r) => r.json()),
-        fetch(`${API_URL}/settings/flashSale`).then((r) =>
+        apiFetch(`${API_URL}/LaptopUser`).then((r) => r.json()),
+        apiFetch(`${API_URL}/eventList`).then((r) => r.json()),
+        apiFetch(`${API_URL}/catenogies`).then((r) => r.json()),
+        apiFetch(`${API_URL}/ProductMenus`).then((r) => r.json()),
+        apiFetch(`${API_URL}/settings/flashSale`).then((r) =>
           r.ok ? r.json() : null,
         ),
       ]);
@@ -94,13 +93,14 @@ const FlashSaleManager = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll();
   }, []);
 
   const handleToggleFlashSale = async (item) => {
     const nextValue = !item.flashSale;
     try {
-      const res = await fetch(`${API_URL}/${item.source}/${item.id}`, {
+      const res = await apiFetch(`/${item.source}/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ flashSale: nextValue }),
@@ -137,7 +137,7 @@ const FlashSaleManager = () => {
     const basePrice = item.oldPrice || item.price;
     const newPrice = Math.round((basePrice * (100 - percent)) / 100);
     try {
-      const res = await fetch(`${API_URL}/${item.source}/${item.id}`, {
+      const res = await apiFetch(`/${item.source}/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -169,7 +169,7 @@ const FlashSaleManager = () => {
     setSavingTime(true);
     try {
       const isoTime = new Date(endTime).toISOString();
-      const res = await fetch(`${API_URL}/settings/flashSale`, {
+      const res = await apiFetch(`/settings/flashSale`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "flashSale", endTime: isoTime }),
@@ -228,8 +228,7 @@ const FlashSaleManager = () => {
       category: form.category,
       status: form.status || "Còn hàng",
       soldPercent: 0,
-      stock: stockQty,
-      stockLeft: stockQty,
+      initialStock: stockQty,
       image: form.image.trim() || "/images/no-image.jpg",
       flashSale: true, // Vừa tạo là hiện thẳng trên trang Flash Sale
       deleted: false,
@@ -237,7 +236,7 @@ const FlashSaleManager = () => {
 
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/${form.source}`, {
+      const res = await apiFetch(`/${form.source}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newProduct),

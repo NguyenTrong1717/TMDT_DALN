@@ -17,6 +17,9 @@
     "test:vnpay": "node --test --experimental-test-isolation=none tests/vnpay.test.mjs tests/checkout-api.test.mjs",
     "test:momo": "node --test tests/momo.test.mjs",
     "test:payments": "node --test tests/vnpay.test.mjs tests/momo.test.mjs",
+    "test:admin": "node --test --experimental-test-isolation=none tests/admin-domain.test.mjs",
+    "test:mongo": "node --test --experimental-test-isolation=none tests/mongo.test.mjs",
+    "test:all": "node --test --experimental-test-isolation=none tests/admin-domain.test.mjs tests/vnpay.test.mjs tests/momo.test.mjs tests/checkout-api.test.mjs tests/mongo.test.mjs",
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
   },
   "dependencies": {

@@ -4,10 +4,9 @@ import { toast } from "sonner";
 
 import Header from "../../components/Header/Header";
 import "./Cart.css";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 import Sevicer from "../../components/Sevicer/Sevicer";
 import FooterUser from "../../components/Footer/FooterUser";
-
-const API_URL = "http://localhost:3000";
 
 // Hàm định dạng tiền tệ chuẩn VND
 const formatPrice = (price) => {
@@ -22,7 +21,7 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUser = getCurrentUser();
 
   // ================= HÀM FETCH GIỎ HÀNG THÔNG MINH  =================
   const fetchCart = async () => {
@@ -31,7 +30,7 @@ const Cart = () => {
       setLoading(true);
 
       // Bước 1: Thử gọi lọc theo cách thông thường
-      let res = await fetch(`${API_URL}/cart?userId=${currentUser.id}`);
+      let res = await apiFetch(`/cart?userId=${currentUser.id}`);
       let cartData = [];
 
       if (res.ok) {
@@ -45,7 +44,7 @@ const Cart = () => {
         );
 
         // Lấy toàn bộ bảng giỏ hàng về
-        const resAll = await fetch(`${API_URL}/cart`);
+        const resAll = await apiFetch(`/cart`);
         if (resAll.ok) {
           const allCart = await resAll.json();
 
@@ -134,7 +133,7 @@ const Cart = () => {
   const handleQuantityChange = async (id, newQty) => {
     if (newQty < 1) return;
     try {
-      const res = await fetch(`${API_URL}/cart/${id}`, {
+      const res = await apiFetch(`/cart/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantity: newQty }),
@@ -156,7 +155,7 @@ const Cart = () => {
   // ================= XÓA 1 SẢN PHẨM KHỎI GIỎ =================
   const handleDeleteItem = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/cart/${id}`, { method: "DELETE" });
+      const res = await apiFetch(`/cart/${id}`, { method: "DELETE" });
       if (res.ok) {
         toast.success("Đã xóa sản phẩm khỏi giỏ hàng");
         window.dispatchEvent(new Event("cartUpdated"));
@@ -302,8 +301,8 @@ const Cart = () => {
                         // Xóa lần lượt từng item để tránh race condition ghi file của json-server
                         for (const item of cartItems) {
                           try {
-                            const res = await fetch(
-                              `${API_URL}/cart/${item.id}`,
+                            const res = await apiFetch(
+                              `/cart/${item.id}`,
                               {
                                 method: "DELETE",
                               },

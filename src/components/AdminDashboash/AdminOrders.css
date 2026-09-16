@@ -9,6 +9,45 @@
 
 /* ── Page wrapper ───────────────────────────── */
 .admin-orders-page {
+  /* Keep the light admin palette local to this page. The application root also
+     has a dark storefront palette with similarly named tokens, so relying on
+     :root made text turn white when the CSS bundle order changed. */
+  --bg: #f0f4f9;
+  --surface: #ffffff;
+  --surface-raised: #f8fafc;
+  --surface-hover: #f1f5f9;
+  --border: #cbd5e1;
+  --border-subtle: #e2e8f0;
+  --accent: #1d4ed8;
+  --accent-light: #eff6ff;
+  --accent-mid: #bfdbfe;
+  --accent-glow: rgba(29, 78, 216, 0.16);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.12);
+
+  --pending-color: #92400e;
+  --pending-bg: #fffbeb;
+  --pending-border: #fcd34d;
+  --confirmed-color: #1e40af;
+  --confirmed-bg: #eff6ff;
+  --confirmed-border: #93c5fd;
+  --shipping-color: #5b21b6;
+  --shipping-bg: #f5f3ff;
+  --shipping-border: #c4b5fd;
+  --completed-color: #047857;
+  --completed-bg: #ecfdf5;
+  --completed-border: #6ee7b7;
+  --cancelled-color: #b91c1c;
+  --cancelled-bg: #fef2f2;
+  --cancelled-border: #fca5a5;
+
   font-family: "Inter", system-ui, sans-serif;
   background: var(--bg);
   min-height: 100vh;
@@ -17,7 +56,7 @@
 }
 
 /* ── Page title ─────────────────────────────── */
-.admin-title {
+.admin-orders-page .admin-title {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -29,7 +68,7 @@
   text-transform: uppercase;
 }
 
-.admin-title svg {
+.admin-orders-page .admin-title svg {
   color: var(--accent);
   font-size: 20px;
   flex-shrink: 0;
@@ -108,7 +147,7 @@
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-.clear-search-btn {
+.admin-orders-page .clear-search-btn {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -183,15 +222,15 @@
 }
 
 /* ── Loading / Empty ────────────────────────── */
-.loading-box {
+.admin-orders-loading {
   font-family: "Inter", sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-  color: var(--text-secondary);
+  color: #475569;
   font-size: 15px;
-  background: var(--bg);
+  background: #f0f4f9;
 }
 
 .no-orders {
@@ -269,7 +308,7 @@
 }
 
 /* ── Order card ─────────────────────────────── */
-.order-card {
+.admin-orders-page .order-card {
   background: var(--surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -283,7 +322,7 @@
     transform 0.18s ease;
 }
 
-.order-card:hover {
+.admin-orders-page .order-card:hover {
   box-shadow: var(--shadow-card-hover);
   border-color: var(--border);
   transform: translateY(-2px);
@@ -313,7 +352,7 @@
 }
 
 /* ── Status badges ──────────────────────────── */
-.status-badge {
+.admin-orders-page .status-badge {
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
@@ -325,27 +364,27 @@
   border: 1px solid;
 }
 
-.status-badge.pending {
+.admin-orders-page .status-badge.pending {
   color: var(--pending-color);
   background: var(--pending-bg);
   border-color: var(--pending-border);
 }
-.status-badge.confirmed {
+.admin-orders-page .status-badge.confirmed {
   color: var(--confirmed-color);
   background: var(--confirmed-bg);
   border-color: var(--confirmed-border);
 }
-.status-badge.shipping {
+.admin-orders-page .status-badge.shipping {
   color: var(--shipping-color);
   background: var(--shipping-bg);
   border-color: var(--shipping-border);
 }
-.status-badge.completed {
+.admin-orders-page .status-badge.completed {
   color: var(--completed-color);
   background: var(--completed-bg);
   border-color: var(--completed-border);
 }
-.status-badge.cancelled {
+.admin-orders-page .status-badge.cancelled {
   color: var(--cancelled-color);
   background: var(--cancelled-bg);
   border-color: var(--cancelled-border);
@@ -513,12 +552,12 @@
   box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.08);
 }
 
-.btn-cancel {
+.admin-orders-page .btn-cancel {
   color: var(--cancelled-color) !important;
   background: var(--cancelled-bg);
   border-color: var(--cancelled-border) !important;
 }
-.btn-cancel:hover {
+.admin-orders-page .btn-cancel:hover {
   background: #fee2e2 !important;
   box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.08);
 }
@@ -543,12 +582,12 @@
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.btn-delete {
+.admin-orders-page .btn-delete {
   color: var(--cancelled-color) !important;
   background: var(--cancelled-bg);
   border-color: var(--cancelled-border) !important;
 }
-.btn-delete:hover {
+.admin-orders-page .btn-delete:hover {
   background: #fee2e2 !important;
   box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.08);
 }
@@ -609,7 +648,7 @@
   flex-wrap: wrap;
 }
 
-.order-date {
+.admin-orders-page .order-date {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -728,7 +767,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: #10b981;
+  background: #047857;
   color: #ffffff;
   border: none;
   border-radius: var(--radius-md);
@@ -741,7 +780,7 @@
 }
 
 .btn-export-orders-excel:hover {
-  background: #059669;
+  background: #065f46;
   transform: translateY(-1px);
 }
 
@@ -900,7 +939,7 @@
 
 .empty-note-hint {
   font-style: italic;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .internal-note-edit-box textarea {
@@ -919,7 +958,7 @@
   margin-top: 4px;
 }
 
-.btn-save-note {
+.admin-orders-page .btn-save-note {
   padding: 4px 10px;
   border-radius: 4px;
   border: none;
@@ -1152,6 +1191,24 @@
 
 .sign-space {
   height: 55px;
+}
+
+/* RMA workflow */
+.rma-workflow-summary {
+  margin: 0 20px 12px;
+  padding: 12px;
+  border: 1px solid #ddd6fe;
+  border-radius: 10px;
+  background: #faf5ff;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  font-size: 13px;
+}
+
+.rma-workflow-summary .action-buttons {
+  width: 100%;
 }
 
 /* Media Print Rules */

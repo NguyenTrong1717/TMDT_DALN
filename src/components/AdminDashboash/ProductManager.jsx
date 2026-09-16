@@ -16,8 +16,7 @@ import {
 } from "react-icons/fa";
 import { exportToCsv, logAudit } from "../../utils/exportCsv";
 import "./ProductManager.css";
-
-const BASE_URL = "http://localhost:3000";
+import { API_URL as BASE_URL, apiFetch, getCurrentUser, readJson } from "../../utils/api";
 
 const TARGET_OPTIONS = [
   { value: "products", label: "Sản phẩm Nổi Bật (Trang chủ)" },
@@ -65,12 +64,12 @@ const ProductManager = () => {
   const [variantStock, setVariantStock] = useState("");
   const [variantSku, setVariantSku] = useState("");
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const currentUser = getCurrentUser() || {};
 
   const fetchData = async (target) => {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE_URL}/${target}`);
+      const res = await apiFetch(`${BASE_URL}/${target}`);
       const data = await res.json();
       setItems(Array.isArray(data) ? data.filter((item) => !item.deleted) : []);
       setCurrentPage(1);
@@ -84,6 +83,7 @@ const ProductManager = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData(selectedTarget);
   }, [selectedTarget]);
 
@@ -226,7 +226,7 @@ const ProductManager = () => {
 
     const stockVal = Number(form.stock) >= 0 ? Number(form.stock) : 25;
     const priceVal = Number(form.price);
-    const costPriceVal = form.costPrice ? Number(form.costPrice) : Math.round(priceVal * 0.75);
+    const costPriceVal = form.costPrice ? Number(form.costPrice) : null;
     const oldPriceVal = form.oldPrice ? Number(form.oldPrice) : priceVal;
     const lowStockThresholdVal = Number(form.lowStockThreshold) >= 0 ? Number(form.lowStockThreshold) : 5;
 
@@ -239,8 +239,6 @@ const ProductManager = () => {
       costPrice: costPriceVal,
       price: priceVal,
       oldPrice: oldPriceVal,
-      stock: stockVal,
-      stockLeft: stockVal,
       lowStockThreshold: lowStockThresholdVal,
       status: form.status || (stockVal > 0 ? "Còn hàng" : "Hết hàng"),
       category: form.category.trim(),
@@ -253,29 +251,39 @@ const ProductManager = () => {
 
     try {
       if (editingId) {
-        const res = await fetch(`${BASE_URL}/${selectedTarget}/${editingId}`, {
+        const existing = items.find((item) => item.id === editingId);
+        const currentStock = Number(existing?.stockLeft ?? existing?.stock ?? 0);
+        const delta = stockVal - currentStock;
+        const updatePayload = currentUser.role === "warehouse"
+          ? { lowStockThreshold: lowStockThresholdVal, status: itemData.status }
+          : itemData;
+        const res = await apiFetch(`/${selectedTarget}/${editingId}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(itemData),
+          body: JSON.stringify(updatePayload),
         });
-        if (!res.ok) throw new Error("Cập nhật sản phẩm thất bại!");
+        await readJson(res, "Cập nhật sản phẩm thất bại!");
+        if (delta !== 0) {
+          const reason = window.prompt(`Tồn kho thay đổi ${delta > 0 ? "+" : ""}${delta}. Nhập lý do điều chỉnh:`, "Kiểm kê thực tế")?.trim();
+          if (!reason) throw new Error("Thông tin sản phẩm đã lưu nhưng tồn kho chưa đổi vì thiếu lý do.");
+          await readJson(await apiFetch(`/api/admin/inventory/adjust`, { method: "POST", body: JSON.stringify({ fromTable: selectedTarget, productId: editingId, delta, reason }) }), "Điều chỉnh tồn kho thất bại.");
+        }
 
         setItems((prev) =>
-          prev.map((item) => (item.id === editingId ? { ...item, ...itemData } : item))
+          prev.map((item) => (item.id === editingId ? { ...item, ...updatePayload, stock: stockVal, stockLeft: stockVal } : item))
         );
-        toast.success(`Đã cập nhật sản phẩm "${itemData.name}" thành công!`);
+        toast.success(currentUser.role === "warehouse" ? "Đã cập nhật ngưỡng/trạng thái và tồn kho." : `Đã cập nhật sản phẩm "${itemData.name}" thành công!`);
         logAudit(currentUser, "Cập nhật sản phẩm", `#${editingId} - ${itemData.name}`, `Giá: ${priceVal}, Tồn: ${stockVal}`);
       } else {
         const newItem = {
           id: nextId.toString(),
           ...itemData,
+          initialStock: stockVal,
           soldCount: 0,
           createdAt: new Date().toISOString(),
         };
 
-        const res = await fetch(`${BASE_URL}/${selectedTarget}`, {
+        const res = await apiFetch(`/${selectedTarget}`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newItem),
         });
         if (!res.ok) throw new Error("Thêm sản phẩm mới thất bại!");
@@ -301,7 +309,7 @@ const ProductManager = () => {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/${selectedTarget}/${id}`, {
+      const res = await apiFetch(`/${selectedTarget}/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Xóa sản phẩm thất bại!");
@@ -414,9 +422,9 @@ const ProductManager = () => {
               <FaFileExcel /> Xuất Excel
             </button>
 
-            <button onClick={openAddModal} className="pm-btn-add">
+            {currentUser.role === "admin" && <button onClick={openAddModal} className="pm-btn-add">
               <FaPlus /> Thêm sản phẩm
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -564,15 +572,15 @@ const ProductManager = () => {
                             className="pm-btn-edit"
                             title="Chỉnh sửa sản phẩm & kho"
                           >
-                            <FaEdit /> Sửa
+                            <FaEdit /> {currentUser.role === "warehouse" ? "Điều chỉnh kho" : "Sửa"}
                           </button>
-                          <button
+                          {currentUser.role === "admin" && <button
                             onClick={() => handleDelete(item.id)}
                             className="pm-btn-delete"
                             title="Xóa sản phẩm"
                           >
                             <FaTrash /> Xóa
-                          </button>
+                          </button>}
                         </div>
                       </td>
                     </tr>
@@ -611,24 +619,33 @@ const ProductManager = () => {
 
       {/* MODAL THÊM / SỬA SẢN PHẨM & BIẾN THỂ KHO */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content large" onClick={(e) => e.stopPropagation()}>
-            <h3>
+        <div className="admin-dialog-backdrop" onClick={() => setIsModalOpen(false)}>
+          <section
+            className="admin-dialog admin-dialog--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="product-dialog-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="admin-dialog__header">
+              <h3 id="product-dialog-title">
               <span>
                 {editingId ? `Cập nhật sản phẩm #${editingId}` : "Thêm sản phẩm mới vào kho"}
               </span>
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="modal-close-btn"
+                className="admin-dialog__close"
+                aria-label="Đóng cửa sổ sản phẩm"
               >
                 &times;
               </button>
-            </h3>
+            </header>
 
-            <form onSubmit={handleSubmit} className="form-layouts">
-              <div className="form-row">
-                <div className="form-item">
+            <form onSubmit={handleSubmit} className="admin-dialog__form">
+              <div className="admin-dialog__row">
+                <div className="admin-dialog__field">
                   <label>Mã SKU Kho *</label>
                   <input
                     type="text"
@@ -640,7 +657,7 @@ const ProductManager = () => {
                   />
                 </div>
 
-                <div className="form-item flex-2">
+                <div className="admin-dialog__field admin-dialog__field--wide">
                   <label>Tên sản phẩm *</label>
                   <input
                     type="text"
@@ -654,8 +671,8 @@ const ProductManager = () => {
               </div>
 
               {/* TÀI CHÍNH & GIÁ VỐN */}
-              <div className="form-row">
-                <div className="form-item">
+              <div className="admin-dialog__row">
+                <div className="admin-dialog__field">
                   <label>Giá vốn nhập kho (VNĐ)</label>
                   <input
                     type="number"
@@ -664,10 +681,10 @@ const ProductManager = () => {
                     onChange={handleChange}
                     placeholder="VD: 15000000"
                   />
-                  <small className="form-hint">Dùng để tính lợi nhuận nội bộ</small>
+                  <small className="admin-dialog__hint">Dùng để tính lợi nhuận nội bộ</small>
                 </div>
 
-                <div className="form-item">
+                <div className="admin-dialog__field">
                   <label>Giá bán lẻ (VNĐ) *</label>
                   <input
                     type="number"
@@ -679,7 +696,7 @@ const ProductManager = () => {
                   />
                 </div>
 
-                <div className="form-item">
+                <div className="admin-dialog__field">
                   <label>Giá niêm yết (Gốc) (VNĐ)</label>
                   <input
                     type="number"
@@ -692,8 +709,8 @@ const ProductManager = () => {
               </div>
 
               {/* TỒN KHO & PHÂN LOẠI */}
-              <div className="form-row">
-                <div className="form-item">
+              <div className="admin-dialog__row">
+                <div className="admin-dialog__field">
                   <label>Số lượng tồn kho *</label>
                   <input
                     type="number"
@@ -706,7 +723,7 @@ const ProductManager = () => {
                   />
                 </div>
 
-                <div className="form-item">
+                <div className="admin-dialog__field">
                   <label>Ngưỡng cảnh báo hết hàng</label>
                   <input
                     type="number"
@@ -718,7 +735,7 @@ const ProductManager = () => {
                   />
                 </div>
 
-                <div className="form-item">
+                <div className="admin-dialog__field">
                   <label>Trạng thái</label>
                   <select name="status" value={form.status} onChange={handleChange}>
                     <option value="Còn hàng">Còn hàng</option>
@@ -728,8 +745,8 @@ const ProductManager = () => {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-item">
+              <div className="admin-dialog__row">
+                <div className="admin-dialog__field">
                   <label>Danh mục</label>
                   <input
                     type="text"
@@ -740,7 +757,7 @@ const ProductManager = () => {
                   />
                 </div>
 
-                <div className="form-item">
+                <div className="admin-dialog__field">
                   <label>Thương hiệu (Brand)</label>
                   <input
                     type="text"
@@ -752,7 +769,7 @@ const ProductManager = () => {
                 </div>
               </div>
 
-              <div className="form-item full">
+              <div className="admin-dialog__field admin-dialog__field--full">
                 <label>Đường dẫn hình ảnh *</label>
                 <input
                   type="text"
@@ -764,7 +781,7 @@ const ProductManager = () => {
                 />
               </div>
 
-              <div className="form-item full">
+              <div className="admin-dialog__field admin-dialog__field--full">
                 <label>Mô tả chi tiết sản phẩm</label>
                 <textarea
                   name="description"
@@ -842,16 +859,16 @@ const ProductManager = () => {
                 )}
               </div>
 
-              <div className="modal-actions">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-cancel">
+              <footer className="admin-dialog__actions">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="admin-dialog__button admin-dialog__button--secondary">
                   Hủy bỏ
                 </button>
-                <button type="submit" className="btn-save">
+                <button type="submit" className="admin-dialog__button admin-dialog__button--primary">
                   {editingId ? "Lưu thay đổi" : "Tạo sản phẩm"}
                 </button>
-              </div>
+              </footer>
             </form>
-          </div>
+          </section>
         </div>
       )}
     </div>

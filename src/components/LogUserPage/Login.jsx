@@ -5,11 +5,7 @@ import { toast, Toaster } from "sonner";
 import "./Login.css";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
-import { IoLogoFreebsdDevil } from "react-icons/io";
-import { AiFillSafetyCertificate } from "react-icons/ai";
-
 import {
-  FaShip,
   FaUser,
   FaLock,
   FaEye,
@@ -19,8 +15,7 @@ import {
   FaShieldAlt,
 } from "react-icons/fa";
 import Sevicer from "../Sevicer/Sevicer";
-
-const API_URL = "http://localhost:3000";
+import { apiFetch, readJson, setAuthSession } from "../../utils/api";
 
 const Login = () => {
   const [account, setAccount] = useState("");
@@ -42,62 +37,24 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/users`);
-
-      if (!response.ok) {
-        throw new Error(`Lỗi kết nối Server! Mã lỗi: ${response.status}`);
-      }
-
-      const users = await response.json();
-
-      // Kiểm tra tìm kiếm tài khoản
-      // Kiểm tra tìm kiếm tài khoản (Không phân biệt chữ hoa / chữ thường ở Email)
-      const foundUser = users.find((user) => {
-        const matchEmail =
-          user.email && account
-            ? user.email.toLowerCase() === account.trim().toLowerCase()
-            : false;
-        const matchPhone =
-          user.phone && account ? user.phone.trim() === account.trim() : false;
-        const matchPassword =
-          user.password && password
-            ? String(user.password).trim() === password.trim()
-            : false;
-
-        return (matchEmail || matchPhone) && matchPassword;
+      const response = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ account: account.trim(), password }),
       });
+      const data = await readJson(response, "Đăng nhập thất bại.");
+      const foundUser = data.user;
+      setAuthSession(data);
 
-      if (foundUser) {
-        //  2. Sonner bắn lỗi khi tài khoản bị khóa
-        if (foundUser.status !== "active") {
-          toast.error("Tài khoản của bạn hiện đang bị khóa!");
-          return;
-        }
-
-        // Đăng nhập thành công -> Lưu dữ liệu
-        localStorage.setItem("currentUser", JSON.stringify(foundUser));
-        window.dispatchEvent(new Event("authChange"));
-
-        // 3. Sonner bắn thông báo thành công theo từng quyền hạn
-        if (foundUser.role === "admin") {
-          toast.success(" Đăng nhập thành công với quyền Admin!");
+        if (["admin", "warehouse", "support"].includes(foundUser.role)) {
+          toast.success("Đăng nhập khu vực vận hành thành công!");
           setTimeout(() => navigate("/admin"), 1000);
         } else {
           toast.success(`Chào mừng ${foundUser.fullName} quay trở lại!`);
           setTimeout(() => navigate("/"), 1000);
         }
-      } else {
-        // 4. Sonner bắn lỗi sai thông tin
-        toast.error("Mật khẩu hoặc tài khoản không chính xác!");
-        setPassword("");
-        setAccount(""); //
-      }
     } catch (error) {
       console.error("Chi tiết lỗi API đăng nhập:", error);
-      // 5. Sonner bắn lỗi sập server json-server
-      toast.error(
-        "Không thể kết nối tới server. Hãy chắc chắn bạn đã chạy json-server!",
-      );
+      toast.error(error.message || "Không thể kết nối tới server.");
     } finally {
       setIsLoading(false);
     }

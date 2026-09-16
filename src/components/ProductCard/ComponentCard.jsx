@@ -4,6 +4,7 @@ import { PiShoppingCartDuotone } from "react-icons/pi";
 import { FaGift, FaRegHeart } from "react-icons/fa";
 import { getImageUrl } from "../../utils/imageUtils";
 import { toast } from "sonner";
+import { apiFetch, getCurrentUser } from "../../utils/api";
 
 const ComponentCard = ({ product }) => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const ComponentCard = ({ product }) => {
 
   const handleQuickAdd = async (e) => {
     e.stopPropagation();
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
       navigate("/login");
@@ -22,9 +23,7 @@ const ComponentCard = ({ product }) => {
     }
 
     try {
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`
-      );
+      const cartRes = await apiFetch(`/cart`);
       let cartItems = [];
       if (cartRes.ok) cartItems = await cartRes.json();
 
@@ -33,23 +32,23 @@ const ComponentCard = ({ product }) => {
       );
 
       if (existingItem) {
-        await fetch(`http://localhost:3000/cart/${existingItem.id}`, {
+        const response = await apiFetch(`/cart/${existingItem.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: Number(existingItem.quantity) + 1 }),
         });
+        if (!response.ok) throw new Error("Không thể cập nhật giỏ hàng.");
       } else {
-        await fetch("http://localhost:3000/cart", {
+        const response = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: `cart-comp-${product.id}-${Date.now()}`,
-            userId: currentUser.id,
             productId: String(product.id),
             quantity: 1,
             fromTable: "eventList",
           }),
         });
+        if (!response.ok) throw new Error("Không thể thêm vào giỏ hàng.");
       }
       toast.success(`Đã thêm "${product.name}" vào giỏ hàng!`);
       window.dispatchEvent(new Event("cartUpdated"));

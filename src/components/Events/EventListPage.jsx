@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../../utils/api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AiFillCheckCircle } from "react-icons/ai";
 import { PiShoppingCartDuotone } from "react-icons/pi";
@@ -54,7 +55,7 @@ const EventListPage = () => {
     setCurrentPage(1);
 
     fetch(
-      `http://localhost:3000/eventList?category=${encodeURIComponent(category)}`,
+      `${API_URL}/eventList?category=${encodeURIComponent(category)}`,
     )
       .then((res) => res.json())
       .then((data) => {

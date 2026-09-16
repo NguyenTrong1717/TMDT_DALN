@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import {
   FaUser,
   FaCreditCard,
@@ -13,8 +13,7 @@ import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./Checkout.css";
-
-const API_URL = "http://127.0.0.1:3000";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 
 const cleanPrice = (priceInput) => {
   if (typeof priceInput === "number") return priceInput;
@@ -53,13 +52,28 @@ const PAYMENT_METHODS = [
   },
 ];
 
+const MOMO_MIN_AMOUNT = 1000;
+const MOMO_MAX_AMOUNT = 50000000;
+
+const createCheckoutRequestId = (paymentMethod) => {
+  const uniquePart =
+    globalThis.crypto?.randomUUID?.() ||
+    `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  return `checkout_${paymentMethod}_${uniquePart}`;
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const buyNowItem = location.state?.buyNowItem;
   const couponWrapRef = useRef(null);
-  const [requestId] = useState(
-    () => globalThis.crypto?.randomUUID?.() || `checkout_${Date.now()}`,
+  const requestIdsRef = useRef(
+    Object.fromEntries(
+      PAYMENT_METHODS.map(({ value }) => [
+        value,
+        createCheckoutRequestId(value),
+      ]),
+    ),
   );
 
   const [loading, setLoading] = useState(true);
@@ -82,7 +96,7 @@ const Checkout = () => {
 
   useEffect(() => {
     const init = async () => {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      const currentUser = getCurrentUser();
       if (!currentUser) {
         navigate("/login");
         return;
@@ -100,7 +114,7 @@ const Checkout = () => {
       // rồi join với bảng vouchers để có đầy đủ thông tin giảm giá
       try {
         const [userVoucherRes, voucherRes] = await Promise.all([
-          fetch(`${API_URL}/userVouchers?userId=${currentUser.id}`),
+          apiFetch(`/userVouchers?userId=${currentUser.id}`),
           fetch(`${API_URL}/vouchers`),
         ]);
         const userVoucherData = await userVoucherRes.json();
@@ -139,7 +153,7 @@ const Checkout = () => {
       }
 
       try {
-        const res = await fetch(`${API_URL}/cart`);
+        const res = await apiFetch(`/cart`);
         const allCart = await res.json();
         const myCart = allCart.filter(
           (item) => String(item.userId) === String(currentUser.id),
@@ -194,6 +208,8 @@ const Checkout = () => {
   );
   const shipping = subTotal > 500000 ? 0 : 30000;
   const totalAmount = Math.max(0, subTotal + shipping - discount);
+  const momoAmountValid =
+    totalAmount >= MOMO_MIN_AMOUNT && totalAmount <= MOMO_MAX_AMOUNT;
 
   const applyVoucherObj = (foundVoucher) => {
     if (!foundVoucher) {
@@ -250,20 +266,27 @@ const Checkout = () => {
     if (submitting) return;
     setSubmitting(true);
 
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     try {
+      if (!currentUser) throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
       const items = cartItems.map((item) => ({
         productId: item.productId ?? item.id,
         fromTable: item.table || item.fromTable || item._source || "catenogies",
         quantity: item.quantity,
         cartId: item.cartId || null,
       }));
+      const paymentMethod = customerInfo.paymentMethod;
+      if (paymentMethod === "momo" && !momoAmountValid) {
+        throw new Error(
+          `MoMo chỉ chấp nhận đơn hàng từ ${formatPrice(MOMO_MIN_AMOUNT)} đến ${formatPrice(MOMO_MAX_AMOUNT)}. Vui lòng chọn COD hoặc VNPAY.`,
+        );
+      }
       const payload = {
-        requestId,
+        requestId: requestIdsRef.current[paymentMethod],
         checkoutMode: buyNowItem ? "buy_now" : "cart",
         items,
         voucherCode: appliedVoucher?.code || null,
-        paymentMethod: customerInfo.paymentMethod,
+        paymentMethod,
         customer: {
           fullName: customerInfo.fullName,
           phone: customerInfo.phone,
@@ -273,18 +296,14 @@ const Checkout = () => {
         },
       };
       let endpoint = `${API_URL}/api/orders/checkout`;
-      if (customerInfo.paymentMethod === "vnpay") {
+      if (paymentMethod === "vnpay") {
         endpoint = `${API_URL}/api/payments/vnpay/create`;
-      } else if (customerInfo.paymentMethod === "momo") {
+      } else if (paymentMethod === "momo") {
         endpoint = `${API_URL}/api/payments/momo/create`;
       }
 
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": String(currentUser.id),
-        },
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
@@ -297,10 +316,10 @@ const Checkout = () => {
         );
       }
 
-      if (["vnpay", "momo"].includes(customerInfo.paymentMethod)) {
+      if (["vnpay", "momo"].includes(paymentMethod)) {
         if (!data.paymentUrl) {
           throw new Error(
-            customerInfo.paymentMethod === "momo"
+            paymentMethod === "momo"
               ? "MoMo chưa trả về URL thanh toán."
               : "VNPAY chưa trả về URL thanh toán."
           );
@@ -321,7 +340,7 @@ const Checkout = () => {
     }
   };
 
-  if (loading) return <div className="loading-box">Đang tải...</div>;
+  if (loading) return <div className="checkout-loading">Đang tải...</div>;
 
   return (
     <>
@@ -493,6 +512,13 @@ const Checkout = () => {
                       <p style={{ margin: 0, fontSize: "12.5px", color: "#64748b", lineHeight: "1.45" }}>
                         Sau khi bấm đặt hàng, cổng <strong>MoMo Sandbox</strong> sẽ mở ra để quý khách tùy chọn: quét mã QR bằng app MoMo, hoặc thanh toán qua thẻ ATM ngân hàng nội địa, hoặc thẻ quốc tế Visa/Mastercard.
                       </p>
+                      <div className={`momo-limit-notice ${momoAmountValid ? "is-valid" : "is-invalid"}`}>
+                        <span>Giới hạn MoMo: {formatPrice(MOMO_MIN_AMOUNT)} - {formatPrice(MOMO_MAX_AMOUNT)}</span>
+                        <strong>Đơn hiện tại: {formatPrice(totalAmount)}</strong>
+                        {!momoAmountValid && (
+                          <small>Đơn hàng nằm ngoài giới hạn. Vui lòng chọn COD hoặc VNPAY.</small>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -627,12 +653,17 @@ const Checkout = () => {
               <button
                 type="submit"
                 className="btn-confirm-checkout"
-                disabled={submitting}
+                disabled={
+                  submitting ||
+                  (customerInfo.paymentMethod === "momo" && !momoAmountValid)
+                }
               >
                 {submitting
                   ? "ĐANG XỬ LÝ..."
                   : customerInfo.paymentMethod === "momo"
-                    ? "THANH TOÁN QUA MOMO"
+                    ? momoAmountValid
+                      ? "THANH TOÁN QUA MOMO"
+                      : "ĐƠN VƯỢT GIỚI HẠN MOMO"
                     : customerInfo.paymentMethod === "vnpay"
                       ? "THANH TOÁN QUA VNPAY"
                       : "XÁC NHẬN ĐẶT HÀNG (COD)"}
@@ -670,7 +701,6 @@ const Checkout = () => {
       </div>
       <Sevicer />
       <FooterUser />
-      <Toaster />
     </>
   );
 };

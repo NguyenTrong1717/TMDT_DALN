@@ -11,8 +11,9 @@ import { PiShoppingCartDuotone } from "react-icons/pi";
 import { IoSearch } from "react-icons/io5";
 import { VscAccount } from "react-icons/vsc";
 import NotificationBell from "../Notification/NotificationBell";
+import { apiFetch, getCurrentUser, logout } from "../../utils/api";
 
-const Header = (props) => {
+const Header = () => {
   const navigate = useNavigate();
 
   const [activeModal, setActiveModal] = useState(null);
@@ -23,7 +24,7 @@ const Header = (props) => {
   // MỚI: theo dõi trạng thái cuộn trang để ẩn/hiện thanh marquee + search
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUser = getCurrentUser();
   const isLoggedIn = !!currentUser;
   const isAdmin = currentUser?.role === "admin";
 
@@ -33,23 +34,11 @@ const Header = (props) => {
       return;
     }
     try {
-      const res = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`,
-      );
+      const res = await apiFetch(`/cart`);
       let cartData = [];
 
       if (res.ok) {
         cartData = await res.json();
-      }
-
-      if (!cartData || cartData.length === 0) {
-        const resAll = await fetch("http://localhost:3000/cart");
-        if (resAll.ok) {
-          const allCart = await resAll.json();
-          cartData = allCart.filter(
-            (item) => String(item.userId) === String(currentUser.id),
-          );
-        }
       }
 
       const total = cartData.reduce(
@@ -62,7 +51,9 @@ const Header = (props) => {
     }
   };
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCartCount();
 
     window.addEventListener("cartUpdated", fetchCartCount);
@@ -70,6 +61,7 @@ const Header = (props) => {
       window.removeEventListener("cartUpdated", fetchCartCount);
     };
   }, [currentUser?.id]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -118,8 +110,13 @@ const Header = (props) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      toast.warning("Vui lòng đăng nhập để gửi yêu cầu dịch vụ.");
+      navigate("/login");
+      return;
+    }
     try {
-      const res = await fetch("http://localhost:3000/serviceRequests", {
+      const res = await apiFetch("/serviceRequests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -157,9 +154,8 @@ const Header = (props) => {
     return "Nhập lời nhắn của bạn...";
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    window.dispatchEvent(new Event("authChange"));
+  const handleLogout = async () => {
+    await logout();
     toast.success("Đã đăng xuất tài khoản thành công!");
     navigate("/login");
   };

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { API_URL } from "../../utils/api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
@@ -44,14 +45,14 @@ const LaptopMenu = () => {
   useEffect(() => {
     setLoading(true);
     setCurrentPage(1);
-    fetch(`http://localhost:3000/LaptopUser?category=${category}`)
+    fetch(`${API_URL}/LaptopUser?category=${category}`)
       .then((res) => res.json())
       .then((data) => {
         if (data && data.length > 0) {
           setAllItems(data);
         } else {
           // Fallback if exact slug not matched in db
-          fetch("http://localhost:3000/LaptopUser")
+          fetch(`${API_URL}/LaptopUser`)
             .then((r) => r.json())
             .then((all) => setAllItems(all || []));
         }

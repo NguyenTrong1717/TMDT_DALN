@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import "./FlashSalePage.css";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 
 const FILTER_TABS = [
   { label: "Tất cả", value: "all" },
@@ -37,7 +38,7 @@ const FlashSalePage = () => {
 
   // Lấy thời gian kết thúc Flash Sale do admin cấu hình
   useEffect(() => {
-    fetch("http://localhost:3000/settings/flashSale")
+    fetch(`${API_URL}/settings/flashSale`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.endTime) setEndAt(new Date(data.endTime).getTime());
@@ -62,15 +63,14 @@ const FlashSalePage = () => {
   const seconds = String(timeLeft % 60).padStart(2, "0");
 
   useEffect(() => {
-    setLoading(true);
     // Lấy tất cả sản phẩm có discount từ tất cả các nguồn
     Promise.all([
-      fetch("http://localhost:3000/LaptopUser").then((r) => (r.ok ? r.json() : [])),
-      fetch("http://localhost:3000/eventList").then((r) => (r.ok ? r.json() : [])),
-      fetch("http://localhost:3000/catenogies").then((r) => (r.ok ? r.json() : [])),
-      fetch("http://localhost:3000/ProductMenus").then((r) => (r.ok ? r.json() : [])),
-      fetch("http://localhost:3000/products").then((r) => (r.ok ? r.json() : [])),
-      fetch("http://localhost:3000/appliances").then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/LaptopUser`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/eventList`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/catenogies`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/ProductMenus`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/products`).then((r) => (r.ok ? r.json() : [])),
+      fetch(`${API_URL}/appliances`).then((r) => (r.ok ? r.json() : [])),
     ])
       .then(([LaptopUser, eventList, catenogies, ProductMenus, products, appliances]) => {
         const all = [
@@ -115,17 +115,27 @@ const FlashSalePage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleAddToCart = (e, item) => {
+  const handleAddToCart = async (e, item) => {
     e.preventDefault();
     e.stopPropagation();
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
       navigate("/login");
       return;
     }
-    toast.success(`Đã thêm "${item.name}" vào giỏ hàng!`);
-    window.dispatchEvent(new Event("cartUpdated"));
+    try {
+      const cart = await apiFetch("/cart").then((response) => response.ok ? response.json() : Promise.reject(new Error("Không thể tải giỏ hàng.")));
+      const existing = cart.find((entry) => String(entry.productId) === String(item.id) && entry.fromTable === item.source);
+      const response = existing
+        ? await apiFetch(`/cart/${existing.id}`, { method: "PATCH", body: JSON.stringify({ quantity: Number(existing.quantity) + 1 }) })
+        : await apiFetch("/cart", { method: "POST", body: JSON.stringify({ productId: String(item.id), fromTable: item.source, quantity: 1 }) });
+      if (!response.ok) throw new Error("Không thể cập nhật giỏ hàng.");
+      toast.success(`Đã thêm "${item.name}" vào giỏ hàng!`);
+      window.dispatchEvent(new Event("cartUpdated"));
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   const filtered =
@@ -140,19 +150,14 @@ const FlashSalePage = () => {
     return 0;
   });
 
-  // Tính % thanh stock: nếu data không có soldCount thì mock ngẫu nhiên cố định theo id
   const getSoldPercent = (item) => {
-    if (item.soldPercent) return item.soldPercent;
-    // Dùng id để tạo số giả ổn định (không đổi mỗi render)
-    const seed = item.id ? String(item.id).charCodeAt(0) : 50;
-    return ((seed * 37) % 80) + 10;
+    if (Number.isFinite(Number(item.soldPercent))) return Number(item.soldPercent);
+    const sold = Number(item.soldCount || 0);
+    const available = Number(item.stockLeft ?? item.stock ?? 0);
+    return sold + available > 0 ? Math.round((sold / (sold + available)) * 100) : 0;
   };
 
-  const getStockLeft = (item) => {
-    if (item.stockLeft) return item.stockLeft;
-    const seed = item.id ? String(item.id).charCodeAt(0) : 20;
-    return ((seed * 13) % 40) + 2;
-  };
+  const getStockLeft = (item) => Number(item.stockLeft ?? item.stock ?? 0);
 
   return (
     <>

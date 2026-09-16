@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { API_URL } from "../../utils/api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
@@ -39,7 +40,7 @@ const CategoryPage = () => {
   useEffect(() => {
     setLoading(true);
     setCurrentPage(1);
-    fetch(`http://localhost:3000/catenogies?category=${category}`)
+    fetch(`${API_URL}/catenogies?category=${category}`)
       .then((res) => res.json())
       .then((data) => {
         setAllItems(data);

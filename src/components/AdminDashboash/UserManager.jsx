@@ -11,7 +11,6 @@ import {
   FaTrashAlt,
   FaSort,
   FaFileDownload,
-  FaCrown,
   FaBoxes,
   FaHeadset,
   FaStickyNote,
@@ -19,15 +18,13 @@ import {
 } from "react-icons/fa";
 import { exportToCsv, logAudit } from "../../utils/exportCsv";
 import "./UserManager.css";
-
-const BASE_URL = "http://localhost:3000/users";
-const ORDERS_URL = "http://localhost:3000/orders";
+import { apiFetch, getCurrentUser } from "../../utils/api";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^0\d{9}$/;
 
 // Định nghĩa phân hạng thành viên
-export const getCustomerTier = (spent = 0) => {
+const getCustomerTier = (spent = 0) => {
   if (spent >= 40000000) {
     return { key: "diamond", label: "Kim Cương", icon: "💎", badgeClass: "tier-diamond" };
   }
@@ -40,7 +37,7 @@ export const getCustomerTier = (spent = 0) => {
   return { key: "bronze", label: "Đồng", icon: "🥉", badgeClass: "tier-bronze" };
 };
 
-export const ROLE_CONFIG = {
+const ROLE_CONFIG = {
   admin: { label: "Admin", badgeClass: "role-admin", icon: <FaUserShield /> },
   warehouse: { label: "Kho vận", badgeClass: "role-warehouse", icon: <FaBoxes /> },
   support: { label: "CSKH", badgeClass: "role-support", icon: <FaHeadset /> },
@@ -48,11 +45,11 @@ export const ROLE_CONFIG = {
 };
 
 const UserManager = () => {
+  const canManageUsers = getCurrentUser()?.role === "admin";
   // =========================
   // DATA STATES
   // =========================
   const [users, setUsers] = useState([]);
-  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -109,10 +106,7 @@ const UserManager = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [resUsers, resOrders] = await Promise.all([
-        fetch(BASE_URL).catch(() => null),
-        fetch(ORDERS_URL).catch(() => null),
-      ]);
+      const [resUsers] = await Promise.all([apiFetch("/api/admin/users").catch(() => null)]);
 
       if (resUsers && resUsers.ok) {
         const usersData = await resUsers.json();
@@ -121,10 +115,6 @@ const UserManager = () => {
         toast.error("Không thể lấy dữ liệu danh sách người dùng.");
       }
 
-      if (resOrders && resOrders.ok) {
-        const ordersData = await resOrders.json();
-        setOrders(Array.isArray(ordersData) ? ordersData : []);
-      }
     } catch (err) {
       console.error(err);
       toast.error("Không thể kết nối tới máy chủ.");
@@ -134,42 +124,26 @@ const UserManager = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, []);
 
   // Tính toán LTV và Thống kê cho mỗi User
   const usersWithStats = useMemo(() => {
     return users.map((u) => {
-      const userOrders = orders.filter((o) => {
-        const matchId = o.userId && String(o.userId) === String(u.id);
-        const matchEmail =
-          o.customerInfo?.email &&
-          u.email &&
-          o.customerInfo.email.trim().toLowerCase() === u.email.trim().toLowerCase();
-        const matchPhone =
-          o.customerInfo?.phone && u.phone && o.customerInfo.phone.trim() === u.phone.trim();
-        return matchId || matchEmail || matchPhone;
-      });
-
-      const validOrders = userOrders.filter(
-        (o) => o.status !== "cancelled" && o.paymentStatus !== "refunded"
-      );
-
-      const totalSpent = validOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+      const totalSpent = Number(u.totalSpent || 0);
       const tierInfo = getCustomerTier(totalSpent);
 
       return {
         ...u,
-        orderCount: userOrders.length,
-        validOrderCount: validOrders.length,
+        orderCount: Number(u.orderCount || 0),
+        validOrderCount: Number(u.orderCount || 0),
         totalSpent,
         tierInfo,
-        lastOrderDate: userOrders.length
-          ? [...userOrders].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))[0]?.date
-          : null,
+        lastOrderDate: u.lastOrderAt || null,
       };
     });
-  }, [users, orders]);
+  }, [users]);
 
   // =========================
   // INPUT HANDLER
@@ -345,7 +319,7 @@ const UserManager = () => {
           updatePayload.password = form.password.trim();
         }
 
-        const res = await fetch(`${BASE_URL}/${editingId}`, {
+        const res = await apiFetch(`/api/admin/users/${editingId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatePayload),
@@ -380,7 +354,7 @@ const UserManager = () => {
           createdAt: new Date().toISOString(),
         };
 
-        const res = await fetch(BASE_URL, {
+        const res = await apiFetch("/api/admin/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newUser),
@@ -425,7 +399,7 @@ const UserManager = () => {
     if (!window.confirm(message)) return;
 
     try {
-      const res = await fetch(`${BASE_URL}/${user.id}`, {
+      const res = await apiFetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -465,7 +439,7 @@ const UserManager = () => {
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/${user.id}`, {
+      const res = await apiFetch(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
@@ -497,7 +471,7 @@ const UserManager = () => {
   const handleSaveInternalNote = async (userId) => {
     try {
       setIsSavingNote(true);
-      const res = await fetch(`${BASE_URL}/${userId}`, {
+      const res = await apiFetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ internalNote: noteEdit.trim() }),
@@ -535,15 +509,18 @@ const UserManager = () => {
   // DELETE USER
   // =========================
   const handleDeleteUser = async (user) => {
-    if (!window.confirm(`Bạn chắc chắn muốn xóa người dùng "${user.fullName}" (#${user.id})?`)) {
+    if (!window.confirm(`Không xóa lịch sử tài khoản. Bạn muốn khóa người dùng "${user.fullName}" (#${user.id})?`)) {
       return;
     }
 
     try {
-      const res = await fetch(`${BASE_URL}/${user.id}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/admin/users/${user.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "locked" }),
+      });
       if (!res.ok) throw new Error();
 
-      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, status: "locked" } : u));
 
       await logAudit(
         { fullName: "Admin System", role: "admin" },
@@ -552,7 +529,7 @@ const UserManager = () => {
         `Họ tên: ${user.fullName} | Email: ${user.email}`
       );
 
-      toast.success("Đã xóa người dùng khỏi hệ thống.");
+      toast.success("Đã khóa tài khoản; dữ liệu lịch sử được bảo toàn.");
       setCurrentPage(1);
     } catch (err) {
       console.error(err);
@@ -632,7 +609,7 @@ const UserManager = () => {
               <FaFileDownload />
               <span>Xuất Excel</span>
             </button>
-            <button onClick={openAddModal} className="um-btn-add">
+            <button onClick={openAddModal} className="um-btn-add" disabled={!canManageUsers} title={canManageUsers ? "" : "Chỉ admin được tạo tài khoản"}>
               <FaUserPlus />
               <span>Thêm thành viên</span>
             </button>
@@ -828,6 +805,7 @@ const UserManager = () => {
                         {/* Dropdown thay đổi vai trò trực tiếp */}
                         <select
                           className={`um-role-select ${roleObj.badgeClass}`}
+                          disabled={!canManageUsers}
                           value={user.role || "user"}
                           onChange={(e) => handleChangeRole(user, e.target.value)}
                         >
@@ -888,6 +866,7 @@ const UserManager = () => {
                                 : "Mở khóa tài khoản"
                             }
                             onClick={() => toggleStatus(user)}
+                            disabled={!canManageUsers}
                           >
                             {user.status === "active" ? <FaUserSlash /> : <FaUserCheck />}
                           </button>
@@ -895,6 +874,7 @@ const UserManager = () => {
                             className="btn-icon edit"
                             title="Chỉnh sửa tài khoản"
                             onClick={() => openEditModal(user)}
+                            disabled={!canManageUsers}
                           >
                             <FaEdit />
                           </button>
@@ -902,6 +882,7 @@ const UserManager = () => {
                             className="btn-icon delete"
                             title="Xóa người dùng"
                             onClick={() => handleDeleteUser(user)}
+                            disabled={!canManageUsers}
                           >
                             <FaTrashAlt />
                           </button>
@@ -1185,6 +1166,7 @@ const UserManager = () => {
                   setIsDetailOpen(false);
                   openEditModal(selectedUser);
                 }}
+                disabled={!canManageUsers}
               >
                 <FaEdit />
                 <span>Chỉnh sửa toàn diện</span>

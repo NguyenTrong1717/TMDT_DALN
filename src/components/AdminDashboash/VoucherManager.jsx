@@ -11,8 +11,7 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import "./VoucherManager.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL, apiFetch } from "../../utils/api";
 
 const EMPTY_FORM = {
   code: "",
@@ -41,7 +40,7 @@ const VoucherManager = () => {
 
   const fetchVouchers = async () => {
     try {
-      const res = await fetch(`${API_URL}/vouchers`);
+      const res = await apiFetch(`${API_URL}/vouchers`);
       const data = await res.json();
       setVouchers(Array.isArray(data) ? data.reverse() : []);
     } catch (err) {
@@ -53,6 +52,7 @@ const VoucherManager = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchVouchers();
   }, []);
 
@@ -123,7 +123,7 @@ const VoucherManager = () => {
 
     try {
       if (editingId) {
-        const res = await fetch(`${API_URL}/vouchers/${editingId}`, {
+        const res = await apiFetch(`/vouchers/${editingId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -131,7 +131,7 @@ const VoucherManager = () => {
         if (!res.ok) throw new Error();
         toast.success("Cập nhật voucher thành công!");
       } else {
-        const res = await fetch(`${API_URL}/vouchers`, {
+        const res = await apiFetch(`/vouchers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...payload, collectedCount: 0 }),
@@ -171,7 +171,7 @@ const VoucherManager = () => {
     )
       return;
     try {
-      const res = await fetch(`${API_URL}/vouchers/${v.id}`, {
+      const res = await apiFetch(`/vouchers/${v.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error();
@@ -221,7 +221,7 @@ const VoucherManager = () => {
   }, [vouchers]);
 
   if (loading)
-    return <div className="loading-box">Đang tải danh sách voucher...</div>;
+    return <div className="voucher-manager-loading">Đang tải danh sách voucher...</div>;
 
   return (
     <div className="voucher-manager-page">

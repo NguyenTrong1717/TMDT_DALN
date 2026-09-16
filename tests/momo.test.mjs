@@ -7,8 +7,11 @@ import {
 import {
   buildMomoCallbackRawSignature,
   buildMomoCreateRawSignature,
+  MOMO_MAX_AMOUNT,
+  MOMO_MIN_AMOUNT,
   processMomoIpn,
   signHmacSha256,
+  validateMomoAmount,
   verifyMomoSignature,
 } from "../backend/momo.mjs";
 
@@ -152,6 +155,13 @@ test("MoMo signature generation and verification works accurately", () => {
     ),
     false,
   );
+});
+
+test("MoMo amount validation enforces Sandbox transaction limits", () => {
+  assert.equal(validateMomoAmount(MOMO_MIN_AMOUNT), MOMO_MIN_AMOUNT);
+  assert.equal(validateMomoAmount(MOMO_MAX_AMOUNT), MOMO_MAX_AMOUNT);
+  assert.throws(() => validateMomoAmount(MOMO_MIN_AMOUNT - 1), /1\.000₫/);
+  assert.throws(() => validateMomoAmount(MOMO_MAX_AMOUNT + 1), /50\.000\.000₫/);
 });
 
 test("processMomoIpn verifies valid payment and updates state and stock", () => {

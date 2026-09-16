@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
@@ -42,13 +43,30 @@ import ContactPage from "./components/AdminDashboash/ContactPage";
 import BackToTop from "./components/BackToTop/BackToTop";
 import PaymentResult from "./pages/PaymentResult";
 import AuditLogManager from "./components/AdminDashboash/AuditLogManager";
+import { apiFetch, clearAuthSession, getCurrentUser } from "./utils/api";
 
 // BẢO VỆ ROUTE ADMIN
-const AdminProtectedRoute = ({ children }) => {
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+const AdminProtectedRoute = ({ children, roles = ["admin", "warehouse", "support"] }) => {
+  const [state, setState] = useState({ loading: true, user: getCurrentUser() });
+
+  useEffect(() => {
+    let active = true;
+    apiFetch("/api/auth/me")
+      .then(async (response) => {
+        if (!response.ok) throw new Error("unauthorized");
+        const data = await response.json();
+        if (active) setState({ loading: false, user: data.user });
+      })
+      .catch(() => {
+        clearAuthSession();
+        if (active) setState({ loading: false, user: null });
+      });
+    return () => { active = false; };
+  }, []);
 
   // Nếu chưa đăng nhập HOẶC đăng nhập rồi nhưng không phải admin -> Đá thẳng về trang login
-  if (!currentUser || currentUser.role !== "admin") {
+  if (state.loading) return <div style={{ padding: 32 }}>Đang xác minh phiên đăng nhập...</div>;
+  if (!state.user || !roles.includes(state.user.role)) {
     return <Navigate to="/login" replace />;
   }
 
@@ -118,16 +136,16 @@ function App() {
             </AdminProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="products" replace />} />
-          <Route path="products" element={<ProductManager />} />
-          <Route path="orders" element={<AdminOrders />} />
-          <Route path="users" element={<UserManager />} />
-          <Route path="statistics" element={<Statistics />} />
-          <Route path="reviews" element={<ReviewManager />} />
-          <Route path="vouchers" element={<VoucherManager />} />
-          <Route path="flash-sale" element={<FlashSaleManager />} />
-          <Route path="service-requests" element={<AdminServiceRequests />} />
-          <Route path="audit-logs" element={<AuditLogManager />} />
+          <Route index element={<Navigate to="orders" replace />} />
+          <Route path="products" element={<AdminProtectedRoute roles={["admin", "warehouse"]}><ProductManager /></AdminProtectedRoute>} />
+          <Route path="orders" element={<AdminProtectedRoute><AdminOrders /></AdminProtectedRoute>} />
+          <Route path="users" element={<AdminProtectedRoute roles={["admin", "support"]}><UserManager /></AdminProtectedRoute>} />
+          <Route path="statistics" element={<AdminProtectedRoute roles={["admin"]}><Statistics /></AdminProtectedRoute>} />
+          <Route path="reviews" element={<AdminProtectedRoute roles={["admin", "support"]}><ReviewManager /></AdminProtectedRoute>} />
+          <Route path="vouchers" element={<AdminProtectedRoute roles={["admin"]}><VoucherManager /></AdminProtectedRoute>} />
+          <Route path="flash-sale" element={<AdminProtectedRoute roles={["admin"]}><FlashSaleManager /></AdminProtectedRoute>} />
+          <Route path="service-requests" element={<AdminProtectedRoute roles={["admin", "support"]}><AdminServiceRequests /></AdminProtectedRoute>} />
+          <Route path="audit-logs" element={<AdminProtectedRoute><AuditLogManager /></AdminProtectedRoute>} />
         </Route>
       </Routes>
       <CustomerFloatingWidgets />

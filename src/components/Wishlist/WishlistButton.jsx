@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { toast } from "sonner";
 import "./WishlistButton.css";
+import { apiFetch } from "../../utils/api";
 
-const API_URL = "http://localhost:3000";
 
 const WishlistButton = ({ productId, fromTable, productName = "" }) => {
   const navigate = useNavigate();
@@ -21,12 +21,12 @@ const WishlistButton = ({ productId, fromTable, productName = "" }) => {
       return;
     }
     try {
-      let res = await fetch(`${API_URL}/wishlist?userId=${currentUser.id}`);
+      let res = await apiFetch(`/wishlist?userId=${currentUser.id}`);
       let data = res.ok ? await res.json() : [];
 
       // Lệch kiểu dữ liệu String/Number thì lọc cứng lại bằng JS cho chắc
       if (!data || data.length === 0) {
-        const resAll = await fetch(`${API_URL}/wishlist`);
+        const resAll = await apiFetch(`/wishlist`);
         if (resAll.ok) {
           const all = await resAll.json();
           data = all.filter(
@@ -62,7 +62,7 @@ const WishlistButton = ({ productId, fromTable, productName = "" }) => {
 
     try {
       if (isFavorited) {
-        const res = await fetch(`${API_URL}/wishlist/${wishlistId}`, {
+        const res = await apiFetch(`/wishlist/${wishlistId}`, {
           method: "DELETE",
         });
         if (res.ok) {
@@ -82,7 +82,7 @@ const WishlistButton = ({ productId, fromTable, productName = "" }) => {
           fromTable,
           addedAt: new Date().toISOString(),
         };
-        const res = await fetch(`${API_URL}/wishlist`, {
+        const res = await apiFetch(`/wishlist`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newEntry),

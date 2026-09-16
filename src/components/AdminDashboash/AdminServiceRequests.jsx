@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { FaSearch } from "react-icons/fa";
 import { createNotification } from "../../utils/notify";
 import "./AdminServiceRequests.css";
+import { apiFetch, getCurrentUser, readJson } from "../../utils/api";
 
 const STATUS_LABELS = {
   pending: { label: "Chưa xử lý", color: "#e0a800" },
@@ -21,10 +22,8 @@ const AdminServiceRequests = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        "http://localhost:3000/serviceRequests?_sort=createdAt&_order=desc",
-      );
-      const data = await res.json();
+      const res = await apiFetch(`/serviceRequests?_sort=createdAt&_order=desc`);
+      const data = await readJson(res, "Không tải được danh sách yêu cầu.");
       setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
@@ -35,6 +34,7 @@ const AdminServiceRequests = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRequests();
   }, []);
 
@@ -76,11 +76,14 @@ const AdminServiceRequests = () => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      await fetch(`http://localhost:3000/serviceRequests/${id}`, {
+      const resolutionNote = window.prompt("Nhập ghi chú xử lý (bắt buộc):", "")?.trim();
+      if (!resolutionNote) return;
+      const actor = getCurrentUser();
+      const response = await apiFetch(`/serviceRequests/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, assigneeId: actor?.id, resolutionNote }),
       });
+      await readJson(response, "Cập nhật trạng thái thất bại.");
 
       const target = requests.find((r) => r.id === id);
 
@@ -114,7 +117,7 @@ const AdminServiceRequests = () => {
       return;
 
     try {
-      const res = await fetch(`http://localhost:3000/serviceRequests/${id}`, {
+      const res = await apiFetch(`/serviceRequests/${id}`, {
         method: "DELETE",
       });
 

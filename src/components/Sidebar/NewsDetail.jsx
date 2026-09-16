@@ -4,6 +4,7 @@ import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../../components/Sevicer/Sevicer";
 import "./NewsDetail.css";
+import { API_URL } from "../../utils/api";
 
 const NewsDetail = () => {
   const { id } = useParams();
@@ -13,7 +14,7 @@ const NewsDetail = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:3000/news")
+    fetch(`${API_URL}/news`)
       .then((res) => res.json())
       .then((data) => {
         const found = data.find((item) => String(item.id) === String(id));

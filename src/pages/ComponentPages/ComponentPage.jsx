@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/FooterUser";
 import "./ComponentPage.css";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 import { FaShippingFast, FaAddressCard, FaCcApplePay, FaStore } from "react-icons/fa";
 import { BsCreditCard2Front } from "react-icons/bs";
 import { MdCurrencyExchange } from "react-icons/md";
@@ -32,7 +33,7 @@ const ComponentPage = () => {
     redirectToCart = false,
     customProductId = null,
   ) => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
 
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để mua sản phẩm này!");
@@ -46,8 +47,8 @@ const ComponentPage = () => {
 
     try {
       // 1. Fetch danh sách mới nhất tại thời điểm bấm nút
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`,
+      const cartRes = await apiFetch(
+        `/cart?userId=${currentUser.id}`,
       );
       let cartItems = [];
       if (cartRes.ok) cartItems = await cartRes.json();
@@ -61,8 +62,8 @@ const ComponentPage = () => {
 
       if (existingItem) {
         // Nếu đã có: Tăng số lượng lên
-        const updateRes = await fetch(
-          `http://localhost:3000/cart/${existingItem.id}`,
+        const updateRes = await apiFetch(
+          `/cart/${existingItem.id}`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -87,7 +88,7 @@ const ComponentPage = () => {
           fromTable: "eventList",
         };
 
-        const postRes = await fetch("http://localhost:3000/cart", {
+        const postRes = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newCartItem),
@@ -110,7 +111,7 @@ const ComponentPage = () => {
     setLoading(true);
 
     // 1. Tìm thông tin chi tiết linh kiện từ bảng eventList
-    fetch(`http://localhost:3000/eventList/${id}`)
+    fetch(`${API_URL}/eventList/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Không tìm thấy Linh Kiện");
         return res.json();
@@ -124,7 +125,7 @@ const ComponentPage = () => {
       });
 
     // 2. Lấy dữ liệu chuẩn từ bảng eventList để làm sản phẩm tương tự
-    fetch("http://localhost:3000/eventList")
+    fetch(`${API_URL}/eventList`)
       .then((res) => res.json().catch(() => []))
       .then((componentData) => {
         const industryProducts = componentData.filter(

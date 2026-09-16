@@ -10,8 +10,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import "./ReviewManager.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL, apiFetch } from "../../utils/api";
 
 const formatDate = (iso) => {
   if (!iso) return "";
@@ -50,7 +49,7 @@ const ReviewManager = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/reviews`);
+      const res = await apiFetch(`${API_URL}/reviews`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setReviews(
@@ -64,12 +63,13 @@ const ReviewManager = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchReviews();
   }, []);
 
   const handleToggleHidden = async (review) => {
     try {
-      const res = await fetch(`${API_URL}/reviews/${review.id}`, {
+      const res = await apiFetch(`/reviews/${review.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hidden: !review.hidden }),
@@ -91,7 +91,7 @@ const ReviewManager = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc chắn muốn XÓA đánh giá này?")) return;
     try {
-      const res = await fetch(`${API_URL}/reviews/${id}`, {
+      const res = await apiFetch(`/reviews/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error();
@@ -105,7 +105,7 @@ const ReviewManager = () => {
   const handleSendReply = async (id) => {
     if (!replyText.trim()) return;
     try {
-      const res = await fetch(`${API_URL}/reviews/${id}`, {
+      const res = await apiFetch(`/reviews/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

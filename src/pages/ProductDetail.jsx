@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Footer from "../components/Footer/FooterUser";
 import "./ProductDetail.css";
+import { API_URL, apiFetch, getCurrentUser } from "../utils/api";
 import { FaShippingFast, FaAddressCard, FaCcApplePay, FaStore } from "react-icons/fa";
 import { BsCreditCard2Front } from "react-icons/bs";
 import { MdCurrencyExchange } from "react-icons/md";
@@ -32,7 +33,7 @@ const ProductDetail = () => {
     redirectToCart = false,
     customProduct = null,
   ) => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
 
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để mua sản phẩm này!");
@@ -49,8 +50,8 @@ const ProductDetail = () => {
 
     try {
       // 1. Fetch danh sách giỏ hàng mới nhất
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`,
+      const cartRes = await apiFetch(
+        `/cart?userId=${currentUser.id}`,
       );
       let cartItems = [];
       if (cartRes.ok) cartItems = await cartRes.json();
@@ -64,8 +65,8 @@ const ProductDetail = () => {
 
       if (existingItem) {
         // Đã có -> Tăng số lượng lên 1
-        const updateRes = await fetch(
-          `http://localhost:3000/cart/${existingItem.id}`,
+        const updateRes = await apiFetch(
+          `/cart/${existingItem.id}`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -90,7 +91,7 @@ const ProductDetail = () => {
           fromTable: targetFromTable, // Lưu đúng nguồn gốc catenogies
         };
 
-        const postRes = await fetch("http://localhost:3000/cart", {
+        const postRes = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newCartItem),
@@ -113,7 +114,7 @@ const ProductDetail = () => {
     setLoading(true);
 
     //  ĐÃ KHÓA CHẶT: Chỉ fetch đúng bảng catenogies theo ID, không gọi lung tung nữa
-    fetch(`http://localhost:3000/catenogies/${id}`)
+    fetch(`${API_URL}/catenogies/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Không tìm thấy sản phẩm trong danh mục!");
         return res.json();
@@ -131,7 +132,7 @@ const ProductDetail = () => {
       });
 
     // Lấy dữ liệu làm sản phẩm tương tự (cũng từ bảng catenogies)
-    fetch("http://localhost:3000/catenogies")
+    fetch(`${API_URL}/catenogies`)
       .then((res) => res.json().catch(() => []))
       .then((catenogiesData) => {
         const industryProducts = catenogiesData.filter(

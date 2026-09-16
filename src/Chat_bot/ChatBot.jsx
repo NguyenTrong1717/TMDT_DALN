@@ -20,6 +20,7 @@ import { BsStars } from "react-icons/bs";
 import { HiSparkles } from "react-icons/hi";
 import { executeRAG } from "./ragEngine.js";
 import "./ChatBot.css";
+import { API_URL } from "../utils/api";
 
 // Hàm định dạng cơ bản: hiển thị **in đậm** và ngắt dòng tự nhiên
 const renderMessageText = (rawText) => {
@@ -32,8 +33,6 @@ const renderMessageText = (rawText) => {
     return part;
   });
 };
-
-const API_URL = "http://localhost:3000";
 
 // Các gợi ý câu hỏi thông minh theo nhu cầu thực tế
 const QUICK_PROMPTS = [

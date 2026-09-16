@@ -21,13 +21,11 @@ import {
   FaMedal,
   FaLock,
   FaBarcode,
-  FaTimes,
   FaMoneyBillWave,
 } from "react-icons/fa";
 import { exportToCsv, logAudit } from "../../utils/exportCsv";
 import "./AdminOrders.css";
-
-const API_URL = "http://127.0.0.1:3000";
+import { apiFetch, getCurrentUser, readJson } from "../../utils/api";
 
 const ORDER_STATUSES = [
   { value: "all", label: "Tất cả đơn" },
@@ -60,6 +58,7 @@ const CARRIER_OPTIONS = [
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [returnRequests, setReturnRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,23 +76,24 @@ const AdminOrders = () => {
   const [rmaModalOrder, setRmaModalOrder] = useState(null);
   const [rmaReason, setRmaReason] = useState("Khách yêu cầu đổi trả linh kiện");
   const [refundAmountInput, setRefundAmountInput] = useState("");
-  const [refundMethodInput, setRefundMethodInput] = useState("Chuyển khoản ngân hàng");
-  const [restockItemCheck, setRestockItemCheck] = useState(true);
 
   // State cho Ghi chú nội bộ
   const [internalNoteEditingId, setInternalNoteEditingId] = useState(null);
   const [internalNoteText, setInternalNoteText] = useState("");
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const currentUser = getCurrentUser() || {};
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/orders`, {
-        headers: { "x-user-id": String(currentUser?.id || "") },
-      });
+      const [response, returnsResponse] = await Promise.all([
+        apiFetch(`/api/admin/orders`),
+        apiFetch(`/api/returns`),
+      ]);
       if (!response.ok) throw new Error("Không thể lấy danh sách đơn hàng.");
-      const data = await response.json();
+      if (!returnsResponse.ok) throw new Error("Không thể lấy dữ liệu trả hàng.");
+      const [data, returnsData] = await Promise.all([response.json(), returnsResponse.json()]);
       setOrders(Array.isArray(data) ? data.reverse() : []);
+      setReturnRequests(Array.isArray(returnsData) ? returnsData : []);
     } catch (error) {
       console.error(error);
       toast.error("Lỗi khi tải danh sách đơn hàng!");
@@ -103,8 +103,8 @@ const AdminOrders = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tính toán LTV và Phân hạng khách hàng (Tiers)
@@ -116,37 +116,47 @@ const AdminOrders = () => {
         map[uId] = { totalSpent: 0, orderCount: 0 };
       }
       map[uId].orderCount += 1;
-      if (o.paymentStatus === "paid" || o.status === "completed") {
-        map[uId].totalSpent += Number(o.totalAmount || 0);
+      if (["paid", "partially_refunded"].includes(o.paymentStatus)) {
+        map[uId].totalSpent += Math.max(0, Number(o.totalAmount || 0) - Number(o.refundedAmount || 0));
       }
     });
     return map;
   }, [orders]);
 
   const getCustomerTier = (totalSpent) => {
-    if (totalSpent >= 50000000) return { name: "Kim Cương", icon: FaCrown, color: "#8b5cf6", bg: "#f5f3ff" };
-    if (totalSpent >= 20000000) return { name: "Vàng", icon: FaMedal, color: "#eab308", bg: "#fefce8" };
+    if (totalSpent >= 40000000) return { name: "Kim Cương", icon: FaCrown, color: "#8b5cf6", bg: "#f5f3ff" };
+    if (totalSpent >= 15000000) return { name: "Vàng", icon: FaMedal, color: "#eab308", bg: "#fefce8" };
     if (totalSpent >= 5000000) return { name: "Bạc", icon: FaMedal, color: "#64748b", bg: "#f8fafc" };
     return { name: "Đồng", icon: FaMedal, color: "#b45309", bg: "#fef3c7" };
   };
 
   // Cập nhật trạng thái giao hàng / đơn hàng
   const handleUpdateStatus = async (orderId, newStatus) => {
-    if (
-      newStatus === "cancelled" &&
-      !window.confirm("Bạn có chắc chắn muốn HỦY đơn hàng này?")
-    )
-      return;
+    let reason = "";
+    const targetOrder = orders.find((item) => item.id === orderId);
+    if (newStatus === "cancelled") {
+      reason = window.prompt("Nhập lý do hủy đơn (bắt buộc):", "")?.trim() || "";
+      if (!reason) return;
+    }
     try {
-      const response = await fetch(
-        `${API_URL}/api/admin/orders/${orderId}/status`,
+      if (newStatus === "cancelled" && ["paid", "partially_refunded"].includes(targetOrder?.paymentStatus)) {
+        const amountText = window.prompt("Nhập toàn bộ số tiền còn phải hoàn trước khi hủy (VND):", "")?.trim();
+        const amount = Number(amountText);
+        if (!Number.isFinite(amount) || amount <= 0) throw new Error("Số tiền hoàn phải lớn hơn 0.");
+        const reference = window.prompt("Nhập mã tham chiếu hoàn tiền thủ công:", "")?.trim();
+        const evidence = reference ? window.prompt("Nhập bằng chứng/đường dẫn chứng từ hoàn:", "")?.trim() : "";
+        if (!reference || !evidence) throw new Error("Chưa hủy đơn vì thiếu mã tham chiếu hoặc bằng chứng hoàn tiền.");
+        const refundResult = await readJson(await apiFetch(`/api/admin/orders/${orderId}/manual-refund`, {
+          method: "POST",
+          body: JSON.stringify({ amount, reference, evidence, reason }),
+        }));
+        toast.info(refundResult.message);
+      }
+      const response = await apiFetch(
+        `/api/admin/orders/${orderId}/status`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-id": String(currentUser?.id || ""),
-          },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({ status: newStatus, reason }),
         },
       );
       if (response.ok) {
@@ -174,29 +184,27 @@ const AdminOrders = () => {
           });
         }
         fetchOrders();
-      } else {
-        toast.error("Không thể cập nhật trạng thái đơn.");
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra khi cập nhật đơn.");
+      } else throw new Error((await response.json().catch(() => ({}))).error || "Không thể cập nhật trạng thái đơn.");
+    } catch (error) {
+      toast.error(error.message || "Có lỗi xảy ra khi cập nhật đơn.");
     }
   };
 
   // TÁCH RỜI: Cập nhật Trạng thái Thanh toán độc lập
   const handleUpdatePaymentStatus = async (orderId, nextPaymentStatus) => {
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentStatus: nextPaymentStatus,
-          paidAt: nextPaymentStatus === "paid" ? new Date().toISOString() : null,
-        }),
+      const order = orders.find((item) => item.id === orderId);
+      if (order?.paymentMethod !== "cod" || nextPaymentStatus !== "paid") {
+        throw new Error("Thanh toán online chỉ được cập nhật từ kết quả đã xác minh của cổng thanh toán.");
+      }
+      const reference = window.prompt("Nhập mã đối soát/biên nhận thu COD:", "")?.trim();
+      if (!reference) return;
+      const res = await apiFetch(`/api/admin/orders/${orderId}/collect-cod`, {
+        method: "POST",
+        body: JSON.stringify({ reference }),
       });
-
-      if (!res.ok) throw new Error("Cập nhật thanh toán thất bại");
-      toast.success(`Đã đổi thanh toán sang: "${PAYMENT_STATUSES.find((p) => p.value === nextPaymentStatus)?.label}"`);
-      logAudit(currentUser, "Cập nhật thanh toán đơn", `Đơn #${orderId}`, `Thanh toán: ${nextPaymentStatus}`);
+      await readJson(res, "Xác nhận thu COD thất bại.");
+      toast.success("Đã ghi nhận thu COD từ biên nhận.");
       fetchOrders();
     } catch (err) {
       toast.error(err.message);
@@ -208,18 +216,16 @@ const AdminOrders = () => {
     e.preventDefault();
     if (!shippingModalOrder) return;
     try {
-      const res = await fetch(`${API_URL}/orders/${shippingModalOrder.id}`, {
+      const res = await apiFetch(`/api/admin/orders/${shippingModalOrder.id}/shipping`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          shippingCarrier: carrierInput,
-          trackingCode: trackingCodeInput.trim() || `TRACK-${Date.now().toString().slice(-8)}`,
-          status: "shipping",
+          carrier: carrierInput,
+          trackingCode: trackingCodeInput.trim(),
         }),
       });
-      if (!res.ok) throw new Error("Không thể cập nhật thông tin vận chuyển!");
+      await readJson(res, "Không thể cập nhật thông tin vận chuyển!");
 
-      toast.success(`Đã xuất đơn cho hãng vận chuyển "${carrierInput}"!`);
+      toast.success(`Đã ghi nhận bàn giao cho "${carrierInput}". Mã tự sinh (nếu có) chỉ là mã nội bộ demo.`);
       logAudit(currentUser, "Cập nhật mã vận đơn", `Đơn #${shippingModalOrder.id}`, `Hãng: ${carrierInput}, Vận đơn: ${trackingCodeInput}`);
       setShippingModalOrder(null);
       fetchOrders();
@@ -228,57 +234,19 @@ const AdminOrders = () => {
     }
   };
 
-  // Xử lý luồng Trả hàng / Hoàn tiền (RMA)
+  // Tạo yêu cầu RMA; các bước duyệt, nhận hàng, nhập kho và hoàn tiền được xử lý riêng.
   const handleProcessRma = async (e) => {
     e.preventDefault();
     if (!rmaModalOrder) return;
     try {
-      const refundAmt = Number(refundAmountInput) || Number(rmaModalOrder.totalAmount || 0);
-
-      // Cập nhật đơn hàng sang trạng thái returned và refunded
-      const res = await fetch(`${API_URL}/orders/${rmaModalOrder.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "returned",
-          paymentStatus: "refunded",
-          rma: {
-            reason: rmaReason,
-            refundAmount: refundAmt,
-            refundMethod: refundMethodInput,
-            restocked: restockItemCheck,
-            processedBy: currentUser?.fullName || "Admin",
-            processedAt: new Date().toISOString(),
-          },
-        }),
-      });
-      if (!res.ok) throw new Error("Xử lý hoàn tiền thất bại!");
-
-      // Tùy chọn cộng lại kho nếu được chọn
-      if (restockItemCheck && Array.isArray(rmaModalOrder.products)) {
-        for (const prod of rmaModalOrder.products) {
-          if (prod.productId) {
-            fetch(`${API_URL}/products/${prod.productId}`)
-              .then((r) => r.json())
-              .then((p) => {
-                if (p && p.stock !== undefined) {
-                  fetch(`${API_URL}/products/${prod.productId}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      stock: Number(p.stock || 0) + Number(prod.quantity || 1),
-                      stockLeft: Number(p.stockLeft || p.stock || 0) + Number(prod.quantity || 1),
-                    }),
-                  });
-                }
-              })
-              .catch(() => null);
-          }
-        }
-      }
-
-      toast.success(`Đã xử lý hoàn tiền ${refundAmt.toLocaleString("vi-VN")}₫ cho đơn hàng!`);
-      logAudit(currentUser, "Xử lý trả hàng/hoàn tiền (RMA)", `Đơn #${rmaModalOrder.id}`, `Hoàn: ${refundAmt}₫ qua ${refundMethodInput}`);
+      const refundAmt = Number(refundAmountInput);
+      if (!Number.isFinite(refundAmt) || refundAmt <= 0) throw new Error("Số tiền đề nghị phải lớn hơn 0.");
+      const items = (rmaModalOrder.products || []).map((item) => ({ productId: item.productId, fromTable: item.fromTable, variantId: item.variantId || null, quantity: item.quantity }));
+      const created = await readJson(await apiFetch(`/api/orders/${rmaModalOrder.id}/returns`, {
+        method: "POST",
+        body: JSON.stringify({ requestId: `admin_rma_${rmaModalOrder.id}_${Date.now()}`, reason: rmaReason, requestedAmount: refundAmt, items }),
+      }), "Không thể tạo yêu cầu trả hàng.");
+      toast.success(`Đã tạo yêu cầu ${created.id}. Cần duyệt, tiếp nhận và kiểm tra hàng trước khi nhập kho/ghi nhận hoàn tiền.`);
       setRmaModalOrder(null);
       fetchOrders();
     } catch (err) {
@@ -286,15 +254,56 @@ const AdminOrders = () => {
     }
   };
 
+  const updateReturnStatus = async (request, status) => {
+    const note = window.prompt("Nhập ghi chú xử lý (bắt buộc):", "")?.trim();
+    if (!note) return;
+    try {
+      await readJson(await apiFetch(`/api/admin/returns/${request.id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, assigneeId: currentUser.id, note }),
+      }));
+      toast.success(`Đã chuyển yêu cầu trả hàng sang ${status}.`);
+      fetchOrders();
+    } catch (error) { toast.error(error.message); }
+  };
+
+  const restockReturn = async (request) => {
+    const reason = window.prompt("Ghi rõ kết quả kiểm tra và lý do hàng đủ điều kiện bán lại:", "")?.trim();
+    if (!reason) return;
+    try {
+      const items = (request.items || []).map((item) => ({ productId: item.productId, fromTable: item.fromTable, variantId: item.variantId || null, quantity: item.quantity, resellable: true }));
+      await readJson(await apiFetch(`/api/admin/returns/${request.id}/restock`, {
+        method: "POST", body: JSON.stringify({ items, reason }),
+      }));
+      toast.success("Đã nhập lại đúng số lượng hàng thực nhận đủ điều kiện bán lại.");
+      fetchOrders();
+    } catch (error) { toast.error(error.message); }
+  };
+
+  const recordManualRefund = async (request) => {
+    const amountText = window.prompt("Nhập số tiền đã hoàn thủ công (VND, phải lớn hơn 0):", "")?.trim();
+    const amount = Number(amountText);
+    if (!Number.isFinite(amount) || amount <= 0) return toast.error("Số tiền hoàn phải lớn hơn 0.");
+    const reference = window.prompt("Nhập mã tham chiếu giao dịch hoàn thủ công:", "")?.trim();
+    const evidence = reference ? window.prompt("Nhập bằng chứng/đường dẫn chứng từ hoàn tiền:", "")?.trim() : "";
+    if (!reference || !evidence) return toast.error("Cần mã tham chiếu và bằng chứng hoàn tiền.");
+    try {
+      const result = await readJson(await apiFetch(`/api/admin/returns/${request.id}/manual-refund`, {
+        method: "POST", body: JSON.stringify({ amount, method: "bank_transfer", reference, evidence }),
+      }));
+      toast.success(result.message);
+      fetchOrders();
+    } catch (error) { toast.error(error.message); }
+  };
+
   // Lưu ghi chú nội bộ của Admin
   const handleSaveInternalNote = async (orderId) => {
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}`, {
+      const res = await apiFetch(`/api/admin/orders/${orderId}/internal-note`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ internalNote: internalNoteText.trim() }),
       });
-      if (!res.ok) throw new Error("Không thể lưu ghi chú!");
+      await readJson(res, "Không thể lưu ghi chú!");
 
       toast.success("Đã cập nhật ghi chú nội bộ!");
       logAudit(currentUser, "Cập nhật ghi chú nội bộ", `Đơn #${orderId}`, internalNoteText.trim());
@@ -313,14 +322,12 @@ const AdminOrders = () => {
     )
       return;
     try {
-      const response = await fetch(`${API_URL}/api/admin/orders/${orderId}`, {
+      const response = await apiFetch(`/api/admin/orders/${orderId}`, {
         method: "DELETE",
-        headers: { "x-user-id": String(currentUser?.id || "") },
       });
 
       if (response.ok) {
-        toast.success("Xóa vĩnh viễn đơn hàng thành công!");
-        logAudit(currentUser, "Xóa vĩnh viễn đơn hàng", `Đơn #${orderId}`);
+        toast.success("Đã lưu trữ đơn hàng; lịch sử vẫn được bảo toàn.");
         fetchOrders();
       } else {
         toast.error(`Không thể xóa đơn hàng. (status ${response.status})`);
@@ -370,7 +377,7 @@ const AdminOrders = () => {
     }
   };
 
-  const filteredOrders = useMemo(() => {
+  const filteredOrders = (() => {
     const keyword = searchTerm.toLowerCase().trim();
     return orders.filter((order) => {
       const matchStatus =
@@ -390,10 +397,9 @@ const AdminOrders = () => {
 
       return matchStatus && matchPayment && matchSearch;
     });
-  }, [orders, activeTab, paymentFilter, searchTerm]);
+  })();
 
-  const totalFilteredRevenue = useMemo(() => {
-    return filteredOrders.reduce((sum, order) => {
+  const totalFilteredRevenue = filteredOrders.reduce((sum, order) => {
       const amount =
         order.totalAmount > 0
           ? order.totalAmount
@@ -403,10 +409,9 @@ const AdminOrders = () => {
             );
       return sum + amount;
     }, 0);
-  }, [filteredOrders]);
 
   if (loading)
-    return <div className="loading-box">Đang tải danh sách đơn hàng...</div>;
+    return <div className="admin-orders-loading">Đang tải danh sách đơn hàng...</div>;
 
   return (
     <div className="admin-orders-page">
@@ -533,6 +538,8 @@ const AdminOrders = () => {
             const userStats = customerStatsMap[String(order.userId || order.phone || "guest")] || { totalSpent: 0, orderCount: 1 };
             const tier = getCustomerTier(userStats.totalSpent);
             const TierIcon = tier.icon;
+            const returnRequest = returnRequests.find((item) => String(item.orderId) === String(order.id));
+            const hasActiveReturn = returnRequest && ["requested", "approved", "processing"].includes(returnRequest.status);
 
             return (
               <div className="order-card bento" key={order.id}>
@@ -595,9 +602,10 @@ const AdminOrders = () => {
                       value={order.paymentStatus || "unpaid"}
                       onChange={(e) => handleUpdatePaymentStatus(order.id, e.target.value)}
                       className={`payment-status-select ${order.paymentStatus}`}
-                      title="Admin có thể đổi trạng thái thanh toán trực tiếp"
+                      disabled={!(["admin", "warehouse"].includes(currentUser.role) && order.paymentMethod === "cod" && order.status === "delivered" && order.paymentStatus !== "paid")}
+                      title={order.paymentMethod === "cod" ? "COD chỉ được xác nhận sau khi giao và có mã đối soát" : "Thanh toán online do callback đã xác minh cập nhật"}
                     >
-                      {PAYMENT_STATUSES.map((ps) => (
+                      {PAYMENT_STATUSES.filter((ps) => ps.value === order.paymentStatus || ps.value === "paid").map((ps) => (
                         <option key={ps.value} value={ps.value}>
                           {ps.label}
                         </option>
@@ -628,7 +636,7 @@ const AdminOrders = () => {
                         onClick={() => {
                           setShippingModalOrder(order);
                           setCarrierInput(CARRIER_OPTIONS[0]);
-                          setTrackingCodeInput(`TRACK-${Date.now().toString().slice(-8)}`);
+                          setTrackingCodeInput("");
                         }}
                       >
                         + Gán vận đơn
@@ -755,10 +763,40 @@ const AdminOrders = () => {
                   </div>
                 </div>
 
+                {returnRequest && (
+                  <div className="rma-workflow-summary">
+                    <strong>RMA {returnRequest.id}</strong>
+                    <span>Trạng thái: {returnRequest.status}</span>
+                    <span>Đề nghị: {formatPrice(returnRequest.requestedAmount)}</span>
+                    <span>Lý do: {returnRequest.reason}</span>
+                    {returnRequest.restockedAt && <span>Đã nhập lại kho: {returnRequest.restockedQuantity} sản phẩm</span>}
+                    {returnRequest.manualRefund?.confirmedAt && (
+                      <span>Đã ghi nhận hoàn thủ công: {formatPrice(returnRequest.manualRefund.amount)} · {returnRequest.manualRefund.reference}</span>
+                    )}
+                    <div className="action-buttons">
+                      {["admin", "support"].includes(currentUser.role) && returnRequest.status === "requested" && (
+                        <>
+                          <button className="btn-approve" onClick={() => updateReturnStatus(returnRequest, "approved")}>Duyệt trả hàng</button>
+                          <button className="btn-cancel" onClick={() => updateReturnStatus(returnRequest, "rejected")}>Từ chối</button>
+                        </>
+                      )}
+                      {["admin", "warehouse"].includes(currentUser.role) && returnRequest.status === "approved" && (
+                        <button className="btn-ship" onClick={() => updateReturnStatus(returnRequest, "processing")}>Đã nhận hàng, bắt đầu kiểm tra</button>
+                      )}
+                      {["admin", "warehouse"].includes(currentUser.role) && returnRequest.status === "processing" && !returnRequest.restockedAt && (
+                        <button className="btn-approve" onClick={() => restockReturn(returnRequest)}>Nhập lại hàng đủ điều kiện</button>
+                      )}
+                      {currentUser.role === "admin" && returnRequest.status === "processing" && (
+                        <button className="btn-rma" onClick={() => recordManualRefund(returnRequest)}>Ghi nhận hoàn thủ công</button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* 4. Footer Actions & Trả hàng RMA */}
                 <div className="order-card-footer">
                   <div className="action-buttons">
-                    {order.status === "pending" && (
+                    {["admin", "warehouse"].includes(currentUser.role) && order.status === "pending" && (
                       <>
                         <button
                           className="btn-approve"
@@ -766,29 +804,29 @@ const AdminOrders = () => {
                         >
                           <FaCheck /> Duyệt &amp; Đóng gói
                         </button>
-                        <button
+                        {currentUser.role === "admin" && <button
                           className="btn-cancel"
                           onClick={() => handleUpdateStatus(order.id, "cancelled")}
                         >
                           <FaBan /> Hủy đơn
-                        </button>
+                        </button>}
                       </>
                     )}
 
-                    {order.status === "confirmed" && (
-                      <button
+                    {["admin", "warehouse"].includes(currentUser.role) && order.status === "confirmed" && (
+                      <><button
                         className="btn-ship"
                         onClick={() => {
                           setShippingModalOrder(order);
                           setCarrierInput(CARRIER_OPTIONS[0]);
-                          setTrackingCodeInput(`TRACK-${Date.now().toString().slice(-8)}`);
+                          setTrackingCodeInput("");
                         }}
                       >
                         <FaShippingFast /> Giao hàng &amp; Gán mã vận đơn
-                      </button>
+                      </button>{currentUser.role === "admin" && <button className="btn-cancel" onClick={() => handleUpdateStatus(order.id, "cancelled")}><FaBan /> Hủy đơn</button>}</>
                     )}
 
-                    {order.status === "shipping" && (
+                    {["admin", "warehouse"].includes(currentUser.role) && order.status === "shipping" && (
                       <button
                         className="btn-complete"
                         onClick={() => handleUpdateStatus(order.id, "delivered")}
@@ -797,7 +835,7 @@ const AdminOrders = () => {
                       </button>
                     )}
 
-                    {order.status === "delivered" && (
+                    {["admin", "warehouse"].includes(currentUser.role) && order.status === "delivered" && (
                       <button
                         className="btn-complete"
                         onClick={() => handleUpdateStatus(order.id, "completed")}
@@ -807,7 +845,7 @@ const AdminOrders = () => {
                     )}
 
                     {/* Nút yêu cầu/xử lý trả hàng RMA cho các đơn đã giao hoặc đang có vấn đề */}
-                    {(order.status === "delivered" || order.status === "completed" || order.status === "shipping") && (
+                    {["admin", "support"].includes(currentUser.role) && !hasActiveReturn && (order.status === "delivered" || order.status === "completed") && (
                       <button
                         className="btn-rma"
                         title="Tạo luồng trả hàng & hoàn tiền (RMA)"
@@ -816,18 +854,18 @@ const AdminOrders = () => {
                           setRefundAmountInput(String(orderTotal));
                         }}
                       >
-                        <FaUndoAlt /> Trả hàng / Hoàn tiền
+                        <FaUndoAlt /> Tạo yêu cầu trả hàng
                       </button>
                     )}
 
-                    {(order.status === "completed" ||
+                    {currentUser.role === "admin" && (order.status === "completed" ||
                       order.status === "cancelled" ||
                       order.status === "returned") && (
                       <button
                         className="btn-delete"
                         onClick={() => handleDeleteOrder(order.id)}
                       >
-                        <FaTrash /> Xóa hẳn
+                        <FaTrash /> Lưu trữ
                       </button>
                     )}
                   </div>
@@ -968,21 +1006,22 @@ const AdminOrders = () => {
           MODAL: GÁN ĐƠN VỊ VẬN CHUYỂN & MÃ VẬN ĐƠN
          ========================================================= */}
       {shippingModalOrder && (
-        <div className="modal-overlay" onClick={() => setShippingModalOrder(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>
-              <span>Xuất kho giao hàng #{shippingModalOrder.orderCode || shippingModalOrder.id}</span>
+        <div className="admin-dialog-backdrop" onClick={() => setShippingModalOrder(null)}>
+          <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="shipping-dialog-title" onClick={(e) => e.stopPropagation()}>
+            <header className="admin-dialog__header">
+              <h3 id="shipping-dialog-title">Xuất kho giao hàng #{shippingModalOrder.orderCode || shippingModalOrder.id}</h3>
               <button
                 type="button"
                 onClick={() => setShippingModalOrder(null)}
-                className="modal-close-btn"
+                className="admin-dialog__close"
+                aria-label="Đóng cửa sổ vận chuyển"
               >
                 &times;
               </button>
-            </h3>
+            </header>
 
-            <form onSubmit={handleSaveShippingInfo} className="form-layouts">
-              <div className="form-item">
+            <form onSubmit={handleSaveShippingInfo} className="admin-dialog__form">
+              <div className="admin-dialog__field">
                 <label>Đơn vị vận chuyển (Carrier) *</label>
                 <select
                   value={carrierInput}
@@ -997,7 +1036,7 @@ const AdminOrders = () => {
                 </select>
               </div>
 
-              <div className="form-item">
+              <div className="admin-dialog__field">
                 <label>Mã vận đơn (Tracking Code / Waybill) *</label>
                 <input
                   type="text"
@@ -1008,20 +1047,20 @@ const AdminOrders = () => {
                 />
               </div>
 
-              <div className="modal-actions">
+              <footer className="admin-dialog__actions">
                 <button
                   type="button"
-                  className="btn-cancel"
+                  className="admin-dialog__button admin-dialog__button--secondary"
                   onClick={() => setShippingModalOrder(null)}
                 >
                   Hủy
                 </button>
-                <button type="submit" className="btn-save">
+                <button type="submit" className="admin-dialog__button admin-dialog__button--primary">
                   Xác nhận giao hàng
                 </button>
-              </div>
+              </footer>
             </form>
-          </div>
+          </section>
         </div>
       )}
 
@@ -1029,21 +1068,22 @@ const AdminOrders = () => {
           MODAL: TRẢ HÀNG & HOÀN TIỀN (RMA)
          ========================================================= */}
       {rmaModalOrder && (
-        <div className="modal-overlay" onClick={() => setRmaModalOrder(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>
-              <span>Xử lý Trả hàng / Hoàn tiền (RMA) #{rmaModalOrder.orderCode || rmaModalOrder.id}</span>
+        <div className="admin-dialog-backdrop" onClick={() => setRmaModalOrder(null)}>
+          <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="rma-dialog-title" onClick={(e) => e.stopPropagation()}>
+            <header className="admin-dialog__header">
+              <h3 id="rma-dialog-title">Tạo yêu cầu trả hàng (RMA) #{rmaModalOrder.orderCode || rmaModalOrder.id}</h3>
               <button
                 type="button"
                 onClick={() => setRmaModalOrder(null)}
-                className="modal-close-btn"
+                className="admin-dialog__close"
+                aria-label="Đóng cửa sổ trả hàng"
               >
                 &times;
               </button>
-            </h3>
+            </header>
 
-            <form onSubmit={handleProcessRma} className="form-layouts">
-              <div className="form-item">
+            <form onSubmit={handleProcessRma} className="admin-dialog__form">
+              <div className="admin-dialog__field">
                 <label>Lý do trả hàng / khiếu nại *</label>
                 <select
                   value={rmaReason}
@@ -1056,8 +1096,8 @@ const AdminOrders = () => {
                 </select>
               </div>
 
-              <div className="form-item">
-                <label>Số tiền hoàn lại cho khách (VNĐ) *</label>
+              <div className="admin-dialog__field">
+                <label>Số tiền đề nghị hoàn (VNĐ) *</label>
                 <input
                   type="number"
                   value={refundAmountInput}
@@ -1066,43 +1106,22 @@ const AdminOrders = () => {
                 />
               </div>
 
-              <div className="form-item">
-                <label>Phương thức hoàn tiền</label>
-                <select
-                  value={refundMethodInput}
-                  onChange={(e) => setRefundMethodInput(e.target.value)}
-                >
-                  <option value="Chuyển khoản ngân hàng">Chuyển khoản ngân hàng trực tiếp</option>
-                  <option value="Hoàn tiền qua cổng VNPAY">Hoàn tiền qua cổng VNPAY Sandbox</option>
-                  <option value="Cộng điểm ví voucher">Cộng điểm ví voucher thành viên</option>
-                </select>
-              </div>
+              <p className="admin-dialog__notice">Việc tạo yêu cầu không tự nhập kho và không chuyển tiền. Các bước duyệt, nhận/kiểm tra hàng, nhập kho và ghi nhận chứng từ hoàn được thực hiện riêng.</p>
 
-              <div className="form-checkbox-item">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={restockItemCheck}
-                    onChange={(e) => setRestockItemCheck(e.target.checked)}
-                  />
-                  Tự động nhập lại số lượng vào kho (Restock)
-                </label>
-              </div>
-
-              <div className="modal-actions">
+              <footer className="admin-dialog__actions">
                 <button
                   type="button"
-                  className="btn-cancel"
+                  className="admin-dialog__button admin-dialog__button--secondary"
                   onClick={() => setRmaModalOrder(null)}
                 >
                   Hủy
                 </button>
-                <button type="submit" className="btn-save rma">
-                  Xác nhận hoàn tiền &amp; Trả hàng
+                <button type="submit" className="admin-dialog__button admin-dialog__button--primary">
+                  Tạo yêu cầu
                 </button>
-              </div>
+              </footer>
             </form>
-          </div>
+          </section>
         </div>
       )}
 

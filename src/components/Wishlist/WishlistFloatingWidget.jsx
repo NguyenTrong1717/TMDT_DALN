@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 // import { FaHandHoldingHeart } from "react-icons/fa";
 import { BsFillHeartPulseFill } from "react-icons/bs";
 import "./WishlistFloatingWidget.css";
+import { apiFetch } from "../../utils/api";
 
-const API_URL = "http://localhost:3000";
 
 const WishlistFloatingWidget = () => {
   const navigate = useNavigate();
@@ -21,11 +21,11 @@ const WishlistFloatingWidget = () => {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/wishlist?userId=${currentUser.id}`);
+      const res = await apiFetch(`/wishlist?userId=${currentUser.id}`);
       let data = res.ok ? await res.json() : [];
 
       if (!data || data.length === 0) {
-        const resAll = await fetch(`${API_URL}/wishlist`);
+        const resAll = await apiFetch(`/wishlist`);
         if (resAll.ok) {
           const all = await resAll.json();
           data = all.filter(

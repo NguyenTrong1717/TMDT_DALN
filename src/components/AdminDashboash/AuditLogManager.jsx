@@ -7,7 +7,6 @@ import {
   FaFilter,
   FaSyncAlt,
   FaEye,
-  FaTrashAlt,
   FaUserShield,
   FaBoxes,
   FaHeadset,
@@ -17,8 +16,7 @@ import {
 } from "react-icons/fa";
 import { exportToCsv } from "../../utils/exportCsv";
 import "./AuditLogManager.css";
-
-const BASE_URL = "http://localhost:3000/auditLogs";
+import { apiFetch, readJson } from "../../utils/api";
 
 const INITIAL_SEEDS = [
   {
@@ -67,6 +65,8 @@ const INITIAL_SEEDS = [
     timestamp: new Date(Date.now() - 1000 * 60 * 480).toISOString(),
   },
 ];
+// Legacy display examples are intentionally never written or used as an API fallback.
+void INITIAL_SEEDS;
 
 const AuditLogManager = () => {
   const [logs, setLogs] = useState([]);
@@ -82,31 +82,20 @@ const AuditLogManager = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}?_sort=timestamp&_order=desc`);
-      if (!res.ok) throw new Error("Không thể tải nhật ký thao tác");
-
-      let data = await res.json();
-      if (!Array.isArray(data) || data.length === 0) {
-        // Tự động seed các logs ban đầu nếu chưa có
-        for (const seed of INITIAL_SEEDS) {
-          await fetch(BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(seed),
-          }).catch(() => null);
-        }
-        data = INITIAL_SEEDS;
-      }
+      const res = await apiFetch(`/api/admin/audit-logs?limit=200`);
+      const data = await readJson(res, "Không thể tải nhật ký thao tác");
       setLogs(data);
     } catch (err) {
-      console.warn("Lỗi fetch audit logs, dùng dữ liệu mẫu:", err);
-      setLogs(INITIAL_SEEDS);
+      console.warn("Lỗi fetch audit logs:", err);
+      setLogs([]);
+      toast.error(err.message || "Không thể tải nhật ký thao tác.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLogs();
   }, []);
 

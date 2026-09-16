@@ -1,6 +1,22 @@
 import crypto from "node:crypto";
 import { fulfillOrder, RESERVATION_MINUTES } from "./vnpay.mjs";
 
+export const MOMO_MIN_AMOUNT = 1000;
+export const MOMO_MAX_AMOUNT = 50000000;
+
+export const validateMomoAmount = (value) => {
+  const amount = Math.round(Number(value));
+  if (!Number.isFinite(amount)) {
+    throw new Error("Số tiền thanh toán MoMo không hợp lệ.");
+  }
+  if (amount < MOMO_MIN_AMOUNT || amount > MOMO_MAX_AMOUNT) {
+    throw new Error(
+      "MoMo chỉ chấp nhận giao dịch từ 1.000₫ đến 50.000.000₫. Vui lòng chọn phương thức thanh toán khác.",
+    );
+  }
+  return amount;
+};
+
 const iso = (value) => new Date(value).toISOString();
 
 export const getMomoConfig = () => {
@@ -109,7 +125,7 @@ export const createMomoPaymentAttempt = async ({
 }) => {
   const orderId = order.orderCode;
   const requestId = `momo_req_${crypto.randomUUID()}`;
-  const amount = Math.round(Number(order.totalAmount));
+  const amount = validateMomoAmount(order.totalAmount);
   const orderInfo = `Thanh toán đơn hàng ${order.orderCode} qua Ví MoMo`;
   const redirectUrl = config.returnUrl;
   const ipnUrl = config.ipnUrl;
@@ -240,7 +256,7 @@ export const processMomoIpn = ({ state, body, config, now = new Date() }) => {
     };
   }
 
-  if (order.paymentStatus === "paid") {
+  if (attempt.status === "paid" || ["paid", "partially_refunded", "refunded"].includes(order.paymentStatus)) {
     return {
       status: 200,
       response: { resultCode: 0, message: "Order already confirmed" },

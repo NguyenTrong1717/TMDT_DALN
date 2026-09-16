@@ -17,6 +17,7 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import "./ProductManaCategory.css";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 
 const trustBadges = [
   "Hàng chính hãng 100%",
@@ -36,7 +37,7 @@ const ProductManaCategory = () => {
   useEffect(() => {
     setLoading(true);
 
-    fetch(`http://localhost:3000/appliances/${id}`)
+    fetch(`${API_URL}/appliances/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Không tìm thấy sản phẩm!");
         return res.json();
@@ -47,7 +48,7 @@ const ProductManaCategory = () => {
         setProduct(null);
       });
 
-    fetch("http://localhost:3000/appliances")
+    fetch(`${API_URL}/appliances`)
       .then((res) => res.json())
       .then((all) => {
         const others = all.filter((item) => String(item.id) !== String(id));
@@ -62,7 +63,7 @@ const ProductManaCategory = () => {
     redirectToCart = false,
     customProduct = null,
   ) => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để mua sản phẩm này!");
       navigate("/login");
@@ -76,9 +77,7 @@ const ProductManaCategory = () => {
     const targetFromTable = "appliances";
 
     try {
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`,
-      );
+      const cartRes = await apiFetch(`/cart`);
       let cartItems = [];
       if (cartRes.ok) cartItems = await cartRes.json();
 
@@ -89,8 +88,8 @@ const ProductManaCategory = () => {
       );
 
       if (existingItem) {
-        const updateRes = await fetch(
-          `http://localhost:3000/cart/${existingItem.id}`,
+        const updateRes = await apiFetch(
+          `/cart/${existingItem.id}`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -106,13 +105,11 @@ const ProductManaCategory = () => {
         }
       } else {
         const newCartItem = {
-          id: `cart-appliance-${targetProductId}-${Date.now()}`,
-          userId: currentUser.id,
           productId: targetProductId,
           quantity: 1,
           fromTable: targetFromTable,
         };
-        const postRes = await fetch("http://localhost:3000/cart", {
+        const postRes = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newCartItem),

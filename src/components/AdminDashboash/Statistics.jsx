@@ -1,241 +1,290 @@
-import "./Statistics.css";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AreaChart,
-  Area,
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
 } from "recharts";
+import {
+  FaArrowDown,
+  FaChartLine,
+  FaBoxOpen,
+  FaCalendarAlt,
+  FaChartBar,
+  FaCoins,
+  FaSyncAlt,
+  FaShoppingBag,
+  FaUndoAlt,
+  FaUserPlus,
+} from "react-icons/fa";
+import { apiFetch, readJson } from "../../utils/api";
+import "./Statistics.css";
 
-const revenueData = [
-  { month: "T1", revenue: 12000000, orders: 32 },
-  { month: "T2", revenue: 18500000, orders: 48 },
-  { month: "T3", revenue: 14200000, orders: 39 },
-  { month: "T4", revenue: 21000000, orders: 57 },
-  { month: "T5", revenue: 19800000, orders: 53 },
-  { month: "T6", revenue: 26500000, orders: 71 },
-];
+const money = (value) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
 
-const categoryData = [
-  { name: "LapTop", value: 42 },
-  { name: "PC Gamming", value: 28 },
-  { name: "Linh kiện", value: 18 },
-  { name: "Máy Tính Đặc Biệt", value: 12 },
-];
+const compactMoney = (value) =>
+  new Intl.NumberFormat("vi-VN", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0));
 
-const COLORS = ["#6c63ff", "#43e97b", "#f7b731", "#ff5f6d"];
+const defaultRange = () => {
+  const now = new Date();
+  return {
+    from: new Date(now.getTime() - 29 * 86400000).toISOString().slice(0, 10),
+    to: now.toISOString().slice(0, 10),
+  };
+};
 
-const topProducts = [
-  {
-    name: "PC GAMING RYZEN ",
-    sold: 124,
-    revenue: 18600000,
-  },
-  { name: "PC GAMING RYZEN 7-RTX 5070", sold: 58, revenue: 51620000 },
-  { name: "Laptop TP 15s-fq1017TU ", sold: 87, revenue: 39150000 },
-  { name: "Chuột không dây Logitech M221", sold: 43, revenue: 9460000 },
-  { name: "Thế Giới Trò Chơi", sold: 96, revenue: 11520000 },
-];
+const STATUS_LABELS = {
+  pending: "Chờ xác nhận",
+  confirmed: "Đã xác nhận",
+  processing: "Đang xử lý",
+  shipping: "Đang giao",
+  delivered: "Đã giao",
+  completed: "Hoàn tất",
+  cancelled: "Đã hủy",
+  returned: "Trả hàng",
+};
 
-const fmt = (v) =>
-  v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : `${(v / 1000).toFixed(0)}K`;
+const percent = (value) => {
+  if (value == null) {
+    return { label: "Chưa có kỳ đối chiếu", direction: "neutral" };
+  }
+  return {
+    label: `${value >= 0 ? "+" : ""}${value.toFixed(1)}% so với kỳ trước`,
+    direction: value >= 0 ? "up" : "down",
+  };
+};
 
-const CustomTooltip = ({ active, payload, label }) => {
+const StatCard = ({ label, value, growth, icon: Icon, tone }) => {
+  const trend = growth === undefined ? null : percent(growth);
+  return (
+    <article className={`stats-kpi stats-kpi--${tone}`}>
+      <div className="stats-kpi__top">
+        <span>{label}</span>
+        <div className="stats-kpi__icon"><Icon /></div>
+      </div>
+      <strong>{value}</strong>
+      {trend ? (
+        <small className={`stats-kpi__trend stats-kpi__trend--${trend.direction}`}>
+          {trend.direction === "up" && <FaChartLine />}
+          {trend.direction === "down" && <FaArrowDown />}
+          {trend.label}
+        </small>
+      ) : (
+        <small className="stats-kpi__trend stats-kpi__trend--neutral">
+          Ghi nhận trong kỳ
+        </small>
+      )}
+    </article>
+  );
+};
+
+const ChartTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="chart-tooltip">
-      <div className="tooltip-label">{label}</div>
-      {payload.map((p) => (
-        <div key={p.name} style={{ color: p.color }}>
-          {p.name}:{" "}
-          {typeof p.value === "number" && p.value > 1000
-            ? fmt(p.value) + "₫"
-            : p.value}
-        </div>
-      ))}
+    <div className="stats-tooltip">
+      <strong>{STATUS_LABELS[label] || label}</strong>
+      <span>{payload[0].value} đơn hàng</span>
     </div>
   );
 };
 
 export default function Statistics() {
-  const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0);
-  const totalOrders = revenueData.reduce((s, d) => s + d.orders, 0);
+  const [range, setRange] = useState(defaultRange);
+  const [appliedRange, setAppliedRange] = useState(defaultRange);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await apiFetch(
+        `/api/admin/statistics?from=${appliedRange.from}&to=${appliedRange.to}`,
+      );
+      setData(await readJson(response, "Không thể tải thống kê."));
+    } catch (err) {
+      setData(null);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [appliedRange.from, appliedRange.to]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
+  const chartData = useMemo(
+    () =>
+      Object.entries(data?.statusCounts || {}).map(([status, count]) => ({
+        status,
+        label: STATUS_LABELS[status] || status,
+        count,
+      })),
+    [data?.statusCounts],
+  );
+
+  const invalidRange = range.from && range.to && range.from > range.to;
+  const applyRange = () => {
+    if (range.from === appliedRange.from && range.to === appliedRange.to) {
+      load();
+      return;
+    }
+    setAppliedRange(range);
+  };
 
   return (
-    <div className="page-stats">
-      <div className="stats-header">
-        <h1>Thống kê</h1>
-        <p>Tổng quan hiệu suất kinh doanh</p>
-      </div>
+    <section className="page-stats">
+      <header className="stats-header">
+        <div className="stats-header__copy">
+          <span className="stats-eyebrow"><FaChartBar /> Báo cáo vận hành</span>
+          <h1>Thống kê kinh doanh</h1>
+          <p>Theo dõi doanh thu, đơn hàng và tồn kho từ dữ liệu thực tế.</p>
+        </div>
+        <div className="stats-range" aria-label="Chọn khoảng thời gian thống kê">
+          <FaCalendarAlt className="stats-range__icon" />
+          <label>
+            <span>Từ ngày</span>
+            <input
+              type="date"
+              value={range.from}
+              max={range.to}
+              onChange={(event) => setRange((old) => ({ ...old, from: event.target.value }))}
+            />
+          </label>
+          <span className="stats-range__divider">-</span>
+          <label>
+            <span>Đến ngày</span>
+            <input
+              type="date"
+              value={range.to}
+              min={range.from}
+              onChange={(event) => setRange((old) => ({ ...old, to: event.target.value }))}
+            />
+          </label>
+          <button type="button" onClick={applyRange} disabled={loading || invalidRange}>
+            <FaSyncAlt className={loading ? "is-spinning" : ""} />
+            {loading ? "Đang tải" : "Áp dụng"}
+          </button>
+        </div>
+      </header>
 
-      <div className="kpi-row">
-        <div className="kpi" style={{ "--kpi-accent": "#6c63ff" }}>
-          <div className="label">Doanh thu</div>
-          <div className="value">{fmt(totalRevenue)}₫</div>
-          <div className="delta">↑ 18% so với tháng trước</div>
+      {invalidRange && (
+        <div className="stats-notice stats-notice--error">
+          Ngày bắt đầu không được lớn hơn ngày kết thúc.
         </div>
-        <div className="kpi" style={{ "--kpi-accent": "#43e97b" }}>
-          <div className="label">Đơn hàng</div>
-          <div className="value">{totalOrders}</div>
-          <div className="delta">↑ 12% so với tháng trước</div>
-        </div>
-        <div className="kpi" style={{ "--kpi-accent": "#f7b731" }}>
-          <div className="label">Giá trị TB / đơn</div>
-          <div className="value">{fmt(totalRevenue / totalOrders)}₫</div>
-          <div className="delta">↑ 5% so với tháng trước</div>
-        </div>
-        <div className="kpi" style={{ "--kpi-accent": "#ff5f6d" }}>
-          <div className="label">Khách hàng mới</div>
-          <div className="value">34</div>
-          <div className="delta">↑ 8% so với tháng trước</div>
-        </div>
-      </div>
+      )}
 
-      {/* Row 1: Area chart + Pie chart */}
-      <div className="charts-grid charts-grid--2-1">
-        <div className="chart-card">
-          <div className="chart-title">Doanh thu theo tháng</div>
-          <div className="chart-sub">6 tháng đầu năm 2025</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={revenueData}>
-              <defs>
-                <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6c63ff" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6c63ff" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fill: "#555c75", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={fmt}
-                tick={{ fill: "#555c75", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                name="Doanh thu"
-                stroke="#6c63ff"
-                strokeWidth={2}
-                fill="url(#revGrad)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+      {error && (
+        <div className="stats-state stats-state--error">
+          <FaChartBar />
+          <strong>Chưa thể tải báo cáo</strong>
+          <p>{error}</p>
+          <button type="button" onClick={load}><FaSyncAlt /> Thử lại</button>
         </div>
+      )}
 
-        <div className="chart-card">
-          <div className="chart-title">Danh mục bán chạy</div>
-          <div className="chart-sub">Tỷ lệ theo số đơn</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="45%"
-                innerRadius={55}
-                outerRadius={80}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {categoryData.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i]} />
-                ))}
-              </Pie>
-              <Legend
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: 11, color: "#8b90a7" }}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "#1e2336",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 8,
-                  fontSize: 12,
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+      {loading && !data && !error && (
+        <div className="stats-loading" aria-label="Đang tổng hợp dữ liệu">
+          {[1, 2, 3, 4, 5].map((item) => <span key={item} />)}
         </div>
-      </div>
+      )}
 
-      {/* Row 2: Bar chart + Top products */}
-      <div className="charts-grid charts-grid--1-1">
-        <div className="chart-card">
-          <div className="chart-title">Số đơn hàng theo tháng</div>
-          <div className="chart-sub">6 tháng đầu năm 2025</div>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={revenueData} barSize={24}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="month"
-                tick={{ fill: "#555c75", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fill: "#555c75", fontSize: 11 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey="orders"
-                name="Đơn hàng"
-                fill="#6c63ff"
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="top-products">
-          <div className="top-products-header">
-            <div className="chart-title">Top sản phẩm bán chạy</div>
+      {data && (
+        <>
+          <div className="stats-notice">
+            <FaCoins />
+            <span>{data.recognitionRule || "Doanh thu được ghi nhận theo trạng thái thanh toán."}</span>
           </div>
-          {topProducts.map((p, i) => {
-            const maxSold = Math.max(...topProducts.map((x) => x.sold));
-            return (
-              <div className="tp-row" key={p.name}>
-                <div className="tp-rank">#{i + 1}</div>
-                <div className="tp-name">{p.name}</div>
-                <div className="tp-bar-wrap">
-                  <div className="tp-bar">
-                    <div
-                      className="tp-bar-fill"
-                      style={{ width: `${(p.sold / maxSold) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="tp-sold">{p.sold} đơn</div>
-                <div className="tp-rev">{fmt(p.revenue)}₫</div>
+
+          <div className="stats-kpi-grid">
+            <StatCard label="Doanh thu thuần" value={money(data.current?.revenue)} growth={data.growth?.revenue} icon={FaChartLine} tone="revenue" />
+            <StatCard label="Đơn tạo mới" value={Number(data.current?.orders || 0).toLocaleString("vi-VN")} growth={data.growth?.orders} icon={FaShoppingBag} tone="orders" />
+            <StatCard label="Tiền đã thu" value={money(data.current?.collected)} growth={data.growth?.collected} icon={FaCoins} tone="collected" />
+            <StatCard label="Khách hàng mới" value={Number(data.current?.newCustomers || 0).toLocaleString("vi-VN")} growth={data.growth?.newCustomers} icon={FaUserPlus} tone="customers" />
+            <StatCard label="Hoàn tiền" value={money(data.current?.refunds)} icon={FaUndoAlt} tone="refunds" />
+          </div>
+
+          <div className="stats-grid">
+            <article className="stats-panel stats-panel--chart">
+              <div className="stats-panel__header">
+                <div><span>Phân bổ vận hành</span><h2>Đơn hàng theo trạng thái</h2></div>
+                <strong>{chartData.reduce((sum, item) => sum + Number(item.count), 0)} đơn</strong>
               </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+              {chartData.length ? (
+                <ResponsiveContainer width="100%" height={285}>
+                  <BarChart data={chartData} margin={{ top: 12, right: 8, left: -18, bottom: 12 }}>
+                    <CartesianGrid vertical={false} stroke="#e8edf3" strokeDasharray="4 4" />
+                    <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={58} />
+                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(200, 134, 45, 0.07)" }} />
+                    <Bar dataKey="count" fill="#c8862d" radius={[6, 6, 0, 0]} maxBarSize={44} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : <div className="stats-empty">Chưa có đơn hàng trong khoảng thời gian này.</div>}
+            </article>
+
+            <article className="stats-panel stats-panel--products">
+              <div className="stats-panel__header">
+                <div><span>Hiệu suất sản phẩm</span><h2>Bán chạy nhất</h2></div>
+              </div>
+              {!data.topProducts?.length ? (
+                <div className="stats-empty"><FaBoxOpen /> Chưa có dữ liệu bán hàng.</div>
+              ) : (
+                <div className="stats-product-list">
+                  {data.topProducts.map((item, index) => (
+                    <div className="stats-product" key={`${item.name}-${index}`}>
+                      <span className={`stats-product__rank stats-product__rank--${index + 1}`}>{String(index + 1).padStart(2, "0")}</span>
+                      <div><strong title={item.name}>{item.name}</strong><span>{item.quantity} sản phẩm</span></div>
+                      <b>{compactMoney(item.revenue)} đ</b>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+          </div>
+
+          <article className="stats-panel stats-stock">
+            <div className="stats-panel__header">
+              <div><span>Cảnh báo kho</span><h2>Sản phẩm sắp hết hàng</h2></div>
+              <strong>{data.lowStock?.length || 0} sản phẩm</strong>
+            </div>
+            {!data.lowStock?.length ? (
+              <div className="stats-empty stats-empty--success">Tồn kho đang ở mức an toàn.</div>
+            ) : (
+              <div className="stats-stock__table-wrap">
+                <table className="stats-stock__table">
+                  <thead><tr><th>Sản phẩm</th><th>Nguồn</th><th>Tồn khả dụng</th><th>Mức độ</th></tr></thead>
+                  <tbody>
+                    {data.lowStock.map((item) => (
+                      <tr key={`${item.fromTable}-${item.id}`}>
+                        <td>{item.name}</td>
+                        <td>{item.fromTable}</td>
+                        <td><strong>{item.available}</strong></td>
+                        <td><span className={Number(item.available) <= 0 ? "stock-badge stock-badge--danger" : "stock-badge"}>{Number(item.available) <= 0 ? "Hết hàng" : "Sắp hết"}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {data.profitNote && <p className="stats-footnote">{data.profitNote}</p>}
+          </article>
+        </>
+      )}
+    </section>
   );
 }

@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { FaTimes, FaGift } from "react-icons/fa";
 import "./PromoPopup.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL } from "../../utils/api";
 
 const formatVnd = (value) => Number(value || 0).toLocaleString("vi-VN") + "đ";
 

@@ -17,6 +17,10 @@ import {
   verifyMomoSignature,
 } from "./backend/momo.mjs";
 
+if (process.env.NODE_ENV !== "test" && process.env.ALLOW_LEGACY_JSON_SERVER !== "yes") {
+  throw new Error("server.mjs là backend JSON phục vụ kiểm thử cũ và không có mô hình bảo mật production. Hãy dùng npm run server (MongoDB), hoặc đặt ALLOW_LEGACY_JSON_SERVER=yes khi chủ động chạy fixture cô lập.");
+}
+
 const server = jsonServer.create();
 const router = jsonServer.router("db.json");
 const middlewares = jsonServer.defaults();

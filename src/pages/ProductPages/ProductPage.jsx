@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../../utils/api";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
@@ -12,7 +13,7 @@ const ProductPage = () => {
 
   // Lấy dữ liệu danh sách Laptop biệt lập từ bảng ProductPagies
   useEffect(() => {
-    fetch("http://localhost:3000/ProductPagies")
+    fetch(`${API_URL}/ProductPagies`)
       .then((res) => res.json())
       .then((data) => setProductsList(data))
       .catch((err) => console.error("Lỗi tải danh sách ProductPagies:", err));

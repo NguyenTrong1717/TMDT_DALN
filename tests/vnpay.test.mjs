@@ -124,6 +124,7 @@ test("CRUD json-server không được đi thẳng vào đơn và lần thanh to
 
 test("backend tự tính đúng luồng mua ngay", () => {
   const state = fixture();
+  state.catenogies[0].oldPrice = 1200000;
   const quote = quoteCheckout(
     state,
     {
@@ -135,6 +136,23 @@ test("backend tự tính đúng luồng mua ngay", () => {
   );
   assert.equal(quote.totalAmount, 1000000);
   assert.equal(quote.products[0].unitPrice, 1000000);
+});
+
+test("backend áp dụng Flash Sale theo thời hạn và chặn voucher không cho kết hợp", () => {
+  const state = fixture();
+  state.catenogies[0] = { ...state.catenogies[0], price: 800000, oldPrice: 1000000, discount: 20, flashSale: true };
+  state.settings = [{ id: "flashSale", active: true, endTime: "2026-09-15T03:00:00.000Z" }];
+  const input = { userId: "u1", checkoutMode: "buy_now", items: [{ productId: "p1", fromTable: "catenogies", quantity: 1 }] };
+  const activeQuote = quoteCheckout(state, input, { now: NOW });
+  assert.equal(activeQuote.products[0].unitPrice, 800000);
+  assert.equal(activeQuote.products[0].pricingSource, "flash_sale");
+
+  state.vouchers[0].combinable = false;
+  assert.throws(() => quoteCheckout(state, { ...input, voucherCode: "SAVE100" }, { now: NOW }), /Flash Sale/);
+
+  const expiredQuote = quoteCheckout(state, input, { now: new Date("2026-09-16T03:00:00.000Z") });
+  assert.equal(expiredQuote.products[0].unitPrice, 1000000);
+  assert.equal(expiredQuote.products[0].pricingSource, "base");
 });
 
 test("IPN sai số tiền bị từ chối và không đổi đơn", () => {
@@ -175,6 +193,12 @@ test("IPN thành công chỉ trừ kho, dùng voucher và xử lý giỏ một l
   assert.equal(duplicate.response.RspCode, "02");
   assert.equal(state.eventList[0].stockLeft, 3);
   assert.equal(state.cart.length, 0);
+
+  order.paymentStatus = "refunded";
+  order.refundedAmount = order.totalAmount;
+  processVnpayIpn({ state, query, config: CONFIG, now: NOW });
+  assert.equal(order.paymentStatus, "refunded");
+  assert.equal(state.eventList[0].stockLeft, 3);
 });
 
 test("callback thành công của lần cũ đến muộn vẫn chốt đơn nếu chưa lần nào paid", () => {

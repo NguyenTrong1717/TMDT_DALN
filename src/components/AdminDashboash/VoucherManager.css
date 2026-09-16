@@ -30,7 +30,7 @@
   padding: 32px clamp(16px, 4vw, 48px) 64px;
 }
 
-.loading-box {
+.voucher-manager-loading {
   max-width: 520px;
   margin: 80px auto;
   text-align: center;
@@ -108,7 +108,7 @@
   flex-wrap: wrap;
 }
 
-.admin-title {
+.voucher-manager-page .admin-title {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -119,7 +119,7 @@
   color: var(--ink);
 }
 
-.admin-title svg {
+.voucher-manager-page .admin-title svg {
   color: var(--red);
   font-size: 18px;
 }
@@ -246,8 +246,8 @@
   gap: 8px;
 }
 
-.btn-edit,
-.btn-delete {
+.voucher-manager-page .btn-edit,
+.voucher-manager-page .btn-delete {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -264,22 +264,22 @@
     border-color 0.15s ease;
 }
 
-.btn-edit {
+.voucher-manager-page .btn-edit {
   border: 1.5px solid var(--line);
   color: var(--ink-soft);
 }
 
-.btn-edit:hover {
+.voucher-manager-page .btn-edit:hover {
   border-color: var(--ink-soft);
   color: var(--ink);
 }
 
-.btn-delete {
+.voucher-manager-page .btn-delete {
   border: 1.5px solid transparent;
   color: var(--red-dark);
 }
 
-.btn-delete:hover {
+.voucher-manager-page .btn-delete:hover {
   background: var(--red-tint);
   border-color: var(--red-tint);
 }
@@ -326,7 +326,7 @@
   color: var(--ink);
 }
 
-.btn-close {
+.voucher-manager-page .btn-close {
   border: none;
   background: transparent;
   color: var(--ink-soft);
@@ -340,7 +340,7 @@
     color 0.15s ease;
 }
 
-.btn-close:hover {
+.voucher-manager-page .btn-close:hover {
   background: var(--muted-bg);
   color: var(--ink);
 }
@@ -397,7 +397,7 @@
   border-top: 1px solid var(--line);
 }
 
-.btn-cancel {
+.voucher-manager-page .btn-cancel {
   border: 1.5px solid var(--line);
   background: transparent;
   color: var(--ink-soft);
@@ -412,12 +412,12 @@
     color 0.15s ease;
 }
 
-.btn-cancel:hover {
+.voucher-manager-page .btn-cancel:hover {
   border-color: var(--ink-soft);
   color: var(--ink);
 }
 
-.btn-save {
+.voucher-manager-page .btn-save {
   border: none;
   background: var(--red);
   color: #fff9f2;
@@ -430,22 +430,22 @@
   transition: background 0.15s ease;
 }
 
-.btn-save:hover {
+.voucher-manager-page .btn-save:hover {
   background: var(--red-dark);
 }
 
-.btn-save:disabled {
+.voucher-manager-page .btn-save:disabled {
   opacity: 0.6;
   cursor: progress;
 }
 
 /* keyboard accessibility */
 .btn-create-voucher:focus-visible,
-.btn-edit:focus-visible,
-.btn-delete:focus-visible,
-.btn-close:focus-visible,
-.btn-cancel:focus-visible,
-.btn-save:focus-visible,
+.voucher-manager-page .btn-edit:focus-visible,
+.voucher-manager-page .btn-delete:focus-visible,
+.voucher-manager-page .btn-close:focus-visible,
+.voucher-manager-page .btn-cancel:focus-visible,
+.voucher-manager-page .btn-save:focus-visible,
 .voucher-form-body input:focus-visible,
 .voucher-form-body select:focus-visible,
 .voucher-form-body textarea:focus-visible {
@@ -570,7 +570,7 @@
   border-color: var(--red);
 }
 
-.clear-search-btn {
+.voucher-manager-page .clear-search-btn {
   position: absolute;
   right: 12px;
   top: 50%;

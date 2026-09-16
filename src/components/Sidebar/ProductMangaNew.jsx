@@ -6,6 +6,7 @@ import Sevicer from "../../components/Sevicer/Sevicer";
 import { getImageUrl } from "../../utils/imageUtils";
 import "./ProductMangaNew.css";
 import ShowroomSystem from "../../pages/ShowroomSystem";
+import { API_URL } from "../../utils/api";
 
 const trustBadges = [
   "Hàng chính hãng 100%",
@@ -19,7 +20,7 @@ const ProductMangaNew = () => {
   const [productList, setProductList] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch("http://localhost:3000/appliances")
+    fetch(`${API_URL}/appliances`)
       .then((res) => res.json())
       .then((data) => setProductList(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Lỗi tải danh sách đồ gia dụng:", err))

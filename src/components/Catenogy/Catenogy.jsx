@@ -7,6 +7,7 @@ import { BsCreditCard2Front } from "react-icons/bs";
 import { Link, useNavigate } from "react-router-dom";
 import { getImageUrl } from "../../utils/imageUtils";
 import { toast } from "sonner";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 
 const TABS = [
   { label: "Top PC Bán Chạy", category: "top-ban-chay", image: "/images/pc.jpg" },
@@ -21,7 +22,7 @@ const Catenogy = ({ catenogies }) => {
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/reviews")
+    fetch(`${API_URL}/reviews`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => setReviews(data || []))
       .catch(() => {});
@@ -45,7 +46,7 @@ const Catenogy = ({ catenogies }) => {
   const handleQuickAdd = async (e, item) => {
     e.preventDefault();
     e.stopPropagation();
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng!");
       navigate("/login");
@@ -53,9 +54,7 @@ const Catenogy = ({ catenogies }) => {
     }
 
     try {
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`
-      );
+      const cartRes = await apiFetch(`/cart`);
       let cartItems = [];
       if (cartRes.ok) cartItems = await cartRes.json();
 
@@ -64,23 +63,23 @@ const Catenogy = ({ catenogies }) => {
       );
 
       if (existingItem) {
-        await fetch(`http://localhost:3000/cart/${existingItem.id}`, {
+        const response = await apiFetch(`/cart/${existingItem.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ quantity: Number(existingItem.quantity) + 1 }),
         });
+        if (!response.ok) throw new Error("Không thể cập nhật giỏ hàng.");
       } else {
-        await fetch("http://localhost:3000/cart", {
+        const response = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: `cart-cate-${item.id}-${Date.now()}`,
-            userId: currentUser.id,
             productId: String(item.id),
             quantity: 1,
             fromTable: "catenogies",
           }),
         });
+        if (!response.ok) throw new Error("Không thể thêm vào giỏ hàng.");
       }
       toast.success(`Đã thêm "${item.name}" vào giỏ hàng!`);
       window.dispatchEvent(new Event("cartUpdated"));

@@ -6,44 +6,39 @@ import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./UserOrders.css";
+import { API_URL, apiFetch, getCurrentUser, readJson } from "../../utils/api";
 
-const API_URL = "http://127.0.0.1:3000";
 
 const UserOrders = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
+  const [returnRequests, setReturnRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submittingOrderId, setSubmittingOrderId] = useState(null);
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const fetchOrders = async () => {
+    try {
+      const [res, returnsRes] = await Promise.all([apiFetch(`/api/orders/mine`), apiFetch(`/api/returns`)]);
+      if (!res.ok || !returnsRes.ok) throw new Error("Không thể tải danh sách đơn hàng/trả hàng.");
+      const [data, returnsData] = await Promise.all([res.json(), returnsRes.json()]);
+      setOrders(data.reverse());
+      setReturnRequests(Array.isArray(returnsData) ? returnsData : []);
+    } catch (error) {
+      toast.error(error.message || "Có lỗi xảy ra khi kết nối server!");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("currentUser"));
+    const storedUser = getCurrentUser();
     if (!storedUser) {
       navigate("/login");
       return;
     }
 
-    const fetchMyOrders = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/orders/mine`, {
-          headers: { "x-user-id": String(storedUser.id) },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          // Đảo ngược để đơn hàng mới nhất lên đầu
-          setOrders(data.reverse());
-        } else {
-          toast.error("Không thể tải danh sách đơn hàng!");
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("Có lỗi xảy ra khi kết nối server!");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMyOrders();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchOrders();
   }, [navigate]);
 
   // Hàm hiển thị tiền tệ VND chuẩn
@@ -75,6 +70,8 @@ const UserOrders = () => {
         return <span className="status-badge confirmed"> Đã xác nhận</span>;
       case "shipping":
         return <span className="status-badge shipping"> Đang giao hàng</span>;
+      case "delivered":
+        return <span className="status-badge completed"> Đã giao hàng</span>;
       case "completed":
         return <span className="status-badge completed"> Đã hoàn thành</span>;
       case "cancelled":
@@ -97,12 +94,8 @@ const UserOrders = () => {
   const handleRetryPayment = async (order) => {
     try {
       const method = order.paymentMethod === "momo" ? "momo" : "vnpay";
-      const response = await fetch(`${API_URL}/api/orders/${order.id}/${method}/retry`, {
+      const response = await apiFetch(`${API_URL}/api/orders/${order.id}/${method}/retry`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": String(currentUser.id),
-        },
         body: JSON.stringify({ lookupToken: order.lookupToken }),
       });
       const data = await response.json().catch(() => ({}));
@@ -114,8 +107,64 @@ const UserOrders = () => {
     }
   };
 
+  const handleCancellationRequest = async (order) => {
+    const reason = window.prompt("Nhập lý do yêu cầu hủy đơn:", "")?.trim();
+    if (!reason) return;
+    try {
+      const response = await apiFetch(`/api/orders/${order.id}/cancellation-request`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Không thể gửi yêu cầu hủy.");
+      toast.success("Đã gửi yêu cầu hủy. Nhân viên sẽ kiểm tra trạng thái thanh toán trước khi xử lý.");
+      fetchOrders();
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleReturnRequest = async (order) => {
+    const reason = window.prompt("Nhập lý do trả hàng (ít nhất 5 ký tự):", "")?.trim();
+    if (!reason) return;
+    const amountText = window.prompt("Nhập số tiền đề nghị hoàn (VND, phải lớn hơn 0):", "")?.trim();
+    const requestedAmount = Number(amountText);
+    if (!Number.isFinite(requestedAmount) || requestedAmount <= 0) {
+      toast.error("Số tiền đề nghị phải là số lớn hơn 0.");
+      return;
+    }
+    const items = (order.products || []).map((item) => ({
+      productId: item.productId,
+      fromTable: item.fromTable,
+      variantId: item.variantId || null,
+      quantity: item.quantity,
+    }));
+    if (!items.length) {
+      toast.error("Đơn hàng không có mặt hàng hợp lệ để tạo yêu cầu trả.");
+      return;
+    }
+    setSubmittingOrderId(order.id);
+    try {
+      await readJson(await apiFetch(`/api/orders/${order.id}/returns`, {
+        method: "POST",
+        body: JSON.stringify({
+          requestId: `customer_return_${order.id}_${Date.now()}`,
+          reason,
+          requestedAmount,
+          items,
+        }),
+      }), "Không thể gửi yêu cầu trả hàng.");
+      toast.success("Đã tạo yêu cầu trả hàng. Đây chưa phải xác nhận hoàn tiền; nhân viên sẽ tiếp nhận và kiểm tra hàng.");
+      await fetchOrders();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setSubmittingOrderId(null);
+    }
+  };
+
   if (loading)
-    return <div className="loading-box">Đang tải đơn hàng của bạn...</div>;
+    return <div className="user-orders-loading">Đang tải đơn hàng của bạn...</div>;
 
   return (
     <>
@@ -146,7 +195,9 @@ const UserOrders = () => {
               </div>
             ) : (
               <div className="orders-list">
-                {orders.map((order) => (
+                {orders.map((order) => {
+                  const returnRequest = returnRequests.find((item) => String(item.orderId) === String(order.id));
+                  return (
                   <div key={order.id} className="order-card">
                     {/* Header đơn hàng */}
                     <div className="order-header">
@@ -171,7 +222,26 @@ const UserOrders = () => {
                           Thanh toán lại
                         </button>
                       )}
+                      {["pending", "confirmed"].includes(order.status) && order.cancellationRequest?.status !== "requested" && (
+                        <button onClick={() => handleCancellationRequest(order)}>Yêu cầu hủy</button>
+                      )}
+                      {order.cancellationRequest?.status === "requested" && <span>Đang chờ xử lý yêu cầu hủy</span>}
+                      {["delivered", "completed"].includes(order.status) && !["requested", "approved", "processing"].includes(returnRequest?.status) && (
+                        <button disabled={submittingOrderId === order.id} onClick={() => handleReturnRequest(order)}>
+                          {submittingOrderId === order.id ? "Đang gửi..." : "Yêu cầu trả hàng"}
+                        </button>
+                      )}
                     </div>
+
+                    {returnRequest && (
+                      <div className="order-payment-info">
+                        <strong>Yêu cầu trả hàng: {returnRequest.status}</strong>
+                        <span>Đề nghị hoàn: {formatPrice(returnRequest.requestedAmount)}</span>
+                        <span>{returnRequest.reason}</span>
+                        {returnRequest.restockedAt && <span>Kho đã nhận lại {returnRequest.restockedQuantity} sản phẩm đủ điều kiện.</span>}
+                        {returnRequest.manualRefund?.confirmedAt && <span>Đã ghi nhận chứng từ hoàn thủ công: {returnRequest.manualRefund.reference}</span>}
+                      </div>
+                    )}
 
                     {/* Danh sách sản phẩm */}
                     <div className="order-items">
@@ -223,7 +293,8 @@ const UserOrders = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

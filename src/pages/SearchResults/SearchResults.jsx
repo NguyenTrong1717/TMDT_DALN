@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { API_URL } from "../../utils/api";
 import { useSearchParams } from "react-router-dom";
 import Header from "../../components/Header/Header";
 import Footer from "../../components/Footer/FooterUser";
@@ -30,12 +31,12 @@ const SearchResults = () => {
       setLoading(true);
       try {
         const [res1, res2, res3, res4, res5, res6] = await Promise.all([
-          fetch("http://localhost:3000/products"),
-          fetch("http://localhost:3000/eventList"),
-          fetch("http://localhost:3000/catenogies"),
-          fetch("http://localhost:3000/LaptopUser"),
-          fetch("http://localhost:3000/ProductMenus"),
-          fetch("http://localhost:3000/appliances"),
+          fetch(`${API_URL}/products`),
+          fetch(`${API_URL}/eventList`),
+          fetch(`${API_URL}/catenogies`),
+          fetch(`${API_URL}/LaptopUser`),
+          fetch(`${API_URL}/ProductMenus`),
+          fetch(`${API_URL}/appliances`),
         ]);
 
         const [p1, p2, p3, p4, p5, p6] = await Promise.all([

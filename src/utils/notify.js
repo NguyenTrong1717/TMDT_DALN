@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+import { apiFetch } from "./api";
 
 /**
  * Tạo 1 thông báo mới trong hệ thống.
@@ -22,9 +22,8 @@ export const createNotification = async ({
   image = null,
 }) => {
   try {
-    await fetch(`${API_URL}/notifications`, {
+    const response = await apiFetch(`/notifications`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userId: userId != null ? String(userId) : null,
         type,
@@ -36,6 +35,7 @@ export const createNotification = async ({
         createdAt: new Date().toISOString(),
       }),
     });
+    if (!response.ok) throw new Error("Không thể tạo thông báo.");
     // Báo cho chuông thông báo (nếu đang mở) tự fetch lại ngay, không cần đợi vòng polling
     window.dispatchEvent(new Event("notificationsUpdated"));
   } catch (err) {

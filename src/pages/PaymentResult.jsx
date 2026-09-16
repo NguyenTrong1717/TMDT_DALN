@@ -15,8 +15,8 @@ import {
 import Header from "../components/Header/Header";
 import FooterUser from "../components/Footer/FooterUser";
 import "./PaymentResult.css";
+import { API_URL, apiFetch, getCurrentUser } from "../utils/api";
 
-const API_URL = "http://127.0.0.1:3000";
 const MAX_POLLS = 20;
 
 const formatPrice = (amount) =>
@@ -130,7 +130,7 @@ const PaymentResult = () => {
   }, [paid, redirectCountdown, navigate]);
 
   const retryPayment = async () => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
     if (!currentUser || !result?.id) {
       setError("Bạn cần đăng nhập lại trước khi thử thanh toán.");
       return;
@@ -139,12 +139,8 @@ const PaymentResult = () => {
     setError("");
     try {
       const method = result?.paymentMethod === "momo" ? "momo" : "vnpay";
-      const response = await fetch(`${API_URL}/api/orders/${result.id}/${method}/retry`, {
+      const response = await apiFetch(`${API_URL}/api/orders/${result.id}/${method}/retry`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-user-id": String(currentUser.id),
-        },
         body: JSON.stringify({ lookupToken: token }),
       });
       const data = await response.json().catch(() => ({}));

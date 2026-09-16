@@ -5,8 +5,7 @@ import { FaHeart, FaTrash, FaShoppingCart } from "react-icons/fa";
 import Header from "../Header/Header";
 import FooterUser from "../Footer/FooterUser";
 import "./Wishlist.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL, apiFetch } from "../../utils/api";
 
 const DETAIL_ROUTE_BY_TABLE = {
   catenogies: (id) => `/product/${id}`,
@@ -39,11 +38,11 @@ const Wishlist = () => {
     try {
       setLoading(true);
 
-      let res = await fetch(`${API_URL}/wishlist?userId=${currentUser.id}`);
+      let res = await apiFetch(`/wishlist?userId=${currentUser.id}`);
       let raw = res.ok ? await res.json() : [];
 
       if (!raw || raw.length === 0) {
-        const resAll = await fetch(`${API_URL}/wishlist`);
+        const resAll = await apiFetch(`/wishlist`);
         if (resAll.ok) {
           const all = await resAll.json();
           raw = all.filter(
@@ -85,7 +84,7 @@ const Wishlist = () => {
 
   const handleRemove = async (wishlistId) => {
     try {
-      const res = await fetch(`${API_URL}/wishlist/${wishlistId}`, {
+      const res = await apiFetch(`/wishlist/${wishlistId}`, {
         method: "DELETE",
       });
       if (res.ok) {

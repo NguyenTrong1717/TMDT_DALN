@@ -6,6 +6,7 @@ import Sevicer from "../../components/Sevicer/Sevicer";
 import "./Prodemo.css";
 import ShowroomSystem from "../../pages/ShowroomSystem";
 import ProductReviews from "../../pages/ProductReviews";
+import { API_URL } from "../../utils/api";
 
 const trustPoints = [
   "Đã kiểm định chất lượng",
@@ -22,7 +23,7 @@ const Prodemo = () => {
 
   // Lấy dữ liệu danh sách Laptop biệt lập từ bảng demoUnits
   useEffect(() => {
-    fetch("http://localhost:3000/demoUnits")
+    fetch(`${API_URL}/demoUnits`)
       .then((res) => res.json())
       .then((data) => setProdemoList(data))
       .catch((err) => console.error("Lỗi tải danh sách demoUnits:", err))

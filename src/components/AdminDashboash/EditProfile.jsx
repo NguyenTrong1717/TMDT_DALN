@@ -4,11 +4,12 @@ import { toast } from "sonner";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import "./Profile.css";
+import { apiFetch, getAccessToken, getCurrentUser, setAuthSession } from "../../utils/api";
 
 const EditProfile = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(() =>
-    JSON.parse(localStorage.getItem("currentUser")),
+  const [currentUser] = useState(() =>
+    getCurrentUser(),
   );
   const [formData, setFormData] = useState({
     fullName: currentUser?.fullName || "",
@@ -22,19 +23,18 @@ const EditProfile = () => {
 
     // Gọi API update lên server (Giả sử bạn dùng json-server)
     try {
-      const res = await fetch(`http://localhost:3000/users/${currentUser.id}`, {
+      const res = await apiFetch(`/api/users/me`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (res.ok) {
-        const updatedUser = { ...currentUser, ...formData };
-        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        const updatedUser = await res.json();
+        setAuthSession({ token: getAccessToken(), user: updatedUser });
         toast.success("Cập nhật thông tin thành công!");
         navigate("/profile");
       }
-    } catch (error) {
+    } catch {
       toast.error("Lỗi cập nhật dữ liệu!");
     }
   };

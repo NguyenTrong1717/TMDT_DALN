@@ -6,6 +6,7 @@ import "./Register.css"; // Hãy chắc chắn bạn đã tạo hoặc có file 
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
+import { apiFetch, readJson } from "../../utils/api";
 
 import {
   FaUser,
@@ -60,44 +61,12 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // Gọi lên json-server để kiểm tra trùng lặp tài khoản
-      const response = await fetch("http://localhost:3000/users");
-      if (!response.ok) throw new Error("Không thể kết nối đến server!");
-
-      const users = await response.json();
-
-      // 4. Kiểm tra xem Email hoặc Số điện thoại đã tồn tại chưa
-      const isExist = users.some(
-        (user) => user.email === email || user.phone === phone,
-      );
-      if (isExist) {
-        toast.error(
-          "Email hoặc Số điện thoại này đã được đăng ký trên hệ thống!",
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      // 5. Chuẩn bị dữ liệu để tạo User mới
-      const newUser = {
-        // json-server tự động sinh ID tăng dần nếu ta không truyền id, hoặc truyền id dạng chuỗi/số tự tăng
-        id: String(Date.now()), // Tạo ID tạm thời duy nhất bằng timestamp
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        password: password,
-        role: "user", // Mặc định đăng ký mới luôn là tài khoản khách hàng (user)
-        status: "active", // Trạng thái hoạt động bình thường
-      };
-
-      // Gửi yêu cầu POST lưu vào json-server
-      const createResponse = await fetch("http://localhost:3000/users", {
+      const createResponse = await apiFetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify({ fullName: fullName.trim(), email: email.trim(), phone: phone.trim(), password }),
       });
-
-      if (createResponse.ok) {
+      await readJson(createResponse, "Không thể tạo tài khoản.");
+      {
         // 6. Thông báo thành công rực rỡ bằng Sonner
         setFullName("");
         setEmail("");
@@ -110,14 +79,10 @@ const Register = () => {
         setTimeout(() => {
           navigate("/login");
         }, 1500);
-      } else {
-        toast.error("Có lỗi xảy ra từ máy chủ, không thể tạo tài khoản!");
       }
     } catch (error) {
       console.error("Lỗi đăng ký:", error);
-      toast.error(
-        "Lỗi kết nối Server mạng. Hãy chắc chắn json-server đang chạy!",
-      );
+      toast.error(error.message || "Không thể kết nối tới server.");
     } finally {
       setIsLoading(false);
     }

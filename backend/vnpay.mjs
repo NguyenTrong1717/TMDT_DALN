@@ -81,7 +81,7 @@ const getProduct = (state, fromTable, productId) => {
   return product;
 };
 
-const activeReservationQuantity = (state, fromTable, productId, now, excludeOrderId) =>
+const activeReservationQuantity = (state, fromTable, productId, variantId, now, excludeOrderId) =>
   (state.orders || [])
     .filter(
       (order) =>
@@ -92,7 +92,7 @@ const activeReservationQuantity = (state, fromTable, productId, now, excludeOrde
     )
     .flatMap((order) => order.products || [])
     .filter(
-      (item) => item.fromTable === fromTable && sameId(item.productId, productId),
+      (item) => item.fromTable === fromTable && sameId(item.productId, productId) && sameId(item.variantId || "", variantId || ""),
     )
     .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
@@ -122,7 +122,7 @@ const resolveRequestedItems = (state, input) => {
   return input.items;
 };
 
-const calculateVoucher = (state, userId, voucherCode, subTotal, now, excludeOrderId) => {
+const calculateVoucher = (state, userId, voucherCode, subTotal, now, excludeOrderId, hasFlashSale) => {
   if (!voucherCode) return { voucher: null, userVoucher: null, discountAmount: 0 };
   const normalizedCode = String(voucherCode).trim().toUpperCase();
   const voucher = (state.vouchers || []).find((item) => item.code === normalizedCode);
@@ -133,11 +133,19 @@ const calculateVoucher = (state, userId, voucherCode, subTotal, now, excludeOrde
   if (!voucher || !userVoucher || userVoucher.used === true) {
     throw new Error("Voucher không hợp lệ hoặc đã được sử dụng.");
   }
+  if (voucher.active === false) throw new Error("Voucher đang bị tạm ngừng.");
+  if (voucher.startsAt && new Date(voucher.startsAt) > now) throw new Error("Voucher chưa đến thời gian sử dụng.");
   if (voucher.expiredAt && new Date(`${voucher.expiredAt}T23:59:59+07:00`) < now) {
     throw new Error("Voucher đã hết hạn.");
   }
   if (subTotal < Number(voucher.minOrder || 0)) {
     throw new Error("Đơn hàng chưa đạt giá trị tối thiểu của voucher.");
+  }
+  if (hasFlashSale && voucher.combinable === false) {
+    throw new Error("Voucher này không được dùng chung với sản phẩm Flash Sale.");
+  }
+  if (Number(voucher.maxCollect || 0) > 0 && Number(voucher.collectedCount || 0) > Number(voucher.maxCollect)) {
+    throw new Error("Voucher đã hết lượt sử dụng.");
   }
 
   const reservedByAnotherOrder = (state.orders || []).some(
@@ -145,7 +153,7 @@ const calculateVoucher = (state, userId, voucherCode, subTotal, now, excludeOrde
       order.id !== excludeOrderId &&
       sameId(order.userId, userId) &&
       order.voucherCode === normalizedCode &&
-      order.paymentMethod === "vnpay" &&
+      ["vnpay", "momo"].includes(order.paymentMethod) &&
       order.paymentStatus === "pending" &&
       new Date(order.reservationExpiresAt).getTime() > now.getTime(),
   );
@@ -165,6 +173,7 @@ const calculateVoucher = (state, userId, voucherCode, subTotal, now, excludeOrde
 
 export const quoteCheckout = (state, input, options = {}) => {
   const now = options.now || new Date();
+  const flashSaleSettings = (state.settings || []).find((item) => item.id === "flashSale");
   const requestedItems = resolveRequestedItems(state, input);
   const seen = new Set();
   const products = requestedItems.map((item) => {
@@ -179,18 +188,38 @@ export const quoteCheckout = (state, input, options = {}) => {
     }
 
     const product = getProduct(state, fromTable, productId);
-    const unitPrice = cleanPrice(product.price);
+    const variant = item.variantId && Array.isArray(product.variants)
+      ? product.variants.find((entry) => sameId(entry.id, item.variantId))
+      : null;
+    if (item.variantId && !variant) throw new Error("Biến thể sản phẩm không tồn tại.");
+    const flashSaleStarted = !flashSaleSettings?.startTime || new Date(flashSaleSettings.startTime) <= now;
+    const flashSaleNotEnded = !flashSaleSettings?.endTime || new Date(flashSaleSettings.endTime) >= now;
+    const flashSaleActive = product.flashSale === true && flashSaleSettings?.active !== false && flashSaleStarted && flashSaleNotEnded;
+    const discountPercent = Number(product.discount || 0);
+    if (flashSaleActive && (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 90)) {
+      throw new Error("Mức giảm Flash Sale của sản phẩm không hợp lệ.");
+    }
+    const regularPrice = cleanPrice(variant?.oldPrice ?? (variant ? variant.price : product.oldPrice ?? product.price));
+    const unitPrice = flashSaleActive && discountPercent > 0
+      ? Math.round((regularPrice * (100 - discountPercent)) / 100)
+      : cleanPrice(flashSaleActive
+        ? (variant?.price ?? product.price)
+        : (product.flashSale === true || product.flashSale === false)
+          ? (variant?.oldPrice ?? product.oldPrice ?? variant?.price ?? product.price)
+          : (variant?.price ?? product.price));
     if (unitPrice <= 0) throw new Error("Giá sản phẩm không hợp lệ.");
     if (product.status && !String(product.status).toLowerCase().includes("còn")) {
       throw new Error(`${product.name || "Sản phẩm"} hiện không còn hàng.`);
     }
-    const hasStockField = product.stockLeft != null || product.stock != null;
+    const inventorySource = variant || product;
+    const hasStockField = inventorySource.stockLeft != null || inventorySource.stock != null;
     if (hasStockField) {
-      const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
+      const currentStock = inventorySource.stockLeft != null ? Number(inventorySource.stockLeft) : Number(inventorySource.stock);
       const reserved = activeReservationQuantity(
         state,
         fromTable,
         productId,
+        variant?.id,
         now,
         options.excludeOrderId,
       );
@@ -204,10 +233,16 @@ export const quoteCheckout = (state, input, options = {}) => {
       fromTable,
       cartId: item.cartId || null,
       name: product.name || product.title || "Sản phẩm",
+      sku: variant?.sku || product.sku || null,
+      variantId: variant ? String(variant.id) : null,
+      variantName: variant?.name || null,
       image: product.image || "",
       quantity,
       unitPrice,
       subtotal: unitPrice * quantity,
+      discountAmount: 0,
+      pricingSource: flashSaleActive ? "flash_sale" : "base",
+      flashSaleDiscountPercent: flashSaleActive ? discountPercent : 0,
     };
   });
 
@@ -220,6 +255,7 @@ export const quoteCheckout = (state, input, options = {}) => {
     subTotal,
     now,
     options.excludeOrderId,
+    products.some((item) => item.pricingSource === "flash_sale"),
   );
   const discountAmount = Math.round(voucherResult.discountAmount);
   const totalAmount = Math.max(0, Math.round(subTotal + shipping - discountAmount));
@@ -228,8 +264,17 @@ export const quoteCheckout = (state, input, options = {}) => {
     throw new Error("Tổng thanh toán vượt giới hạn của VNPAY.");
   }
 
+  let distributed = 0;
+  const snapshottedProducts = products.map((product, index) => {
+    const itemDiscount = index === products.length - 1
+      ? discountAmount - distributed
+      : Math.round((product.subtotal / subTotal) * discountAmount);
+    distributed += itemDiscount;
+    return { ...product, discountAmount: itemDiscount, finalAmount: product.subtotal - itemDiscount };
+  });
+
   return {
-    products,
+    products: snapshottedProducts,
     subTotal,
     shipping,
     discountAmount,
@@ -296,6 +341,7 @@ export const createBaseOrder = ({ input, quote, paymentMethod, now = new Date() 
     inventoryProcessed: false,
     voucherProcessed: false,
     cartProcessed: false,
+    version: 1,
     createdAt: iso(now),
     updatedAt: iso(now),
   };
@@ -342,14 +388,20 @@ export const fulfillOrder = (state, order, now = new Date()) => {
   if (!order.inventoryProcessed) {
     for (const item of order.products) {
       const product = getProduct(state, item.fromTable, item.productId);
-      const hasStock = product.stockLeft != null || product.stock != null;
+      const variant = item.variantId && Array.isArray(product.variants)
+        ? product.variants.find((entry) => sameId(entry.id, item.variantId))
+        : null;
+      const inventorySource = variant || product;
+      const hasStock = inventorySource.stockLeft != null || inventorySource.stock != null;
       if (hasStock) {
-        const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
-        if (currentStock < item.quantity) order.inventoryShortage = true;
-        const newStock = Math.max(0, currentStock - item.quantity);
-        product.stockLeft = newStock;
-        product.stock = newStock;
-        if (newStock === 0 && product.status) product.status = "Hết hàng";
+        const currentStock = inventorySource.stockLeft != null ? Number(inventorySource.stockLeft) : Number(inventorySource.stock);
+        if (currentStock < item.quantity) {
+          throw new Error(`${item.name || "Sản phẩm"} không đủ tồn kho để ghi nhận thanh toán.`);
+        }
+        const newStock = currentStock - item.quantity;
+        inventorySource.stockLeft = newStock;
+        inventorySource.stock = newStock;
+        if (!variant && newStock === 0 && product.status) product.status = "Hết hàng";
       }
     }
     order.inventoryProcessed = true;
@@ -372,13 +424,17 @@ export const releaseCancelledOrder = (state, order, now = new Date()) => {
   if (!order.inventoryProcessed || order.inventoryReleasedAt) return;
   for (const item of order.products || []) {
     const product = getProduct(state, item.fromTable, item.productId);
-    const hasStock = product.stockLeft != null || product.stock != null;
+    const variant = item.variantId && Array.isArray(product.variants)
+      ? product.variants.find((entry) => sameId(entry.id, item.variantId))
+      : null;
+    const inventorySource = variant || product;
+    const hasStock = inventorySource.stockLeft != null || inventorySource.stock != null;
     if (hasStock) {
-      const currentStock = product.stockLeft != null ? Number(product.stockLeft) : Number(product.stock);
+      const currentStock = inventorySource.stockLeft != null ? Number(inventorySource.stockLeft) : Number(inventorySource.stock);
       const newStock = currentStock + Number(item.quantity);
-      product.stockLeft = newStock;
-      product.stock = newStock;
-      if (product.status === "Hết hàng") product.status = "Còn hàng";
+      inventorySource.stockLeft = newStock;
+      inventorySource.stock = newStock;
+      if (!variant && product.status === "Hết hàng") product.status = "Còn hàng";
     }
   }
   if (order.userVoucherId && order.voucherProcessed) {
@@ -416,7 +472,7 @@ export const processVnpayIpn = ({ state, query, config, now = new Date() }) => {
   if (String(attempt.amount) !== String(query.vnp_Amount)) {
     return { response: { RspCode: "04", Message: "Invalid amount" }, changed: false };
   }
-  if (order.paymentStatus === "paid") {
+  if (attempt.status === "paid" || ["paid", "partially_refunded", "refunded"].includes(order.paymentStatus)) {
     return { response: { RspCode: "02", Message: "Order already confirmed" }, changed: false };
   }
 
@@ -457,7 +513,7 @@ export const processVnpayIpn = ({ state, query, config, now = new Date() }) => {
   return { response: { RspCode: "00", Message: "Confirm Success" }, changed: true };
 };
 
-export const sanitizeOrder = (order, { includeLookupToken = false } = {}) => {
+export const sanitizeOrder = (order, { includeLookupToken = false, admin = false } = {}) => {
   const safe = {
     id: order.id,
     orderCode: order.orderCode,
@@ -480,11 +536,31 @@ export const sanitizeOrder = (order, { includeLookupToken = false } = {}) => {
     createdAt: order.createdAt,
     paidAt: order.paidAt || null,
     inventoryShortage: order.inventoryShortage === true,
+    version: Number(order.version || 0),
+    shippingCarrier: order.shippingCarrier || null,
+    trackingCode: order.trackingCode || null,
+    trackingCodeSource: order.trackingCodeSource || null,
+    deliveredAt: order.deliveredAt || null,
+    completedAt: order.completedAt || null,
+    refundedAmount: Number(order.refundedAmount || 0),
+    cancellationRequest: order.cancellationRequest || null,
+    statusHistory: Array.isArray(order.statusHistory)
+      ? (admin
+        ? order.statusHistory
+        : order.statusHistory.map(({ from, to, at }) => ({ from, to, at })))
+      : [],
     canRetryPayment:
       ["vnpay", "momo"].includes(order.paymentMethod) &&
       order.paymentStatus !== "paid" &&
       !["cancelled", "completed"].includes(order.status),
   };
+  if (admin) {
+    safe.internalNote = order.internalNote || "";
+    safe.codCollectionReference = order.codCollectionReference || null;
+    safe.archived = order.archived === true;
+    safe.fulfilledAt = order.fulfilledAt || null;
+    safe.refundRecords = Array.isArray(order.refundRecords) ? order.refundRecords : [];
+  }
   if (includeLookupToken) safe.lookupToken = order.lookupToken;
   return safe;
 };

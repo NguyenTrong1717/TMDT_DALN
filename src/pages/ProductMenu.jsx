@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_URL } from "../utils/api";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import InstallmentModal from "./InstallmentModal";
@@ -11,6 +12,7 @@ import { IoCall } from "react-icons/io5";
 import { FaRocketchat } from "react-icons/fa6";
 import { FcShipped } from "react-icons/fc";
 import "./ProductMenu.css";
+import { apiFetch, getCurrentUser } from "../utils/api";
 import ProductReviews from "./ProductReviews";
 import ShowroomSystem from "./ShowroomSystem";
 import WishlistButton from "../components/Wishlist/WishlistButton";
@@ -27,7 +29,7 @@ const ProductMenu = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:3000/ProductMenus")
+    fetch(`${API_URL}/ProductMenus`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
@@ -46,7 +48,7 @@ const ProductMenu = () => {
   }, [showModal]);
 
   const handleAddToCart = async (redirectToCart = false) => {
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentUser = getCurrentUser();
 
     if (!currentUser) {
       toast.warning("Vui lòng đăng nhập để mua sản phẩm này!");
@@ -58,15 +60,15 @@ const ProductMenu = () => {
     const targetFromTable = "ProductMenus";
 
     try {
-      const cartRes = await fetch(
-        `http://localhost:3000/cart?userId=${currentUser.id}`,
+      const cartRes = await apiFetch(
+        `/cart?userId=${currentUser.id}`,
       );
       let cartItems = [];
 
       if (cartRes.ok) cartItems = await cartRes.json();
 
       if (!cartItems || cartItems.length === 0) {
-        const resAll = await fetch("http://localhost:3000/cart");
+        const resAll = await apiFetch("/cart");
         if (resAll.ok) {
           const allCart = await resAll.json();
           cartItems = allCart.filter(
@@ -82,8 +84,8 @@ const ProductMenu = () => {
       );
 
       if (existingItem) {
-        const updateRes = await fetch(
-          `http://localhost:3000/cart/${existingItem.id}`,
+        const updateRes = await apiFetch(
+          `/cart/${existingItem.id}`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -105,7 +107,7 @@ const ProductMenu = () => {
           quantity: 1,
           fromTable: targetFromTable,
         };
-        const postRes = await fetch("http://localhost:3000/cart", {
+        const postRes = await apiFetch("/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(newCartItem),

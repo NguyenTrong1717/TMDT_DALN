@@ -3,8 +3,7 @@ import { toast, Toaster } from "sonner";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import "./VoucherWallet.css";
-
-const API_URL = "http://localhost:3000";
+import { API_URL, apiFetch, getCurrentUser } from "../../utils/api";
 
 const formatVnd = (value) => value.toLocaleString("vi-VN") + "đ";
 
@@ -21,7 +20,7 @@ const VoucherWallet = () => {
   const [collectedCodes, setCollectedCodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [collectingCode, setCollectingCode] = useState(null);
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUser = getCurrentUser();
 
   useEffect(() => {
     const init = async () => {
@@ -29,7 +28,7 @@ const VoucherWallet = () => {
         const [voucherRes, userVoucherRes] = await Promise.all([
           fetch(`${API_URL}/vouchers`),
           currentUser
-            ? fetch(`${API_URL}/userVouchers?userId=${currentUser.id}`)
+            ? apiFetch(`/userVouchers?userId=${currentUser.id}`)
             : Promise.resolve(null),
         ]);
 
@@ -60,24 +59,10 @@ const VoucherWallet = () => {
 
     setCollectingCode(voucher.code);
     try {
-      const res = await fetch(`${API_URL}/userVouchers`, {
+      const res = await apiFetch(`/api/vouchers/${voucher.id}/claim`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          voucherCode: voucher.code,
-          collectedAt: new Date().toISOString(),
-          used: false,
-        }),
       });
       if (!res.ok) throw new Error("Thu thập thất bại");
-
-      // Cập nhật số lượt đã thu thập trên chính voucher
-      await fetch(`${API_URL}/vouchers/${voucher.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collectedCount: voucher.collectedCount + 1 }),
-      });
 
       setCollectedCodes((prev) => [...prev, voucher.code]);
       setVouchers((prev) =>

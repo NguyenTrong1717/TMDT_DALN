@@ -7,6 +7,7 @@ import {
   MdSupportAgent,
   MdCreditCard,
 } from "react-icons/md";
+import { apiFetch, getCurrentUser } from "../../utils/api";
 
 const Sevicer = () => {
   const [activeService, setActiveService] = useState(null);
@@ -54,8 +55,12 @@ const Sevicer = () => {
   // gửi lên sever để xử lý thông tin
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!getCurrentUser()) {
+      toast.warning("Vui lòng đăng nhập để gửi yêu cầu dịch vụ.");
+      return;
+    }
     try {
-      const res = await fetch("http://localhost:3000/serviceRequests", {
+      const res = await apiFetch("/serviceRequests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

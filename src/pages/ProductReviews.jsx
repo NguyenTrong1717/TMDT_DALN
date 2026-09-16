@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import "./ProductReviews.css";
+import { API_URL, apiFetch, getCurrentUser } from "../utils/api";
 
 const formatDate = (iso) => {
   if (!iso) return "";
@@ -101,7 +102,7 @@ const ProductReviews = ({ productId, collectionName = "categories" }) => {
   const listRef = useRef(null);
   const commentRef = useRef(null);
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+  const currentUser = getCurrentUser();
   const isAdmin = currentUser?.role === "admin";
 
   const fetchReviews = async () => {
@@ -110,8 +111,8 @@ const ProductReviews = ({ productId, collectionName = "categories" }) => {
       // Nếu có productId thì lọc theo sản phẩm, không thì lấy bình luận
       // chung của cả khu (dùng cho trang trưng bày / không gắn sản phẩm cụ thể)
       const url = productId
-        ? `http://localhost:3000/reviews?productId=${productId}`
-        : `http://localhost:3000/reviews`;
+        ? `${API_URL}/reviews?productId=${productId}`
+        : `${API_URL}/reviews`;
       const res = await fetch(url);
       const data = await res.json();
       const filtered = data
@@ -174,7 +175,7 @@ const ProductReviews = ({ productId, collectionName = "categories" }) => {
 
     setSubmitting(true);
     try {
-      const res = await fetch("http://localhost:3000/reviews", {
+      const res = await apiFetch(`/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newReview),
@@ -203,7 +204,7 @@ const ProductReviews = ({ productId, collectionName = "categories" }) => {
     if (!replyText.trim()) return;
     setReplySubmitting(true);
     try {
-      const res = await fetch(`http://localhost:3000/reviews/${reviewId}`, {
+      const res = await apiFetch(`/reviews/${reviewId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

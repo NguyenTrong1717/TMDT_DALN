@@ -6,8 +6,8 @@ import { IoFlashSharp, IoGift } from "react-icons/io5";
 import { MdContactMail } from "react-icons/md";
 
 import "./NotificationBell.css";
+import { apiFetch } from "../../utils/api";
 
-const API_URL = "http://localhost:3000";
 const POLL_INTERVAL = 20000; // 20s — tự làm mới danh sách thông báo
 
 const TYPE_ICON = {
@@ -46,7 +46,7 @@ const NotificationBell = ({ label }) => {
   const fetchNotifications = async () => {
     if (!currentUser) return;
     try {
-      const res = await fetch(`${API_URL}/notifications`);
+      const res = await apiFetch(`/notifications`);
       const data = await res.json();
       const readBroadcastIds = getReadBroadcastIds();
 
@@ -96,7 +96,7 @@ const NotificationBell = ({ label }) => {
       localStorage.setItem(readBroadcastKey, JSON.stringify([...ids, n.id]));
     } else {
       try {
-        await fetch(`${API_URL}/notifications/${n.id}`, {
+        await apiFetch(`/notifications/${n.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ read: true }),
@@ -134,7 +134,7 @@ const NotificationBell = ({ label }) => {
     const personal = unread.filter((n) => n.userId !== null);
     await Promise.all(
       personal.map((n) =>
-        fetch(`${API_URL}/notifications/${n.id}`, {
+        apiFetch(`/notifications/${n.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ read: true }),

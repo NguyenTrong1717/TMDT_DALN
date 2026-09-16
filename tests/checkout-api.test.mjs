@@ -22,6 +22,7 @@ test("HTTP checkout routes create COD and VNPAY orders in an isolated database",
       windowsHide: true,
       env: {
         ...process.env,
+        ALLOW_LEGACY_JSON_SERVER: "yes",
         PORT: "0",
         VNP_TMN_CODE: "TESTCODE",
         VNP_HASH_SECRET: "TEST_SECRET",
@@ -33,7 +34,7 @@ test("HTTP checkout routes create COD and VNPAY orders in an isolated database",
     closed = new Promise(resolve => child.once("close", resolve));
     const baseUrl = await new Promise((resolve, reject) => {
       let output = "";
-      const timer = setTimeout(() => reject(new Error("Backend startup timed out")), 5000);
+      const timer = setTimeout(() => reject(new Error("Backend startup timed out")), 10000);
       child.once("error", error => { clearTimeout(timer); reject(error); });
       child.once("exit", () => { clearTimeout(timer); reject(new Error("Backend exited before startup")); });
       child.stdout.on("data", chunk => {

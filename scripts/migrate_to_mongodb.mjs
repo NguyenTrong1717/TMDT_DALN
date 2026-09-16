@@ -1,7 +1,12 @@
 import fs from "fs";
 import { MongoClient } from "mongodb";
+import { hashPassword } from "../backend/security.mjs";
 
-process.loadEnvFile?.();
+try {
+  process.loadEnvFile?.();
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
 
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
 const dbName = process.env.DB_NAME || "tmdt_daln";
@@ -22,20 +27,34 @@ async function migrate() {
     console.log(`✅ Kết nối MongoDB: ${dbName}`);
 
     let totalDocs = 0;
+    const replaceMode = process.argv.includes("--replace");
+    if (replaceMode && process.env.ALLOW_DESTRUCTIVE_MIGRATION !== "yes") {
+      throw new Error("Chế độ --replace cần ALLOW_DESTRUCTIVE_MIGRATION=yes. Mặc định script chỉ upsert và bảo toàn dữ liệu.");
+    }
     for (const [key, items] of Object.entries(data)) {
       if (!Array.isArray(items) || key.startsWith("$")) continue;
       const col = db.collection(key);
-      await col.deleteMany({});
+      if (replaceMode) await col.deleteMany({});
       if (items.length > 0) {
-        await col.insertMany(items.map((item) => ({ ...item })));
+        for (const source of items) {
+          const item = { ...source };
+          if (key === "users" && item.password && !item.passwordHash) {
+            item.passwordHash = await hashPassword(String(item.password));
+            item.emailNormalized = String(item.email || "").toLowerCase();
+            delete item.password;
+          }
+          const identity = item.id !== undefined ? { id: item.id } : { _id: item._id };
+          await col.updateOne(identity, { $set: item, ...(key === "users" ? { $unset: { password: "" } } : {}) }, { upsert: true });
+        }
         await col.createIndex({ id: 1 }).catch(() => {});
         totalDocs += items.length;
         console.log(`  + [${key}]: ${items.length} bản ghi`);
       }
     }
-    console.log(`🎉 Đồng bộ hoàn tất: ${totalDocs} bản ghi vào '${dbName}'`);
+    console.log(`🎉 ${replaceMode ? "Thay thế" : "Upsert an toàn"} hoàn tất: ${totalDocs} bản ghi vào '${dbName}'`);
   } catch (err) {
     console.error("❌ Lỗi di chuyển dữ liệu:", err.message);
+    process.exitCode = 1;
   } finally {
     await client.close();
   }

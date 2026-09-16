@@ -1,6 +1,10 @@
 import { MongoClient } from "mongodb";
 
-process.loadEnvFile?.();
+try {
+  process.loadEnvFile?.();
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
 
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
 const dbName = process.env.DB_NAME || "tmdt_daln";

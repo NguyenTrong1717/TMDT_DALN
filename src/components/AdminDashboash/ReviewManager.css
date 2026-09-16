@@ -188,7 +188,7 @@
 }
 
 .rm-search-box input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .rm-search-box input:focus {
@@ -520,4 +520,77 @@
   background: #2563eb;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+@media (max-width: 760px) {
+  .rm-page {
+    min-height: auto;
+    padding: 24px 18px 48px;
+  }
+
+  .rm-toolbar-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rm-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .rm-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .rm-search-box {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .rm-page {
+    padding: 20px 14px 40px;
+  }
+
+  .rm-page .admin-title {
+    font-size: 17px;
+    line-height: 1.35;
+  }
+
+  .rm-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .rm-stat-box {
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .rm-card {
+    padding: 16px;
+  }
+
+  .rm-card__head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rm-actions,
+  .rm-reply-form,
+  .rm-reply-form__btns {
+    max-width: none;
+    width: 100%;
+  }
+
+  .rm-btn,
+  .rm-reply-form__btns button {
+    justify-content: center;
+    flex: 1;
+  }
 }

@@ -8,8 +8,8 @@ import {
 } from "react-icons/fa";
 import { IoChevronDown } from "react-icons/io5";
 import "./ContactPage.css";
+import { apiFetch, getCurrentUser, readJson } from "../../utils/api";
 
-const API_URL = "http://localhost:3000";
 const OPEN_HOUR = 8;
 const CLOSE_HOUR = 21;
 
@@ -83,7 +83,7 @@ const ContactPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [openQues, setOpenQues] = useState(Question[0].id);
 
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUser = getCurrentUser();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000);
@@ -116,9 +116,9 @@ const ContactPage = () => {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_URL}/serviceRequests`, {
+      if (!currentUser) throw new Error("Vui lòng đăng nhập trước khi gửi yêu cầu dịch vụ.");
+      const res = await apiFetch(`/serviceRequests`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service: category,
           fullName: form.fullName,
@@ -131,7 +131,7 @@ const ContactPage = () => {
         }),
       });
 
-      if (!res.ok) throw new Error("Gửi yêu cầu thất bại");
+      await readJson(res, "Gửi yêu cầu thất bại");
 
       toast.success(
         `Đã gửi yêu cầu [${category}] thành công! Chúng tôi sẽ liên hệ lại sớm nhất.`,

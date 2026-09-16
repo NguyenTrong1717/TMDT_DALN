@@ -20,11 +20,12 @@ import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
 import Sevicer from "../Sevicer/Sevicer";
 import "./Profile.css";
+import { logout } from "../../utils/api";
 
 const Profile = () => {
   const navigate = useNavigate();
 
-  const [currentUser, setCurrentUser] = useState(() => {
+  const [currentUser] = useState(() => {
     const user = localStorage.getItem("currentUser");
     return user ? JSON.parse(user) : null;
   });
@@ -37,9 +38,8 @@ const Profile = () => {
 
   if (!currentUser) return null;
 
-  const handleLogout = () => {
-    localStorage.removeItem("currentUser");
-    window.dispatchEvent(new Event("authChange"));
+  const handleLogout = async () => {
+    await logout();
     toast.success("Đăng xuất thành công!");
     setTimeout(() => {
       navigate("/login");
