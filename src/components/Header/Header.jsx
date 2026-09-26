@@ -408,6 +408,9 @@ const Header = (props) => {
                       <li>
                         <Link to="/register">Đăng ký</Link>
                       </li>
+                      <li>
+                        <Link to="/orders">📦 Tra cứu đơn hàng</Link>
+                      </li>
                     </>
                   ) : (
                     <>
@@ -418,6 +421,9 @@ const Header = (props) => {
                       )}
                       <li>
                         <Link to="/profile">Thông tin cá nhân</Link>
+                      </li>
+                      <li>
+                        <Link to="/orders">📦 Lịch sử mua hàng</Link>
                       </li>
                       <li
                         onClick={handleLogout}

@@ -64,8 +64,17 @@ npm run dev:vite     # Frontend React (cổng 5173)
    - Nhập thông tin người nhận (Họ tên, SĐT, Địa chỉ).
    - Bấm nút **Đặt hàng ngay**.
 4. Website sẽ tự động chuyển hướng bạn sang cổng thanh toán **MoMo Sandbox**:
-   - Giao diện MoMo Sandbox hiển thị mã QR và thông tin đơn hàng.
-   - Bạn có thể quét mã QR giả lập hoặc bấm chọn xác nhận thanh toán thử nghiệm.
+   - **LƯU Ý:** Tuyệt đối **KHÔNG dùng App MoMo thật** trên điện thoại để quét mã QR (vì App MoMo thật sẽ báo lỗi `Transaction rejected by the issuers of the payment accounts`).
+   - Hãy chọn tab **Thẻ ATM** hoặc **Thẻ quốc tế** trên giao diện MoMo và điền thông tin test bên dưới:
+
+### Bảng thông tin thẻ TEST giả lập MoMo Sandbox:
+
+| Loại thẻ / Phương thức | Thông tin điền vào MoMo Sandbox |
+|---|---|
+| **Thẻ ATM Nội Địa (Khuyên dùng)** | • Ngân hàng: Bất kỳ (Napas / Vietcombank / BIDV...)<br>• Số thẻ: `9704000000000018`<br>• Tên chủ thẻ: `NGUYEN VAN A`<br>• Ngày phát hành: `03/07`<br>• Mã OTP: `000000` |
+| **Thẻ Quốc Tế (Visa / Master)** | • Số thẻ: `4000000000000002`<br>• Ngày hết hạn: `12/28`<br>• CVV: `123`<br>• Mã OTP: `000000` |
+| **Đăng nhập Ví MoMo Test** | • Số điện thoại: `0963181717` (hoặc `0984472288`)<br>• Mã OTP: `000000` |
+
 5. Sau khi thanh toán xong, hệ thống chuyển về trang `/payment-result`:
    - Hiển thị **Thanh toán thành công!**.
    - Trạng thái đơn được cập nhật `paid`, trừ số lượng tồn kho tự động.
