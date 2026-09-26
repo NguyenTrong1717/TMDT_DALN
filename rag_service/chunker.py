@@ -22,7 +22,7 @@ def create_semantic_chunks(catalog: List[Dict[str, Any]]) -> List[Dict[str, Any]
     for item in catalog:
         chunk_id = f"prod_{item.get('category', 'item')}_{item.get('id')}"
         price = item.get("price", 0)
-        fingerprint = f"{item.get('id')}_{item.get('name')}_{price}_{item.get('discount')}_{item.get('category')}"
+        fingerprint = f"{item.get('id')}_{item.get('name')}_{price}_{item.get('discount')}_{item.get('category')}_{item.get('image')}_{item.get('source')}"
 
         if chunk_id in chunk_cache and chunk_cache[chunk_id]["fingerprint"] == fingerprint:
             result_chunks.append(chunk_cache[chunk_id]["chunk"])
@@ -43,7 +43,10 @@ def create_semantic_chunks(catalog: List[Dict[str, Any]]) -> List[Dict[str, Any]
                 "id": item.get("id"),
                 "name": item.get("name"),
                 "price": price,
+                "oldPrice": item.get("oldPrice", 0),
                 "category": item.get("category"),
+                "image": item.get("image", ""),
+                "source": item.get("source", "products"),
             },
             "text": semantic_text,
         }

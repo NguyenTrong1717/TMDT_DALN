@@ -71,7 +71,8 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
                 ("Linh kiện", "component"),
                 ("Thiết bị", "general"),
             ]
-            for res, (item_type, cat) in zip(responses, specs):
+            source_tables = ["catenogies", "LaptopUser", "eventList", "products"]
+            for res, (item_type, cat), source in zip(responses, specs, source_tables):
                 if isinstance(res, httpx.Response) and res.status_code == 200:
                     for item in res.json():
                         catalog.append({
@@ -81,6 +82,9 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
                             "type": item_type,
                             "category": cat,
                             "discount": item.get("discount"),
+                            "oldPrice": float(item.get("oldPrice") or 0),
+                            "image": item.get("image") or item.get("thumbnail") or "",
+                            "source": source,
                         })
     except Exception as err:
         print(f"[RAG] Cảnh báo: Không thể tải catalog từ json-server: {err}")

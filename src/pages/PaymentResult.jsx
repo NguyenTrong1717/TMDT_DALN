@@ -117,6 +117,12 @@ const PaymentResult = () => {
     localStorage.removeItem("pendingPaymentLookupToken");
   };
 
+  const paid = result?.paymentStatus === "paid" && !isCancelledByGateway;
+  const isCancelled = isCancelledByGateway || manuallyStopped;
+  const isFailed = result?.paymentStatus === "failed";
+  const failed = isFailed || isCancelled || pollTimedOut;
+  const isPending = !paid && !failed;
+
   useEffect(() => {
     if (!paid) return;
     if (redirectCountdown <= 0) {
@@ -161,12 +167,6 @@ const PaymentResult = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const paid = result?.paymentStatus === "paid" && !isCancelledByGateway;
-  const isCancelled = isCancelledByGateway || manuallyStopped;
-  const isFailed = result?.paymentStatus === "failed";
-  const failed = isFailed || isCancelled || pollTimedOut;
-  const isPending = !paid && !failed;
 
   const canRetry =
     !paid &&
