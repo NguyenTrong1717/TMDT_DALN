@@ -1457,7 +1457,7 @@ const PRODUCT_WRITABLE_FIELDS = new Set(["sku", "name", "costPrice", "price", "o
 const RESOURCE_FIELDS = {
   vouchers: new Set(["code", "type", "value", "minOrder", "maxDiscount", "expiredAt", "startsAt", "maxCollect", "collectedCount", "active", "des", "combinable"]),
   settings: new Set(["id", "value", "startAt", "endAt", "startTime", "endTime", "active", "items"]),
-  reviews: new Set(["productId", "userId", "rating", "comment", "status", "createdAt"]),
+  reviews: new Set(["productId", "userId", "userName", "collection", "rating", "comment", "status", "createdAt", "hidden", "reply", "replyAt"]),
   news: new Set(["title", "summary", "content", "image", "published", "createdAt", "updatedAt"]),
   serviceRequests: new Set(["userId", "service", "fullName", "email", "phone", "message", "status", "assigneeId", "resolutionNote", "createdAt", "updatedAt"]),
   notifications: new Set(["userId", "type", "title", "message", "link", "image", "read", "createdAt"]),
@@ -1513,7 +1513,7 @@ app.use("/:resource", async (req, res, next) => {
     } else if (!isRead && resource === "reviews") {
       if (actor.role === "user") {
         req.body.userId = String(actor.id);
-        if (req.method !== "POST") req.resourceOwnerQuery = { userId: String(actor.id) };
+        if (req.method !== "POST") return res.status(403).json({ error: "Khách hàng không được sửa trạng thái đánh giá." });
       } else requireRoles(req, ["admin", "support"]);
     } else if (!isRead) {
       if (!ADMIN_MANAGED_RESOURCES.has(resource)) return res.status(403).json({ error: "Không có quyền sửa tài nguyên này." });
@@ -1544,8 +1544,21 @@ app.use("/:resource", async (req, res, next) => {
         req.body.createdAt = new Date().toISOString();
       }
       if (resource === "reviews" && actor.role === "user" && req.method === "POST") {
+        const rating = Number(req.body.rating);
+        const comment = String(req.body.comment || "").trim();
+        const collection = String(req.body.collection || "").trim();
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error: "Số sao đánh giá phải từ 1 đến 5." });
+        if (!String(req.body.productId || "").trim() || !collection || !comment) return res.status(400).json({ error: "Thông tin đánh giá chưa đầy đủ." });
+        if (comment.length > 1000) return res.status(400).json({ error: "Nội dung đánh giá không được vượt quá 1000 ký tự." });
+        req.body.rating = rating;
+        req.body.comment = comment;
+        req.body.collection = collection;
+        req.body.userName = actor.fullName || actor.username || "Khách hàng";
         req.body.status = "pending";
+        req.body.hidden = false;
         req.body.createdAt = new Date().toISOString();
+        delete req.body.reply;
+        delete req.body.replyAt;
       }
       if (resource === "vouchers") {
         const value = Number(req.body.value);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { toast } from "sonner";
 import "./ProductReviews.css";
-import { API_URL, apiFetch, getCurrentUser } from "../utils/api";
+import { API_URL, apiFetch, getCurrentUser, readJson } from "../utils/api";
 
 const formatDate = (iso) => {
   if (!iso) return "";
@@ -180,16 +180,13 @@ const ProductReviews = ({ productId, collectionName = "categories" }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newReview),
       });
-      if (res.ok) {
-        toast.success("Đã gửi đánh giá!");
-        setComment("");
-        setRating(5);
-        fetchReviews();
-      } else {
-        toast.error("Không thể gửi đánh giá, vui lòng thử lại!");
-      }
-    } catch {
-      toast.error("Không thể gửi đánh giá!");
+      await readJson(res, "Không thể gửi đánh giá, vui lòng thử lại!");
+      toast.success("Đã gửi đánh giá!");
+      setComment("");
+      setRating(5);
+      fetchReviews();
+    } catch (error) {
+      toast.error(error.message || "Không thể gửi đánh giá!");
     } finally {
       setSubmitting(false);
     }
