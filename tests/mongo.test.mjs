@@ -42,6 +42,7 @@ test("Mongo backend enforces auth, workflow and inventory consistency on an isol
       { id: "return-flow", orderCode: "RETURN", userId: "u1", paymentMethod: "cod", paymentStatus: "paid", status: "completed", totalAmount: 200000, refundedAmount: 0, products: [{ productId: "pay", fromTable: "products", name: "Payment item", unitPrice: 200000, subtotal: 200000, quantity: 1 }], version: 1, paidAt: new Date().toISOString(), createdAt: new Date().toISOString() },
       { id: "paid-cancel", orderCode: "PAID-CANCEL", userId: "u1", paymentMethod: "vnpay", paymentStatus: "paid", status: "confirmed", totalAmount: 300000, refundedAmount: 0, inventoryProcessed: true, products: [{ productId: "cancel-pay", fromTable: "products", name: "Cancelled paid item", unitPrice: 300000, subtotal: 300000, quantity: 1 }], version: 1, paidAt: new Date().toISOString(), createdAt: new Date().toISOString() },
     ]);
+    await db.collection("cart").insertOne({ id: "cart-delete", userId: "u1", productId: "pay", fromTable: "products", quantity: 1 });
 
     const port = String(31000 + (process.pid % 1000));
     child = spawn(process.execPath, ["server_mongodb.mjs"], {
@@ -69,6 +70,9 @@ test("Mongo backend enforces auth, workflow and inventory consistency on an isol
       login("admin@test.local", "admin-pass"), login("warehouse@test.local", "admin-pass"), login("support@test.local", "admin-pass"), login("u1@test.local", "legacy-pass"), login("u2@test.local", "user-pass"),
     ]);
     for (const result of [adminLogin, warehouseLogin, supportLogin, user1Login, user2Login]) assert.equal(result.response.status, 200, JSON.stringify(result.data));
+    const deleteCartItem = await fetch(`${base}/cart/cart-delete`, { method: "DELETE", headers: auth(user1Login.data.token) });
+    assert.equal(deleteCartItem.status, 200, await deleteCartItem.text());
+    assert.equal(await db.collection("cart").countDocuments({ id: "cart-delete" }), 0);
     assert.equal((await fetch(`${base}/api/admin/orders`, { headers: auth(user1Login.data.token) })).status, 403);
     assert.equal((await fetch(`${base}/api/admin/users`, { headers: auth(warehouseLogin.data.token) })).status, 403);
     assert.equal((await fetch(`${base}/userVouchers`, { method: "POST", headers: auth(user1Login.data.token), body: JSON.stringify({ voucherCode: "FORGED", used: false }) })).status, 403);

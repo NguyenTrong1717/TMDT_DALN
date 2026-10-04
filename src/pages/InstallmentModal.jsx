@@ -8,6 +8,18 @@ const InstallmentModal = ({ isOpen, onClose, product }) => {
   // 1. Khai báo các State quản lý cấu hình người dùng click chọn
   const [selectedMonth, setSelectedMonth] = useState(3); // Mặc định là 3 tháng
   const [selectedPercent, setSelectedPercent] = useState(30); // Mặc định trả trước 30%
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleConsultSubmit = (e) => {
+    e.preventDefault();
+    if (!phoneNumber.trim()) return;
+    setIsSubmitted(true);
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setPhoneNumber("");
+    }, 4000);
+  };
 
   if (!isOpen) return null;
 
@@ -145,20 +157,61 @@ const InstallmentModal = ({ isOpen, onClose, product }) => {
             thể trao đổi trực tiếp với nhân viên tư vấn.
             <br />
             Phí chuyển đổi trả góp: Khách hàng trả một lần duy nhất khi đăng ký
-            trả góp qua ShopDunk.
+            trả góp qua HCore Store.
           </p>
 
           {/* Khung liên hệ tư vấn ở cuối */}
           <div className="modal-contact-footer">
             <h4>Liên hệ tư vấn mua trả góp</h4>
             <p>
-              <strong>Cách 1:</strong> Liên hệ hotline
-              <span className="hotline-blue">1900.1515</span>
+              <strong>Cách 1:</strong> Liên hệ hotline{" "}
+              <a href="tel:19008888" className="hotline-blue" style={{ textDecoration: "none", marginLeft: "4px" }}>
+                1900 8888
+              </a>{" "}
+              <span style={{ color: "#888", fontSize: "12px" }}>(hoặc 1900.1515)</span>
             </p>
             <p>
-              <strong>Cách 2:</strong> Điền thông tin để HoangHaiDevTo hỗ trợ
-              bạn:
+              <strong>Cách 2:</strong> Điền thông tin để chuyên viên HCore hỗ trợ bạn:
             </p>
+            {isSubmitted ? (
+              <div style={{ color: "#16a34a", fontSize: "13px", fontWeight: 600, padding: "8px 0" }}>
+                ✅ Đã nhận yêu cầu! Chuyên viên tư vấn HCore sẽ liên hệ bạn ngay trong ít phút.
+              </div>
+            ) : (
+              <form onSubmit={handleConsultSubmit} style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+                <input
+                  type="tel"
+                  placeholder="Nhập số điện thoại của bạn..."
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "8px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #d1d5db",
+                    fontSize: "13px",
+                    outline: "none",
+                  }}
+                  required
+                />
+                <button
+                  type="submit"
+                  style={{
+                    backgroundColor: "#0b63b6",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "6px",
+                    padding: "8px 16px",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Gửi yêu cầu
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </div>

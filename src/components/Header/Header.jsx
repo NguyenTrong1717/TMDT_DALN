@@ -360,7 +360,7 @@ const Header = () => {
               <MdOutlineAddIcCall className="action-pill-icon" />
               <div className="action-pill-text">
                 <span className="pill-sub">Hotline</span>
-                <span className="pill-main">1800.2097</span>
+                <span className="pill-main">1900 8888</span>
               </div>
             </div>
 
@@ -404,6 +404,9 @@ const Header = () => {
                       <li>
                         <Link to="/register">Đăng ký</Link>
                       </li>
+                      <li>
+                        <Link to="/orders">📦 Tra cứu đơn hàng</Link>
+                      </li>
                     </>
                   ) : (
                     <>
@@ -414,6 +417,9 @@ const Header = () => {
                       )}
                       <li>
                         <Link to="/profile">Thông tin cá nhân</Link>
+                      </li>
+                      <li>
+                        <Link to="/orders">📦 Lịch sử mua hàng</Link>
                       </li>
                       <li
                         onClick={handleLogout}
@@ -465,17 +471,17 @@ const Header = () => {
                     <div className="site-header__hotline-card">
                       <div className="site-header__hotline-info">
                         <span className="site-header__hotline-name">
-                          Nguyễn Văn Trọng
+                          Tổng đài viên HCore
                         </span>
                         <span className="site-header__hotline-role">
-                          Hỗ trợ kỹ thuật phần cứng
+                          Hỗ trợ kỹ thuật phần cứng 24/7
                         </span>
                       </div>
                       <a
-                        href="tel:0911108133"
+                        href="tel:19008888"
                         className="site-header__hotline-call"
                       >
-                        0326.807.955
+                        1900 8888
                       </a>
                     </div>
                   </div>

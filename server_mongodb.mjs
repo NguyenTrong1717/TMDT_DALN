@@ -1498,6 +1498,8 @@ app.use("/:resource", async (req, res, next) => {
     if (resource === "api") return next();
     if (BLOCKED_RAW_RESOURCES.has(resource)) return res.status(403).json({ error: "Tài nguyên này chỉ được truy cập qua API nghiệp vụ." });
     const isRead = req.method === "GET";
+    // DELETE requests normally have no JSON payload, so Express leaves req.body undefined.
+    if (!isRead) req.body ??= {};
     if (!PUBLIC_READ_RESOURCES.has(resource) && !USER_SCOPED_RESOURCES.has(resource) && !ADMIN_MANAGED_RESOURCES.has(resource)) {
       return res.status(404).json({ error: "Tài nguyên không được công khai." });
     }

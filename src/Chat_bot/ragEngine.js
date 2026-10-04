@@ -4,10 +4,16 @@
  * Nhiệm vụ: Gọi microservice Python FastAPI (:8000) xử lý RAG.
  */
 
-const RAG_API_URL =
-  import.meta.env.VITE_RAG_API_URL || "http://127.0.0.1:8000/api/chat";
 const RAG_REQUEST_TIMEOUT_MS = Number(
   import.meta.env.VITE_RAG_TIMEOUT_MS || 60000,
+);
+const configuredEndpoint = import.meta.env.VITE_RAG_API_URL?.trim();
+const CANDIDATE_ENDPOINTS = [
+  configuredEndpoint,
+  "http://127.0.0.1:8000/api/chat",
+  "http://localhost:8000/api/chat",
+].filter((endpoint, index, endpoints) =>
+  endpoint && endpoints.indexOf(endpoint) === index,
 );
 
 export const executeRAG = async ({
@@ -15,26 +21,28 @@ export const executeRAG = async ({
   apiKey = "",
   currentUser = null,
 }) => {
-  let timeoutId;
-  try {
-    const controller = new AbortController();
-    timeoutId = setTimeout(() => controller.abort(), RAG_REQUEST_TIMEOUT_MS);
+  for (const endpoint of CANDIDATE_ENDPOINTS) {
+    let timeoutId;
+    try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), RAG_REQUEST_TIMEOUT_MS);
 
-    const res = await fetch(RAG_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userQuery,
-        currentUser,
-        apiKey: apiKey || undefined,
-      }),
-      signal: controller.signal,
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.detail || data.error || `RAG HTTP ${res.status}`);
-    }
-    if (data?.reply) {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userQuery,
+          currentUser,
+          apiKey: apiKey || undefined,
+        }),
+        signal: controller.signal,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || data.error || `RAG HTTP ${res.status}`);
+      }
+      if (!data?.reply) throw new Error("RAG service did not return a reply");
+
       const products = (data.sources || [])
         .filter((source) => source?.type === "product" && source?.metadata?.id)
         .map((source) => source.metadata)
@@ -48,12 +56,11 @@ export const executeRAG = async ({
         )
         .slice(0, 3);
       return { reply: data.reply, products };
+    } catch (err) {
+      console.warn(`[ChatBot] Thử kết nối ${endpoint} thất bại:`, err.message);
+    } finally {
+      clearTimeout(timeoutId);
     }
-    throw new Error("RAG service did not return a reply");
-  } catch (err) {
-    console.warn("[ChatBot] RAG Service chưa sẵn sàng:", err.message);
-  } finally {
-    clearTimeout(timeoutId);
   }
 
   // Fallback an toàn khi chưa khởi động Python service (:8000)

@@ -132,8 +132,28 @@ const NewsDetail = () => {
                   </Link>
                   <div className="nd-article__share">
                     <span>Chia sẻ:</span>
-                    <button className="nd-share-btn">Facebook</button>
-                    <button className="nd-share-btn">Zalo</button>
+                    <button
+                      type="button"
+                      className="nd-share-btn"
+                      onClick={() =>
+                        window.open(
+                          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      Facebook
+                    </button>
+                    <button
+                      type="button"
+                      className="nd-share-btn"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(window.location.href);
+                        alert("Đã sao chép liên kết bài viết!");
+                      }}
+                    >
+                      Copy Link
+                    </button>
                   </div>
                 </div>
               </div>

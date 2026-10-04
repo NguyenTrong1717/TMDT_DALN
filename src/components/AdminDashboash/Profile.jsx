@@ -114,16 +114,24 @@ const Profile = () => {
                   <span>Đổi mật khẩu</span>
                 </button>
 
-                {/* --- PHẦN MENU PHÂN QUYỀN ĐIỀU KIỆN --- */}
-                {currentUser.role === "admin" ? (
+                {/* Đơn hàng của tôi (Lịch sử mua sắm) */}
+                <button
+                  className="profile-menu-btn"
+                  onClick={() => navigate("/orders")}
+                >
+                  <FaClipboardList />
+                  <span>Đơn hàng của tôi</span>
+                </button>
+
+                {/* --- PHẦN MENU DÀNH CHO ADMIN --- */}
+                {currentUser.role === "admin" && (
                   <>
-                    {/* Menu dành riêng cho Admin */}
                     <button
                       className="profile-menu-btn admin-btn"
                       onClick={() => navigate("/admin/products")}
                     >
                       <FaBoxes />
-                      <span>Quản lý sản phẩm</span>
+                      <span>Quản lý sản phẩm (Admin)</span>
                     </button>
 
                     <button
@@ -131,18 +139,9 @@ const Profile = () => {
                       onClick={() => navigate("/admin/orders")}
                     >
                       <FaFileInvoiceDollar />
-                      <span>Quản lý đơn hàng</span>
+                      <span>Quản lý đơn hàng (Admin)</span>
                     </button>
                   </>
-                ) : (
-                  /* Menu dành riêng cho Thành viên thường */
-                  <button
-                    className="profile-menu-btn"
-                    onClick={() => navigate("/orders")}
-                  >
-                    <FaClipboardList />
-                    <span>Đơn hàng của tôi</span>
-                  </button>
                 )}
                 {/* -------------------------------------- */}
 

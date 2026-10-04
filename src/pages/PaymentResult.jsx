@@ -126,7 +126,7 @@ const PaymentResult = () => {
   useEffect(() => {
     if (!paid) return;
     if (redirectCountdown <= 0) {
-      navigate("/orders");
+      navigate("/");
       return;
     }
     const timer = setTimeout(() => {
@@ -180,7 +180,7 @@ const PaymentResult = () => {
 
   if (paid) {
     titleText = "Thanh toán thành công!";
-    descText = `Đơn hàng của bạn đã được thanh toán thành công! Tự động chuyển tới trang Đơn hàng sau ${redirectCountdown}s...`;
+    descText = `Đơn hàng của bạn đã được thanh toán thành công! Tự động chuyển về Trang chủ sau ${redirectCountdown}s...`;
   } else if (isCancelled) {
     titleText = "Giao dịch đã bị hủy";
     descText =
@@ -370,12 +370,12 @@ const PaymentResult = () => {
               </button>
             )}
 
-            <Link to="/orders" className="btn-action btn-primary-action">
-              <FaBox /> {paid ? `Xem đơn hàng ngay (${redirectCountdown}s)` : "Xem đơn hàng"}
+            <Link to="/" className="btn-action btn-primary-action">
+              <FaHome /> {paid ? `Về trang chủ ngay (${redirectCountdown}s)` : "Về trang chủ"}
             </Link>
 
-            <Link to="/" className="btn-action btn-secondary-action">
-              <FaHome /> Về trang chủ
+            <Link to="/orders" className="btn-action btn-secondary-action">
+              <FaBox /> Xem chi tiết đơn hàng
             </Link>
           </div>
         </section>

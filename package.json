@@ -20,7 +20,13 @@
     "test:admin": "node --test --experimental-test-isolation=none tests/admin-domain.test.mjs",
     "test:mongo": "node --test --experimental-test-isolation=none tests/mongo.test.mjs",
     "test:all": "node --test --experimental-test-isolation=none tests/admin-domain.test.mjs tests/vnpay.test.mjs tests/momo.test.mjs tests/checkout-api.test.mjs tests/mongo.test.mjs",
-    "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service"
+    "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service",
+    "clean:ports": "node scripts/clean_ports.mjs",
+    "check:health": "node scripts/check_health.mjs",
+    "dev:tabs": "node scripts/dev_tabs.mjs",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
   },
   "dependencies": {
     "axios": "^1.17.0",

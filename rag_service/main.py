@@ -22,14 +22,31 @@ from pydantic import BaseModel, Field
 import uvicorn
 from dotenv import load_dotenv
 
+from contextlib import asynccontextmanager
 from engine import execute_rag
+from embeddings import get_embed_model
 
 load_dotenv()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Làm nóng mô hình AI Vector (Preload model vào RAM) ngay khi bật server
+    print("\n🧠 [RAG Service] Đang nạp mô hình AI Vector FastEmbed ONNX vào RAM...")
+    try:
+        get_embed_model()
+        print("✅ [RAG Service] Mô hình FastEmbed ONNX đã sẵn sàng trong RAM! Sẵn sàng phục vụ tức thì.\n")
+    except Exception as e:
+        print(f"⚠️ [RAG Service] Cảnh báo khởi động mô hình: {e}\n")
+    yield
+    print("🛑 [RAG Service] Dừng dịch vụ AI RAG.")
+
 
 app = FastAPI(
     title="HCore Store RAG AI Service",
     description="Microservice xử lý RAG Chatbot chuyên sâu cho hệ thống TMDT HCore",
     version="2.0.0",
+    lifespan=lifespan,
 )
 
 # Cấu hình CORS cho phép React frontend kết nối

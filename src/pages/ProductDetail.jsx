@@ -28,6 +28,36 @@ const ProductDetail = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
 
+  const UPGRADE_OPTIONS = [
+    {
+      id: "std",
+      label: "BẢN TIÊU CHUẨN (Cấu hình chuẩn theo máy)",
+      extraPrice: 0,
+    },
+    {
+      id: "vga-3060ti",
+      label: "NÂNG CẤP LÊN VGA RTX 3060TI CŨ + 2.400.000đ",
+      extraPrice: 2400000,
+    },
+    {
+      id: "vga-3070ti",
+      label: "NÂNG CẤP LÊN VGA RTX 3070TI CŨ + 5.900.000đ",
+      extraPrice: 5900000,
+    },
+  ];
+
+  const COLOR_OPTIONS = ["Đen Phantom", "Bạc Titan", "Trắng"];
+
+  const SHOWROOMS = [
+    { city: "Hà Nội", address: "123 Thái Hà, Đống Đa" },
+    { city: "TP. Hồ Chí Minh", address: "456 Lê Hồng Phong, Q.10" },
+    { city: "Đà Nẵng", address: "78 Nguyễn Văn Linh, Hải Châu" },
+  ];
+
+  const [selectedUpgrade, setSelectedUpgrade] = useState(UPGRADE_OPTIONS[0]);
+  const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0]);
+  const [selectedShowroom, setSelectedShowroom] = useState(SHOWROOMS[0].city);
+
   // ================= LOGIC XỬ LÝ GIỎ HÀNG CHO CATENOGIES =================
   const handleAddToCart = async (
     redirectToCart = false,
@@ -203,9 +233,28 @@ const ProductDetail = () => {
             <div className="showroom-stock-mini-box">
               <h4><FaStore /> CÒN HÀNG TẠI SHOWROOM:</h4>
               <ul>
-                <li><span className="stock-dot-green">●</span> <strong>Hà Nội:</strong> 123 Thái Hà, Đống Đa</li>
-                <li><span className="stock-dot-green">●</span> <strong>TP. Hồ Chí Minh:</strong> 456 Lê Hồng Phong, Q.10</li>
-                <li><span className="stock-dot-green">●</span> <strong>Đà Nẵng:</strong> 78 Nguyễn Văn Linh, Hải Châu</li>
+                {SHOWROOMS.map((sr) => (
+                  <li
+                    key={sr.city}
+                    className={`showroom-item ${selectedShowroom === sr.city ? "selected" : ""}`}
+                    onClick={() => setSelectedShowroom(sr.city)}
+                    style={{
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      transition: "all 0.2s",
+                      backgroundColor: selectedShowroom === sr.city ? "#ecfdf5" : "transparent",
+                    }}
+                  >
+                    <span className="stock-dot-green">●</span>{" "}
+                    <strong>{sr.city}:</strong> {sr.address}
+                    {selectedShowroom === sr.city && (
+                      <span style={{ marginLeft: "auto", fontSize: "11px", color: "#16a34a", fontWeight: "bold" }}>
+                        ✓ Đang chọn
+                      </span>
+                    )}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -214,41 +263,75 @@ const ProductDetail = () => {
             {/* Upgrade Options */}
             <div className="upgrade-options-box">
               <div className="options-header-label">CHỌN CẤU HÌNH NÂNG CẤP:</div>
-              <label>
-                <input type="radio" name="vga" defaultChecked /> BẢN TIÊU CHUẨN (Cấu hình chuẩn theo máy)
-              </label>
-              <label>
-                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3060TI CŨ + 2.400.000đ
-              </label>
-              <label>
-                <input type="radio" name="vga" /> NÂNG CẤP LÊN VGA RTX 3070TI CŨ + 5.900.000đ
-              </label>
+              {UPGRADE_OPTIONS.map((opt) => (
+                <label
+                  key={opt.id}
+                  className={selectedUpgrade.id === opt.id ? "active" : ""}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 14px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    border: selectedUpgrade.id === opt.id ? "1.5px solid #0b63b6" : "1px dashed #ccc",
+                    backgroundColor: selectedUpgrade.id === opt.id ? "#f0f7ff" : "#fdfdfd",
+                    color: selectedUpgrade.id === opt.id ? "#0b63b6" : "#444",
+                    fontWeight: selectedUpgrade.id === opt.id ? 700 : 600,
+                  }}
+                  onClick={() => setSelectedUpgrade(opt)}
+                >
+                  <input
+                    type="radio"
+                    name="vga"
+                    checked={selectedUpgrade.id === opt.id}
+                    onChange={() => setSelectedUpgrade(opt)}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
             </div>
 
             {/* Colors Selection Pills */}
             <div className="color-options-row">
               <span className="color-label">Màu sắc:</span>
               <div className="color-pills-group">
-                <button type="button" className="color-pill active">Đen Phantom</button>
-                <button type="button" className="color-pill">Bạc Titan</button>
-                <button type="button" className="color-pill">Trắng Tuyết</button>
+                {COLOR_OPTIONS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`color-pill ${selectedColor === color ? "active" : ""}`}
+                    onClick={() => setSelectedColor(color)}
+                  >
+                    {color}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Live Price Block */}
-            <div className="price-display-section">
-              <div className="price-primary-group">
-                <span className="live-price">
-                  {product.price ? product.price.toLocaleString("vi-VN") : 0}đ
-                </span>
-                <span className="old-price">
-                  {(product.price * 1.15).toLocaleString("vi-VN")}đ
-                </span>
-              </div>
-              <span className="save-badge-retail">
-                Tiết kiệm {(product.price * 0.15).toLocaleString("vi-VN")}đ (-15%)
-              </span>
-            </div>
+            {(() => {
+              const basePrice = Number(product.price) || 0;
+              const finalPrice = basePrice + selectedUpgrade.extraPrice;
+              const originalPrice = Math.round(finalPrice * 1.15);
+              const savePrice = originalPrice - finalPrice;
+              return (
+                <div className="price-display-section">
+                  <div className="price-primary-group">
+                    <span className="live-price">
+                      {finalPrice.toLocaleString("vi-VN")}đ
+                    </span>
+                    <span className="old-price">
+                      {originalPrice.toLocaleString("vi-VN")}đ
+                    </span>
+                  </div>
+                  <span className="save-badge-retail">
+                    Tiết kiệm {savePrice.toLocaleString("vi-VN")}đ (-15%)
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Red Gift Box */}
             <div className="gift-bonus-box">
@@ -597,7 +680,14 @@ const ProductDetail = () => {
       <InstallmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        product={product}
+        product={
+          product
+            ? {
+                ...product,
+                price: (Number(product.price) || 0) + selectedUpgrade.extraPrice,
+              }
+            : null
+        }
       />
       <SpecsModal
         isOpen={isSpecsOpen}

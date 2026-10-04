@@ -11,22 +11,22 @@ const FooterUser = () => {
     <footer className="main-footer">
       <div className="footer-top-container">
         <div className="footer-column">
-          <h3>CÔNG TY TNHH TM & CÔNG NGHỆ PHẦN MỀM</h3>
+          <h3>HCORE STORE - CÔNG NGHỆ CHÍNH HÃNG</h3>
           <ul className="company-info-list">
             <li>
-              <strong>Địa chỉ:</strong> Đại học phenikaa
+              <strong>Trụ sở chính:</strong> Tòa nhà Phenikaa, P. Yên Nghĩa, Q. Hà Đông, Hà Nội
             </li>
             <li>
-              <strong>Điện thoại:</strong> 0326807955
+              <strong>Hotline tư vấn:</strong> 1900 8888 (8h00 - 21h30)
             </li>
             <li>
-              <strong>Zalo:</strong> 0326807955
+              <strong>Hỗ trợ kỹ thuật:</strong> 1900 8888
             </li>
             <li>
-              <strong>Email:</strong> trongtho123a@Gmail.Com
+              <strong>Email:</strong> contact@hcore.vn
             </li>
             <li>
-              <strong>Website:</strong>http://localhost:5173/
+              <strong>Website:</strong> https://hcore.vn
             </li>
           </ul>
         </div>
@@ -65,32 +65,40 @@ const FooterUser = () => {
               <span className="hotline-icon-247">📞</span>
               <div>
                 <p className="hotline-label">HOTLINE TƯ VẤN:</p>
-                <p className="hotline-number-big">0326807955</p>
+                <p className="hotline-number-big">1900 8888</p>
               </div>
             </div>
 
             <div className="footer-social-icons">
               <a
                 className="icon-fb"
-                href="https://www.facebook.com/nguyentronggggg?locale=vi_VN"
+                href="https://facebook.com"
+                target="_blank"
+                rel="noreferrer"
               >
                 <FaFacebookF />
               </a>
               <a
                 className="icon-ins"
-                href="https://www.facebook.com/nguyentronggggg?locale=vi_VN"
+                href="https://instagram.com"
+                target="_blank"
+                rel="noreferrer"
               >
                 <FaInstagram />
               </a>
               <a
                 className="icon-pin"
-                href="https://www.facebook.com/nguyentronggggg?locale=vi_VN"
+                href="https://pinterest.com"
+                target="_blank"
+                rel="noreferrer"
               >
                 <FaPinterestP />
               </a>
               <a
                 className="icon-yt"
-                href="https://www.facebook.com/nguyentronggggg?locale=vi_VN"
+                href="https://youtube.com"
+                target="_blank"
+                rel="noreferrer"
               >
                 <FaYoutube />
               </a>
@@ -102,11 +110,11 @@ const FooterUser = () => {
               <span className="badge-logo fb-bg">F</span>
               <div className="badge-text">
                 <p className="badge-title">
-                  <a href="https://www.facebook.com/nguyentronggggg?locale=vi_VN">
-                    Inbox Facebook
+                  <a href="/contact">
+                    Hỗ trợ Fanpage
                   </a>
                 </p>
-                <p className="badge-time">(8h00 - 21h00)</p>
+                <p className="badge-time">(8h00 - 21h30)</p>
               </div>
             </div>
 
@@ -114,19 +122,19 @@ const FooterUser = () => {
               <span className="badge-logo zalo-bg">Zalo</span>
               <div className="badge-text">
                 <p className="badge-title">
-                  <a href="https://www.facebook.com/nguyentronggggg?locale=vi_VN">
-                    Inbox Zalo
+                  <a href="/contact">
+                    CSKH Trực Tuyến
                   </a>
                 </p>
-                <p className="badge-time">(8h00 - 21h00)</p>
+                <p className="badge-time">(8h00 - 21h30)</p>
               </div>
             </div>
 
             <div className="badge-item">
               <span className="badge-logo phone-bg">📞</span>
               <div className="badge-text">
-                <p className="badge-title">0326807955</p>
-                <p className="badge-time">(8h00 - 21h00)</p>
+                <p className="badge-title">1900 8888</p>
+                <p className="badge-time">(8h00 - 21h30)</p>
               </div>
             </div>
           </div>
@@ -134,7 +142,7 @@ const FooterUser = () => {
       </div>
 
       <div className="footer-copyright-bar">
-        <p>2026 - NguyenTrong</p>
+        <p>© 2026 HCore Store - Bản quyền thuộc về Hệ thống Bán lẻ Công nghệ HCore</p>
       </div>
     </footer>
   );
