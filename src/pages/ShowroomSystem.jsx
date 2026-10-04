@@ -49,13 +49,23 @@ export default function ShowroomSystem() {
                   <span> {loc.oldAddress}</span>
                 </div>
               )}
-              <p className="cs-row cs-link">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name + " " + loc.address)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="cs-row cs-link"
+              >
                 <FaMapSigns />
-                Hướng dẫn đường đi
-              </p>
-              <a href="#" className="cs-row cs-link">
+                Chỉ đường trên Google Maps
+              </a>
+              <a
+                href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent("Showroom HCore Store " + loc.city)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="cs-row cs-link"
+              >
                 <FaCameraRetro />
-                Hình ảnh thực tế
+                Hình ảnh thực tế Showroom
               </a>
               <div className="cs-row">
                 <span className="cs-bold">📞 Tel/Zalo: {loc.phone}</span>

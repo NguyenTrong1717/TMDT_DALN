@@ -226,10 +226,26 @@ const Login = () => {
                 <span>hoặc đăng nhập với</span>
               </div>
               <div className="social-login">
-                <button type="button" disabled={isLoading}>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() =>
+                    toast.info(
+                      "Cổng OAuth Google đang kích hoạt. Bạn có thể đăng nhập nhanh bằng tài khoản demo!",
+                    )
+                  }
+                >
                   <FaGoogle /> Google
                 </button>
-                <button type="button" disabled={isLoading}>
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() =>
+                    toast.info(
+                      "Cổng OAuth Facebook đang kích hoạt. Bạn có thể đăng nhập nhanh bằng tài khoản demo!",
+                    )
+                  }
+                >
                   <FaFacebookF /> Facebook
                 </button>
               </div>

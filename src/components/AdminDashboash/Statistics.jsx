@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import "./Statistics.css";
 import {
   AreaChart,
@@ -66,19 +67,66 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function Statistics() {
-  const totalRevenue = revenueData.reduce((s, d) => s + d.revenue, 0);
-  const totalOrders = revenueData.reduce((s, d) => s + d.orders, 0);
+  const [realOrders, setRealOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("http://localhost:3000/orders");
+      if (res.ok) {
+        const data = await res.json();
+        setRealOrders(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.warn("Không thể kết nối API /orders:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  // Tính toán doanh thu thực tế nếu có đơn trong database
+  const calculatedRevenue = realOrders.reduce((sum, o) => {
+    const amount = Number(o.totalAmount || o.total || o.finalTotal || 0);
+    return sum + amount;
+  }, 0);
+
+  const totalRevenue = calculatedRevenue > 0 ? calculatedRevenue : revenueData.reduce((s, d) => s + d.revenue, 0);
+  const totalOrders = realOrders.length > 0 ? realOrders.length : revenueData.reduce((s, d) => s + d.orders, 0);
 
   return (
     <div className="page-stats">
-      <div className="stats-header">
-        <h1>Thống kê</h1>
-        <p>Tổng quan hiệu suất kinh doanh</p>
+      <div className="stats-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <h1>Thống kê</h1>
+          <p>Tổng quan hiệu suất kinh doanh thời gian thực</p>
+        </div>
+        <button
+          type="button"
+          onClick={fetchOrders}
+          disabled={loading}
+          style={{
+            background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            padding: "8px 16px",
+            fontWeight: "600",
+            cursor: "pointer",
+            fontSize: "0.85rem",
+          }}
+        >
+          {loading ? "Đang đồng bộ..." : "🔄 Cập nhật số liệu"}
+        </button>
       </div>
 
       <div className="kpi-row">
         <div className="kpi" style={{ "--kpi-accent": "#6c63ff" }}>
-          <div className="label">Doanh thu</div>
+          <div className="label">Doanh thu {calculatedRevenue > 0 ? "(Thực tế)" : "(Ước tính)"}</div>
           <div className="value">{fmt(totalRevenue)}₫</div>
           <div className="delta">↑ 18% so với tháng trước</div>
         </div>

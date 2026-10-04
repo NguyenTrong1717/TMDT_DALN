@@ -224,7 +224,14 @@ const ProductMenu = () => {
                     </span>
                     <p>Giao hàng miễn phí nội thành 2h</p>
                   </div>
-                  <button className="pms-support__btn">Gọi Ngay</button>
+                  <a
+                    href="tel:19001000"
+                    className="pms-support__btn"
+                    title="Hotline hỗ trợ kỹ thuật và mua hàng 1900.1000 (Miễn phí 24/7)"
+                    style={{ textDecoration: "none", display: "inline-block", textAlign: "center", cursor: "pointer" }}
+                  >
+                    📞 Hotline: 1900.1000
+                  </a>
                 </div>
               </div>
 

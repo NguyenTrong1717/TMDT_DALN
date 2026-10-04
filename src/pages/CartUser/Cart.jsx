@@ -20,6 +20,8 @@ const formatPrice = (price) => {
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
   const navigate = useNavigate();
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -168,6 +170,47 @@ const Cart = () => {
     } catch (error) {
       console.error("Lỗi khi xóa sản phẩm:", error);
       toast.error("Lỗi khi xóa sản phẩm");
+    }
+  };
+
+  // ================= XỬ LÝ ÁP DỤNG VOUCHER =================
+  const handleApplyVoucher = async () => {
+    const code = voucherCode.trim().toUpperCase();
+    if (!code) {
+      toast.error("Vui lòng nhập mã giảm giá!");
+      return;
+    }
+
+    try {
+      // 1. Kiểm tra qua API vouchers của backend
+      const res = await fetch(`${API_URL}/vouchers?code=${encodeURIComponent(code)}`);
+      if (res.ok) {
+        const list = await res.json();
+        const found = Array.isArray(list) ? list.find((v) => v.code === code) : null;
+        if (found) {
+          setAppliedVoucher(found);
+          toast.success(`Áp dụng mã ${found.code} thành công! Giảm ${found.discountPercent ? `${found.discountPercent}%` : formatPrice(found.discountAmount || 50000)}.`);
+          return;
+        }
+      }
+
+      // 2. Fallback danh sách voucher hệ thống hợp lệ
+      const systemVouchers = {
+        HCORE50: { code: "HCORE50", discountPercent: 10, name: "Giảm 10% đơn công nghệ" },
+        FREESHIP: { code: "FREESHIP", discountAmount: 30000, name: "Miễn phí vận chuyển" },
+        SALE10: { code: "SALE10", discountPercent: 10, name: "Tri ân khách hàng" },
+        VIP100: { code: "VIP100", discountAmount: 100000, name: "Voucher VIP" },
+      };
+
+      if (systemVouchers[code]) {
+        const v = systemVouchers[code];
+        setAppliedVoucher(v);
+        toast.success(`Áp dụng mã ${v.code} thành công: ${v.name}!`);
+      } else {
+        toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn!");
+      }
+    } catch {
+      toast.error("Lỗi khi kiểm tra mã giảm giá!");
     }
   };
 
@@ -382,6 +425,17 @@ const Cart = () => {
                       </span>
                     </div>
 
+                    {appliedVoucher && (
+                      <div className="payment-row voucher-applied-row" style={{ color: "#10b981", display: "flex", justifyContent: "space-between", margin: "6px 0", fontSize: "0.9rem" }}>
+                        <span>Voucher ({appliedVoucher.code}):</span>
+                        <span style={{ fontWeight: 600 }}>
+                          -{appliedVoucher.discountPercent
+                            ? `${appliedVoucher.discountPercent}%`
+                            : formatPrice(appliedVoucher.discountAmount || 50000)}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="payment-divider"></div>
 
                     <div className="payment-total">
@@ -390,22 +444,41 @@ const Cart = () => {
                       </div>
                       <h2>
                         {formatPrice(
-                          totalCartAmount +
-                            (totalCartAmount >= 500000 ? 0 : 30000),
+                          Math.max(
+                            0,
+                            totalCartAmount +
+                              (totalCartAmount >= 500000 ? 0 : 30000) -
+                              (appliedVoucher
+                                ? appliedVoucher.discountPercent
+                                  ? (totalCartAmount * appliedVoucher.discountPercent) / 100
+                                  : appliedVoucher.discountAmount || 50000
+                                : 0),
+                          ),
                         )}
                       </h2>
                     </div>
 
                     <button
                       className="checkout-btn"
-                      onClick={() => navigate("/checkout")}
+                      onClick={() => navigate("/checkout", { state: { voucherCode: appliedVoucher?.code } })}
                     >
                       Tiến hành thanh toán
                     </button>
 
                     <div className="voucher-box">
-                      <input type="text" placeholder="Nhập mã giảm giá" />
-                      <button type="button">Áp dụng</button>
+                      <input
+                        type="text"
+                        placeholder="Nhập mã giảm giá (VD: HCORE50)"
+                        value={voucherCode}
+                        onChange={(e) => setVoucherCode(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleApplyVoucher();
+                          }
+                        }}
+                      />
+                      <button type="button" onClick={handleApplyVoucher}>Áp dụng</button>
                     </div>
                   </div>
                 </div>

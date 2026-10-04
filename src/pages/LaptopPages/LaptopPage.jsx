@@ -26,6 +26,7 @@ const LaptopPage = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSpecsOpen, setIsSpecsOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState("Xám Không Gian");
 
   // ================= LOGIC XỬ LÝ GIỎ HÀNG LAPTOP =================
   const handleAddToCart = async (
@@ -221,9 +222,19 @@ const LaptopPage = () => {
             <div className="color-options-row">
               <span className="color-label">Màu sắc:</span>
               <div className="color-pills-group">
-                <button type="button" className="color-pill active">Xám Không Gian</button>
-                <button type="button" className="color-pill">Bạc Platinum</button>
-                <button type="button" className="color-pill">Đen Nhám Gaming</button>
+                {["Xám Không Gian", "Bạc Platinum", "Đen Nhám Gaming"].map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`color-pill ${selectedColor === color ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedColor(color);
+                      toast.success(`Đã chọn phiên bản màu: ${color}`);
+                    }}
+                  >
+                    {color}
+                  </button>
+                ))}
               </div>
             </div>
 
