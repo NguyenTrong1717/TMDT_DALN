@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  # 1. Backend API (Node.js Express + MongoDB)
+  backend:
+    container_name: hcore-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - hcore-net
+
+  # 2. Microservice AI RAG (Python FastAPI + FastEmbed ONNX)
+  rag:
+    container_name: hcore-rag
+    build:
+      context: .
+      dockerfile: Dockerfile.rag
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - hcore-net
+
+  # 3. Frontend Web (React 19 + Vite HMR)
+  frontend:
+    container_name: hcore-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Đảm bảo Hot-Reload hoạt động chuẩn trên Windows Docker Mount
+    volumes:
+      # Mount thư mục để chỉnh code trên máy là giao diện tự động Hot-Reload tức thì
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+    depends_on:
+      backend:
+        condition: service_healthy
+      rag:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - hcore-net
+
+networks:
+  hcore-net:
+    driver: bridge

@@ -1,0 +1,20 @@
+# Dockerfile cho Backend API (Node.js Express + MongoDB)
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Sao chép package.json và cài đặt thư viện
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# Sao chép mã nguồn backend
+COPY backend/ ./backend/
+COPY server_mongodb.mjs ./
+
+EXPOSE 3000
+
+# Kiểm tra sức khỏe tự động
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
+CMD ["node", "server_mongodb.mjs"]

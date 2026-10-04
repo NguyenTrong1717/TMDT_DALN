@@ -1,0 +1,22 @@
+# Dockerfile cho Frontend Web (React 19 + Vite)
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Cài đặt toàn bộ dependencies (bao gồm dev dependencies cho Vite)
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Sao chép cấu hình và mã nguồn
+COPY vite.config.js index.html ./
+COPY public/ ./public/
+COPY src/ ./src/
+
+EXPOSE 5173
+
+# Kiểm tra sức khỏe Vite
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:5173/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+
+# Chạy Vite dev server lắng nghe trên tất cả interfaces
+CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]

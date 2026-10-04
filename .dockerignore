@@ -1,0 +1,14 @@
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+dist/
+dist-ssr/
+.git/
+.vscode/
+.idea/
+*.log
+database/backups/
+rag_tests/
+postman/
+docs/

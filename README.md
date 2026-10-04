@@ -96,7 +96,19 @@ npm run dev:tabs
 npm run dev:all
 ```
 
-**Cách 3: Khởi chạy từng dịch vụ riêng biệt**:
+**Cách 3: Khởi chạy bằng Docker Compose (Chuẩn DevOps & Demo)**:
+```powershell
+# Khởi động toàn bộ containers trong nền
+npm run docker:up
+
+# Xem log thời gian thực của cả 3 containers
+npm run docker:logs
+
+# Dừng và dọn dẹp containers
+npm run docker:down
+```
+
+**Cách 4: Khởi chạy từng dịch vụ riêng lẻ**:
 - **Chạy React Vite**: `npm run dev:vite`
 - **Chạy Backend MongoDB**: `npm run server`
 - **Chạy Python AI RAG**: `npm run rag`
