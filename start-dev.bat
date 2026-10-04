@@ -22,7 +22,7 @@ start "[2] Backend API - Port 3000" cmd /k "color 0A && title [2] HCore Backend 
 :: 3. Khởi động Python RAG Service
 start "[3] AI RAG Service - Port 8000" cmd /k "color 0D && title [3] HCore AI RAG Service (Port 8000) && npm run rag"
 
-echo ✅ Đã khởi động xong cả 3 dịch vụ!
+echo  Đã khởi động xong cả 3 dịch vụ!
 echo Bạn có thể theo dõi từng log riêng mà không bị đè chữ.
 echo Khi muốn kiểm tra trạng thái, chạy: npm run check:health
 echo Khi muốn dọn sạch port nếu bị kẹt, chạy: npm run clean:ports

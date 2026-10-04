@@ -20,7 +20,7 @@
     "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service",
     "clean:ports": "node scripts/clean_ports.mjs",
     "check:health": "node scripts/check_health.mjs",
-    "dev:tabs": "cmd /c start-dev.bat",
+    "dev:tabs": "node scripts/dev_tabs.mjs",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f"
