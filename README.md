@@ -83,15 +83,27 @@ pip install -r requirements.txt
 cd ..
 ```
 
-### 4. Khởi Chạy Toàn Bộ Hệ Thống (3 trong 1)
-Chỉ cần chạy một lệnh duy nhất để khởi động song song cả 3 dịch vụ:
+### 4. Khởi Chạy Toàn Bộ Hệ Thống
+
+**Cách 1: Khởi động 3 cửa sổ riêng biệt (Khuyên dùng - Không bị lẫn log)**:
+```powershell
+npm run dev:tabs
+# Hoặc click đúp chuột vào file start-dev.bat ở thư mục gốc
+```
+
+**Cách 2: Khởi động gộp 1 terminal**:
 ```powershell
 npm run dev:all
 ```
-Hoặc khởi chạy từng dịch vụ riêng biệt:
+
+**Cách 3: Khởi chạy từng dịch vụ riêng biệt**:
 - **Chạy React Vite**: `npm run dev:vite`
 - **Chạy Backend MongoDB**: `npm run server`
 - **Chạy Python AI RAG**: `npm run rag`
+
+### 5. Tiện Ích Vận Hành & Khắc Phục Lỗi
+- **Kiểm tra sức khỏe 3 dịch vụ**: `npm run check:health` (Kiểm tra ping và trạng thái Online/Offline).
+- **Giải phóng cổng bị kẹt ngầm (Zombie)**: `npm run clean:ports` (Dọn dẹp cổng 3000, 5173, 8000 khi bị nghẽn).
 
 ---
 
