@@ -1,0 +1,468 @@
+/* ========================================================
+   HCORE STORE - TRẢ GÓP 0% (INSTALLMENT PAGE)
+   ======================================================== */
+
+.installment-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.installment-main {
+  flex: 1;
+}
+
+.installment-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* Hero */
+.installment-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #ffffff;
+  padding: 56px 16px 60px;
+  text-align: center;
+}
+
+.inst-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #c7d2fe;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.installment-hero h1 {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0 0 14px 0;
+  letter-spacing: -0.5px;
+}
+
+.inst-sub {
+  font-size: 16px;
+  color: #e0e7ff;
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* 2 Phương thức */
+.inst-methods-section {
+  padding: 40px 0 20px;
+}
+
+.methods-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.method-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.method-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+}
+
+.method-card.active {
+  border-color: #4f46e5;
+  background: #fbfbfe;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
+}
+
+.method-icon-wrap {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #4f46e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.method-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.method-rate {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.method-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.method-card li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.method-card li svg {
+  color: #10b981;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Calculator Card */
+.inst-calc-section {
+  padding: 30px 0 48px;
+}
+
+.inst-calc-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.inst-calc-header {
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.inst-calc-header h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inst-calc-header h2 svg {
+  color: #4f46e5;
+}
+
+.inst-calc-header p {
+  font-size: 14.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.inst-calc-body {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 32px;
+}
+
+.calc-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.input-block label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.input-block label strong {
+  color: #4f46e5;
+  font-size: 17px;
+}
+
+.inst-range-slider {
+  width: 100%;
+  accent-color: #4f46e5;
+  cursor: pointer;
+  height: 6px;
+}
+
+.range-hints {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.pill-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill-btn {
+  padding: 8px 16px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pill-btn:hover {
+  border-color: #4f46e5;
+}
+
+.pill-btn.active {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
+}
+
+.inst-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  background: #ffffff;
+}
+
+/* Summary Column */
+.calc-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: #475569;
+}
+
+.summary-row strong {
+  color: #0f172a;
+}
+
+.monthly-highlight {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  color: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  margin: 12px 0;
+}
+
+.monthly-label {
+  font-size: 12.5px;
+  color: #c7d2fe;
+}
+
+.monthly-val {
+  display: block;
+  font-size: 26px;
+  font-weight: 900;
+  color: #facc15;
+  margin: 4px 0;
+}
+
+.monthly-sub {
+  font-size: 11px;
+  color: #a5b4fc;
+}
+
+.inst-quick-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.inst-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inst-input:focus {
+  border-color: #4f46e5;
+}
+
+.form-duo {
+  display: flex;
+  gap: 10px;
+}
+
+.inst-btn-submit {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.inst-btn-submit:hover {
+  background: #3730a3;
+  transform: translateY(-1px);
+}
+
+/* Partners */
+.inst-partners-section {
+  padding: 40px 0;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.inst-partners-section h3 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.inst-partners-section p {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0 0 20px 0;
+}
+
+.banks-pills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.bank-pill {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+/* FAQs */
+.inst-faq-section {
+  padding: 48px 0 64px;
+}
+
+.faq-accordion {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.faq-item:hover {
+  border-color: #cbd5e1;
+}
+
+.faq-q {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.faq-a {
+  padding: 0 20px 18px 20px;
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+@media (max-width: 992px) {
+  .methods-grid,
+  .inst-calc-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .installment-hero h1 {
+    font-size: 26px;
+  }
+  .form-duo {
+    flex-direction: column;
+  }
+}

@@ -7,12 +7,13 @@ import {
   FaUsers,
   FaShoppingCart,
   FaChartBar,
-  FaSignOutAlt,
   FaStar,
   FaBolt,
   FaSearch,
   FaHistory,
+  FaSignOutAlt,
   FaChevronRight,
+  FaImage,
 } from "react-icons/fa";
 import { MdSupportAgent } from "react-icons/md";
 import { getCurrentUser, logout } from "../../utils/api";
@@ -26,13 +27,26 @@ const ADMIN_MENU = [
     roles: ["admin", "warehouse"],
   },
   {
+    path: "/admin/banners",
+    key: "banners",
+    label: "Banner Quảng Cáo",
+    icon: FaImage,
+    roles: ["admin"],
+  },
+  {
     path: "/admin/orders",
     key: "orders",
     label: "Đơn Hàng",
     icon: FaShoppingCart,
     roles: ["admin", "warehouse", "support"],
   },
-  { path: "/admin/users", key: "users", label: "Người Dùng", icon: FaUsers, roles: ["admin", "support"] },
+  {
+    path: "/admin/users",
+    key: "users",
+    label: "Người Dùng",
+    icon: FaUsers,
+    roles: ["admin", "support"],
+  },
   {
     path: "/admin/statistics",
     key: "statistics",
@@ -40,7 +54,13 @@ const ADMIN_MENU = [
     icon: FaChartBar,
     roles: ["admin"],
   },
-  { path: "/admin/reviews", key: "reviews", label: "Đánh Giá", icon: FaStar, roles: ["admin", "support"] },
+  {
+    path: "/admin/reviews",
+    key: "reviews",
+    label: "Đánh Giá",
+    icon: FaStar,
+    roles: ["admin", "support"],
+  },
   {
     path: "/admin/vouchers",
     key: "vouchers",
@@ -91,8 +111,8 @@ const Admin = () => {
   }, [allowedMenu, menuSearch]);
 
   const currentPage =
-    allowedMenu.find((item) => location.pathname.startsWith(item.path))?.label ||
-    "Tổng quan";
+    allowedMenu.find((item) => location.pathname.startsWith(item.path))
+      ?.label || "Tổng quan";
 
   // Kiểm tra quyền Admin (Bảo mật cơ bản)
 
@@ -172,7 +192,11 @@ const Admin = () => {
           {allowedMenu.map((item) => {
             const Icon = item.icon;
             return (
-              <Link key={item.key} to={item.path} className={isActive(item.path)}>
+              <Link
+                key={item.key}
+                to={item.path}
+                className={isActive(item.path)}
+              >
                 <Icon />
                 <span>{item.label}</span>
                 <FaChevronRight className="sidebar-menu-arrow" />

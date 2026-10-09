@@ -61,6 +61,9 @@ const DB_NAME = process.env.DB_NAME || "tmdt_daln";
 app.use(cors({ allowedHeaders: ["Content-Type", "Authorization", "If-Match"] }));
 app.use(express.json());
 
+app.get("/", (req, res) => res.json({ status: "ok", message: "HCore Backend Express MongoDB is running" }));
+app.get("/api/health", (req, res) => res.json({ status: "ok", uptime: process.uptime() }));
+
 const client = new MongoClient(MONGO_URI);
 await client.connect();
 const db = client.db(DB_NAME);
@@ -1413,6 +1416,229 @@ app.post("/api/vouchers/:voucherId/claim", async (req, res) => {
     await audit(actor, "voucher.claimed", "voucher", voucher.id, null, { code: voucher.code });
     res.status(201).json(formatDoc(wallet));
   } catch (error) { handleError(res, error); }
+});
+
+// ==========================================
+// 1.3 QUẢN LÝ QUẢNG CÁO & BANNER (Public & Admin API)
+// ==========================================
+const VALID_PLACEMENTS = ["hero_main", "hero_side", "promo_tiles", "strip_wide", "category_promo", "skyscraper_left", "skyscraper_right"];
+
+const adminAuthMiddleware = async (req, res, next) => {
+  try {
+    const userId = req.get("x-user-id");
+    if (!userId) {
+      return res.status(401).json({ error: "Yêu cầu đăng nhập quản trị viên (thiếu x-user-id)." });
+    }
+    const user = await db.collection("users").findOne(buildIdQuery(userId));
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ error: "Từ chối truy cập: Bạn không có quyền quản trị viên." });
+    }
+    req.adminUser = user;
+    next();
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+const validateBannerInput = (data, isUpdate = false) => {
+  if (!isUpdate || data.placement !== undefined) {
+    if (!VALID_PLACEMENTS.includes(data.placement)) {
+      const error = new Error(`Vị trí placement không hợp lệ. Phải là một trong: ${VALID_PLACEMENTS.join(", ")}`);
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (!isUpdate || data.title !== undefined) {
+    if (!data.title || typeof data.title !== "string" || !data.title.trim()) {
+      const error = new Error("Tiêu đề banner (title) không được để trống.");
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (!isUpdate || data.image !== undefined) {
+    if (!data.image || typeof data.image !== "string" || !data.image.trim()) {
+      const error = new Error("Đường dẫn ảnh banner (image) không được để trống.");
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (!isUpdate || data.link !== undefined) {
+    if (!data.link || typeof data.link !== "string" || !data.link.trim()) {
+      const error = new Error("Đường dẫn liên kết (link) không được để trống.");
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (data.order !== undefined && (!Number.isFinite(Number(data.order)) || Number(data.order) < 0)) {
+    const error = new Error("Thứ tự hiển thị (order) phải là số không âm.");
+    error.status = 400;
+    throw error;
+  }
+};
+
+// GET /api/banners (Public - lọc banner active, chưa xóa, còn hạn hiển thị)
+app.get("/api/banners", async (req, res) => {
+  try {
+    const { placement, category } = req.query;
+    const now = new Date();
+
+    const query = {
+      active: true,
+      deleted: { $ne: true },
+      $and: [
+        {
+          $or: [
+            { startAt: null },
+            { startAt: { $exists: false } },
+            { startAt: { $lte: now } },
+            { startAt: { $lte: now.toISOString() } },
+          ],
+        },
+        {
+          $or: [
+            { endAt: null },
+            { endAt: { $exists: false } },
+            { endAt: { $gte: now } },
+            { endAt: { $gte: now.toISOString() } },
+          ],
+        },
+      ],
+    };
+
+    if (placement) query.placement = placement;
+    if (category) query.category = category;
+
+    const docs = await db
+      .collection("banners")
+      .find(query)
+      .sort({ order: 1, createdAt: -1 })
+      .toArray();
+
+    res.json(docs.map(formatDoc));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// GET /api/admin/banners (Admin - lấy toàn bộ danh sách banner chưa xóa vĩnh viễn)
+app.get("/api/admin/banners", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { placement, active } = req.query;
+    const query = { deleted: { $ne: true } };
+    if (placement) query.placement = placement;
+    if (active !== undefined) query.active = active === "true";
+
+    const docs = await db
+      .collection("banners")
+      .find(query)
+      .sort({ placement: 1, order: 1, createdAt: -1 })
+      .toArray();
+
+    res.json(docs.map(formatDoc));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// POST /api/admin/banners (Admin - tạo banner mới)
+app.post("/api/admin/banners", adminAuthMiddleware, async (req, res) => {
+  try {
+    validateBannerInput(req.body, false);
+    const id = Date.now().toString();
+    const doc = {
+      id,
+      title: req.body.title.trim(),
+      subtitle: req.body.subtitle ? String(req.body.subtitle).trim() : "",
+      image: req.body.image.trim(),
+      imageMobile: req.body.imageMobile ? String(req.body.imageMobile).trim() : "",
+      link: req.body.link.trim(),
+      placement: req.body.placement,
+      category: req.body.category ? String(req.body.category).trim() : "",
+      order: Number(req.body.order) || 0,
+      active: req.body.active !== false,
+      startAt: req.body.startAt ? new Date(req.body.startAt) : null,
+      endAt: req.body.endAt ? new Date(req.body.endAt) : null,
+      deleted: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.collection("banners").insertOne(doc);
+    res.status(201).json(formatDoc(doc));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// PUT /api/admin/banners/:id (Admin - cập nhật banner)
+app.put("/api/admin/banners/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    validateBannerInput(req.body, true);
+    const query = buildIdQuery(req.params.id);
+    const existing = await db.collection("banners").findOne(query);
+    if (!existing) return res.status(404).json({ error: "Không tìm thấy banner cần cập nhật." });
+
+    const updateFields = {
+      ...(req.body.title !== undefined && { title: req.body.title.trim() }),
+      ...(req.body.subtitle !== undefined && { subtitle: String(req.body.subtitle).trim() }),
+      ...(req.body.image !== undefined && { image: req.body.image.trim() }),
+      ...(req.body.imageMobile !== undefined && { imageMobile: String(req.body.imageMobile).trim() }),
+      ...(req.body.link !== undefined && { link: req.body.link.trim() }),
+      ...(req.body.placement !== undefined && { placement: req.body.placement }),
+      ...(req.body.category !== undefined && { category: String(req.body.category).trim() }),
+      ...(req.body.order !== undefined && { order: Number(req.body.order) || 0 }),
+      ...(req.body.active !== undefined && { active: Boolean(req.body.active) }),
+      ...(req.body.startAt !== undefined && { startAt: req.body.startAt ? new Date(req.body.startAt) : null }),
+      ...(req.body.endAt !== undefined && { endAt: req.body.endAt ? new Date(req.body.endAt) : null }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updated = await db
+      .collection("banners")
+      .findOneAndUpdate(query, { $set: updateFields }, { returnDocument: "after" });
+
+    res.json(formatDoc(updated));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// PATCH /api/admin/banners/:id/toggle (Admin - chuyển đổi nhanh trạng thái active)
+app.patch("/api/admin/banners/:id/toggle", adminAuthMiddleware, async (req, res) => {
+  try {
+    const query = buildIdQuery(req.params.id);
+    const existing = await db.collection("banners").findOne(query);
+    if (!existing) return res.status(404).json({ error: "Không tìm thấy banner." });
+
+    const updated = await db
+      .collection("banners")
+      .findOneAndUpdate(
+        query,
+        { $set: { active: !existing.active, updatedAt: new Date().toISOString() } },
+        { returnDocument: "after" }
+      );
+
+    res.json(formatDoc(updated));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// DELETE /api/admin/banners/:id (Admin - xóa mềm)
+app.delete("/api/admin/banners/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const query = buildIdQuery(req.params.id);
+    const existing = await db.collection("banners").findOne(query);
+    if (!existing) return res.status(404).json({ error: "Không tìm thấy banner cần xóa." });
+
+    await db.collection("banners").updateOne(query, {
+      $set: { deleted: true, updatedAt: new Date().toISOString() },
+    });
+
+    res.json({ success: true, message: "Đã xóa banner thành công." });
+  } catch (err) {
+    handleError(res, err);
+  }
 });
 
 // ==========================================

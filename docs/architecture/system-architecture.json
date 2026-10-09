@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kiến trúc Hệ thống Thương mại Điện tử HCore Store",
+    "output": "system-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "commerce-flow",
+        "label": "Luồng Nghiệp vụ Bán hàng",
+        "focus": ["client", "backend", "db", "vnpay", "momo"],
+        "note": "Luồng xử lý mua sắm, quản lý giỏ hàng, đặt hàng và thanh toán trực tuyến."
+      },
+      {
+        "id": "rag-ai-flow",
+        "label": "Luồng Trợ lý Thông minh RAG",
+        "focus": ["client", "rag", "fastembed", "gemini", "db"],
+        "note": "Luồng tìm kiếm tương đồng vector và sinh phản hồi tư vấn qua Gemini LLM."
+      }
+    ]
+  },
+  "components": [
+    { "id": "client", "type": "frontend", "label": "React 19 Web App", "sublabel": "Vite :5173", "pos": [40, 280], "size": [140, 60] },
+    { "id": "momo", "type": "external", "label": "MoMo Sandbox", "sublabel": "Wallet HMAC-SHA256", "pos": [40, 100], "size": [140, 60], "tag": "Sandbox Test" },
+    { "id": "backend", "type": "backend", "label": "Node.js Core API", "sublabel": "Express 5 :3000", "pos": [260, 280], "size": [150, 60] },
+    { "id": "db", "type": "database", "label": "MongoDB Atlas", "sublabel": "Database tmdt_daln", "pos": [510, 280], "size": [150, 60] },
+    { "id": "vnpay", "type": "external", "label": "VNPAY Sandbox", "sublabel": "Gateway HMAC-SHA512", "pos": [510, 100], "size": [150, 60], "tag": "Sandbox Test" },
+    { "id": "rag", "type": "backend", "label": "Python AI Service", "sublabel": "FastAPI :8000", "pos": [260, 460], "size": [150, 60] },
+    { "id": "fastembed", "type": "cloud", "label": "FastEmbed ONNX", "sublabel": "bge-small-en-v1.5", "pos": [510, 460], "size": [150, 60] },
+    { "id": "gemini", "type": "external", "label": "Google Gemini", "sublabel": "Flash LLM API", "pos": [740, 460], "size": [140, 60] }
+  ],
+  "connections": [
+    { "id": "client-to-backend", "from": "client", "to": "backend", "label": "REST JSON", "variant": "emphasis" },
+    { "id": "client-to-rag", "from": "client", "to": "rag", "label": "POST /api/chat", "fromSide": "bottom", "toSide": "left" },
+    { "id": "backend-to-db", "from": "backend", "to": "db", "label": "BSON Driver" },
+    { "id": "backend-to-vnpay", "from": "backend", "to": "vnpay", "label": "VNPAY IPN", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "backend-to-momo", "from": "backend", "to": "momo", "label": "MoMo IPN", "variant": "security", "fromSide": "top", "toSide": "right" },
+    { "id": "rag-to-fastembed", "from": "rag", "to": "fastembed", "label": "Vector Search" },
+    { "id": "fastembed-to-gemini", "from": "fastembed", "to": "gemini", "label": "Context Prompt" },
+    { "id": "rag-to-db", "from": "rag", "to": "db", "label": "Catalog Query", "variant": "dashed", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Giao diện Khách hàng", "items": ["React 19 SPA phát triển trên Vite", "Quản lý 36 màn hình và 3 widget tiện ích"] },
+    { "dot": "emerald", "title": "Dịch vụ Máy chủ", "items": ["Node.js Express 5 điều phối đơn hàng và FSM", "Python FastAPI xử lý AI phân tách độc lập"] },
+    { "dot": "rose", "title": "Bảo mật & Toàn vẹn", "items": ["Xác thực chữ ký số HMAC-SHA512 / SHA256", "Phòng vệ 3 lớp chống rò rỉ dữ liệu PII và bẻ khóa"] }
+  ]
+}

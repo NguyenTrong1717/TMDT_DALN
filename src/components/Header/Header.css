@@ -32,10 +32,9 @@
 .site-top-promo-bar {
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(90deg, #7f1d1d 0%, #991b1b 50%, #7f1d1d 100%);
-  border-bottom: 1px solid #b91c1c;
-  padding: 6px 0;
-  box-shadow: inset 0 -1px 3px rgba(0, 0, 0, 0.25);
+  background: var(--ink-900, #16161A);
+  border-bottom: 1px solid var(--ink-800, #1F1F25);
+  padding: 7px 0;
   position: relative;
   z-index: 1001;
 }
@@ -50,38 +49,26 @@
 
 .site-top-promo-item {
   flex-shrink: 0;
-  color: #fef08a;
-  font-size: 12.5px;
-  font-weight: 600;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
-  padding-right: 50px;
+  padding-right: 60px;
   display: flex;
   align-items: center;
   gap: 6px;
   letter-spacing: 0.2px;
   user-select: none;
-  transition: filter 0.2s ease;
 }
 
 .site-top-promo-item .promo-code {
-  background: #facc15;
-  color: #713f12;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
   padding: 1px 6px;
   border-radius: 4px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.5px;
-  margin: 0 2px;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.site-top-promo-item .promo-code:hover {
-  transform: scale(1.08);
-  background: #fde047;
-}
-
-.site-top-promo-item:hover {
-  filter: brightness(1.15);
+  margin: 0 4px;
 }
 
 @keyframes marquee-scroll {
@@ -93,13 +80,18 @@
   }
 }
 
+/* Xóa bỏ thanh đỏ sẫm thứ hai theo chuẩn Module 1 */
+.site-header__utility-bar {
+  display: none !important;
+}
+
 .site-header {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background-color: #d70018;
+  background-color: var(--brand-600, #D70018);
   overflow: visible;
-  transition: box-shadow 0.25s ease;
+  transition: box-shadow 0.2s ease;
 }
 
 .site-header--scrolled {
@@ -374,10 +366,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
   color: #ffffff;
   cursor: pointer;
   user-select: none;
@@ -387,14 +379,13 @@
 }
 
 .header-action-pill:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
 .header-action-pill .action-pill-icon {
-  font-size: 22px;
-  color: #fef08a;
+  font-size: 20px;
+  color: #ffffff;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }

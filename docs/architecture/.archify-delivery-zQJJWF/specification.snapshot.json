@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Quy trình Thanh toán Trực tuyến VNPAY Sandbox",
+    "output": "payment-sequence.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "init-payment",
+        "label": "Khởi tạo Phiên thanh toán",
+        "focus": ["client", "api", "db"],
+        "note": "Khách hàng gửi yêu cầu checkout, server kiểm tra Idempotency và tạo phiên thanh toán."
+      },
+      {
+        "id": "vnpay-sandbox",
+        "label": "Xác thực Thẻ Sandbox",
+        "focus": ["client", "vnpay"],
+        "note": "Khách hàng nhập thẻ test NCB và mã OTP trên cổng VNPAY."
+      },
+      {
+        "id": "ipn-webhook",
+        "label": "Xác nhận Webhook IPN",
+        "focus": ["vnpay", "api", "db", "client"],
+        "note": "Kênh Server-to-Server xác thực chữ ký HMAC-SHA512 và cập nhật trạng thái đơn hàng."
+      }
+    ]
+  },
+  "participants": [
+    { "id": "client", "type": "frontend", "label": "React Client", "sublabel": "Trình duyệt :5173" },
+    { "id": "api", "type": "backend", "label": "Node.js API", "sublabel": "Express Server :3000" },
+    { "id": "db", "type": "database", "label": "MongoDB Atlas", "sublabel": "Database tmdt_daln" },
+    { "id": "vnpay", "type": "external", "label": "VNPAY Sandbox", "sublabel": "Cổng Thanh toán" }
+  ],
+  "segments": [
+    { "from": 150, "to": 310, "label": "Khởi tạo đơn và phiên giao dịch" },
+    { "from": 328, "to": 510, "label": "Giao dịch tại Cổng VNPAY" },
+    { "from": 528, "to": 780, "label": "Xác thực Webhook IPN & Điều hướng" }
+  ],
+  "messages": [
+    { "from": "client", "to": "api", "y": 180, "label": "POST /api/payments/vnpay/create", "variant": "emphasis" },
+    { "from": "api", "to": "db", "y": 222, "label": "Lưu orders & paymentAttempts", "variant": "emphasis" },
+    { "from": "api", "to": "client", "y": 264, "label": "201 Created + paymentUrl", "variant": "return" },
+    { "from": "client", "to": "vnpay", "y": 348, "label": "Chuyển hướng trình duyệt sang paymentUrl", "variant": "emphasis" },
+    { "from": "vnpay", "to": "client", "y": 390, "label": "Hiển thị form nhập thẻ NCB Test", "variant": "default" },
+    { "from": "client", "to": "vnpay", "y": 432, "label": "Xác nhận OTP thanh toán Sandbox", "variant": "emphasis" },
+    { "from": "vnpay", "to": "api", "y": 550, "label": "GET /api/payments/vnpay/ipn (Server-to-Server)", "variant": "security" },
+    { "from": "api", "to": "db", "y": 592, "label": "Xác thực HMAC-SHA512 -> update paid", "variant": "emphasis" },
+    { "from": "api", "to": "vnpay", "y": 634, "label": "HTTP 200 { RspCode: 00 }", "variant": "return" },
+    { "from": "vnpay", "to": "api", "y": 676, "label": "GET /api/payments/vnpay/return", "variant": "default" },
+    { "from": "api", "to": "client", "y": 718, "label": "HTTP 302 Redirect /payment-result", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "api", "from": 174, "to": 272, "type": "backend" },
+    { "participant": "db", "from": 216, "to": 234, "type": "database" },
+    { "participant": "vnpay", "from": 342, "to": 444, "type": "external" },
+    { "participant": "api", "from": 544, "to": 642, "type": "backend" },
+    { "participant": "db", "from": 586, "to": 604, "type": "database" },
+    { "participant": "api", "from": 670, "to": 726, "type": "backend" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Khởi tạo An toàn", "items": ["Mã requestId bắt buộc xử lý chống gửi trùng", "Ghi nhận phiên giao dịch độc lập tại paymentAttempts"] },
+    { "dot": "orange", "title": "Môi trường Sandbox", "items": ["Sử dụng ngân hàng NCB Test và OTP giả lập", "URL ký điện tử bảo mật bằng VNP_HASH_SECRET"] },
+    { "dot": "emerald", "title": "Phân tách Kênh Webhook", "items": ["IPN Webhook Server-to-Server là căn cứ duy nhất cập nhật tiền", "Return URL chỉ phục vụ hiển thị kết quả cho người dùng"] }
+  ]
+}

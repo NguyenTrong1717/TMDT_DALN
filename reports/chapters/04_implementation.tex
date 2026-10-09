@@ -1,0 +1,1074 @@
+\chapter{Kết quả Triển khai và Trình diễn Hệ thống}
+
+\section{Cấu hình Môi trường Triển khai và Đóng gói Hệ thống}
+Hệ thống HCore Store được đóng gói và vận hành thông qua công nghệ vùng chứa của Docker, đảm bảo tính độc lập và khả năng triển khai tức thời trên các hạ tầng máy chủ khác nhau. Cấu hình điều phối tổng thể được thiết lập tại tệp cấu hình Docker Compose, liên kết ba vùng chứa dịch vụ độc lập như mô tả trong Bảng~\ref{tab:docker_services}.
+
+\begin{table}[H]
+\centering
+\caption{Thông số Cấu hình Triển khai Các Dịch vụ trong Docker Compose}
+\label{tab:docker_services}
+\begin{tabularx}{\textwidth}{p{2.8cm}p{3cm}p{2.2cm}X}
+\toprule
+\textbf{Tên Dịch vụ} & \textbf{Tên Vùng chứa} & \textbf{Cổng Mạng} & \textbf{Môi trường Thực thi và Nhiệm vụ Nghiệp vụ} \\
+\midrule
+Máy chủ Nghiệp vụ & `hcore-backend` & `3000:3000` & Nền tảng Node.js 22, Express 5, kết nối cơ sở dữ liệu MongoDB Atlas Cloud. Phụ trách cung cấp API RESTful và tiếp nhận thông báo thanh toán tức thời. \\
+\addlinespace
+Dịch vụ Trí tuệ Nhân tạo & `hcore-rag` & `8000:8000` & Nền tảng Python 3.11, FastAPI, Uvicorn server. Tự động nạp mô hình nhúng FastEmbed ONNX vào bộ nhớ RAM khi khởi động dịch vụ. \\
+\addlinespace
+Giao diện Người dùng & `hcore-frontend` & `5173:5173` & Bản dựng Node.js Alpine, Vite Dev Server. Thiết lập cờ theo dõi tệp đảm bảo tính năng thay thế mô-đun nóng hoạt động ổn định trên môi trường phát triển. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Các thông số bảo mật và khóa tích hợp được quản lý tập trung trong tệp biến môi trường độc lập, tách biệt hoàn toàn khỏi mã nguồn của dự án. Chuỗi kết nối cơ sở dữ liệu xác định địa chỉ máy chủ MongoDB Atlas và tên cơ sở dữ liệu \texttt{tmdt\_daln}. Cổng VNPAY thử nghiệm được cấu hình mã định danh thương nhân, khóa bí mật chữ ký HMAC-SHA512 và địa chỉ cổng thanh toán thử nghiệm. Tương tự, cổng MoMo được cấu hình bộ khóa chứng thực đối tác và khóa bí mật băm chữ ký HMAC-SHA256. Dịch vụ trí tuệ nhân tạo được cung cấp khóa truy cập Google Gemini API phục vụ quá trình tạo sinh văn bản tư vấn.
+
+\section{Triển khai Phân hệ Giao diện Khách hàng}
+Phân hệ giao diện khách hàng bao gồm hai mươi bảy màn hình độc lập được định tuyến bởi React Router DOM, phục vụ toàn bộ chu trình khám phá sản phẩm, xác thực danh tính, quản lý hồ sơ và đặt hàng thanh toán.
+
+\subsection{Giao diện Trang chủ và Khám phá Sản phẩm (Mã: UI-01)}
+Trang chủ (`Home.jsx`, tuyến đường `/`) đóng vai trò là điểm tiếp xúc đầu tiên giữa khách hàng và hệ thống HCore Store. Màn hình phục vụ mọi đối tượng người dùng mà không yêu cầu đăng nhập. Khi tải trang, thành phần phát các truy vấn bất đồng bộ đồng thời tới các bảng dữ liệu `products`, `catenogies` và `eventList` để xây dựng cấu trúc giao diện động.
+
+Về mặt quản lý trạng thái nội bộ, thành phần khai thác kết hợp các hook `useState` để lưu trữ danh sách sản phẩm, danh mục mẹ và trạng thái đồng hồ đếm ngược. Hook `useEffect` được kích hoạt một lần duy nhất tại thời điểm gắn kết (mount) để khởi tạo các yêu cầu mạng song song thông qua `Promise.allSettled()`, giúp tối ưu hóa tổng thời gian chờ và ngăn chặn hiện tượng nghẽn giao diện nếu một trong các dịch vụ phản hồi chậm. Cơ chế dọn dẹp (cleanup function) của effect tự động hủy bỏ các bộ định thời setInterval của thanh trượt quảng cáo và đồng hồ đếm ngược Flash Sale khi người dùng điều hướng sang trang khác, loại bỏ hoàn toàn nguy cơ rò rỉ bộ nhớ phía máy khách.
+
+Về mặt xử lý các trạng thái giao diện, trang chủ thiết lập bốn cơ chế phản hồi trực quan riêng biệt. Trong trạng thái khởi tạo đang tải dữ liệu (Loading State), hệ thống hiển thị các khung xương giả lập hiệu ứng động (Skeleton UI) thay vì biểu tượng quay vòng đơn điệu, giúp người xem hình dung trước cấu trúc bố cục trang. Trong trạng thái không có dữ liệu trả về (Empty State), các khối danh mục trống sẽ tự động ẩn đi hoặc hiển thị thông điệp thông báo chương trình đang được cập nhật. Trong trạng thái phát sinh lỗi kết nối mạng (Error State), một thông báo Toast dạng cảnh báo xuất hiện kèm nút bấm thử lại mà không làm sập toàn bộ trang. Trong trạng thái hoạt động bình thường (Success State), toàn bộ lưới sản phẩm được kết xuất mượt mà với tính năng tải lười hình ảnh (Lazy Loading) nhằm tiết kiệm băng thông mạng.
+
+Bảng~\ref{tab:ui_01_spec} tổng hợp các thành phần tương tác chính trên trang chủ.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Trang chủ và Khám phá Sản phẩm (UI-01)}
+\label{tab:ui_01_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi và Chuyển đổi Trạng thái} \\
+\midrule
+Biểu ngữ quảng cáo & Slider xoay vòng & Cấu hình cục bộ & Tự động chuyển slide sau mỗi 5 giây hoặc điều khiển qua nút bấm mũi tên điều hướng. \\
+Danh mục phân loại mẹ & Lưới biểu tượng & `catenogies` & Điều hướng trực tiếp tới trang danh mục chi tiết tương ứng khi người dùng nhấp chọn. \\
+Khu vực Flash Sale & Thẻ đếm ngược & `flashSales` & Hiển thị đồng hồ đếm ngược giờ vàng và danh sách sản phẩm giảm giá có thanh tiến trình tồn kho. \\
+Sản phẩm nổi bật & Lưới thẻ card & `products` & Hiển thị ảnh đại diện, giá niêm yết, số sao đánh giá và nút thêm nhanh vào giỏ hàng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Trang chủ Hệ thống Thương mại Điện tử HCore Store (UI-01)}
+    \label{fig:ui_01_home}
+\end{figure}
+
+\subsection{Giao diện Đăng nhập Tài khoản (Mã: UI-02)}
+Giao diện đăng nhập (`Login.jsx`, tuyến đường `/login`) cho phép người dùng xác thực danh tính vào hệ thống. Màn hình dành cho khách vãng lai chưa đăng nhập. Biểu mẫu bao gồm trường nhập tên tài khoản hoặc email và trường nhập mật khẩu bảo mật. Bảng~\ref{tab:ui_02_spec} mô tả chi tiết các phần tử tương tác và quy tắc xác thực biểu mẫu đăng nhập.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Đăng nhập Hệ thống (UI-02)}
+\label{tab:ui_02_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Trường Nhập liệu} & \textbf{Kiểu Điều khiển} & \textbf{Quy tắc Kiểm tra} & \textbf{Xử lý Khi Gửi Dữ liệu} \\
+\midrule
+Tên đăng nhập & Hộp văn bản text & Không để trống & Kiểm tra định dạng chuỗi, loại bỏ khoảng trắng hai đầu. \\
+Mật khẩu & Hộp mật khẩu & Tối thiểu 6 ký tự & Ẩn ký tự bằng dấu chấm tròn, hỗ trợ nút bấm bật tắt hiển thị mật khẩu. \\
+Ghi nhớ đăng nhập & Hộp kiểm checkbox & Tùy chọn & Lưu trạng thái phiên làm việc vào bộ nhớ cục bộ trình duyệt (LocalStorage). \\
+Nút đăng nhập & Nút bấm nút lệnh & Biểu mẫu hợp lệ & Gửi yêu cầu xác thực tới máy chủ, lưu thông tin phiên và điều hướng về trang chủ. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Đăng nhập Tài khoản Khách hàng (UI-02)}
+    \label{fig:ui_02_login}
+\end{figure}
+
+\subsection{Giao diện Đăng ký Tài khoản Người dùng Mới (Mã: UI-03)}
+Giao diện đăng ký (`Register.jsx`, tuyến đường `/register`) tiếp nhận thông tin người dùng mới muốn tham gia nền tảng. Biểu mẫu thực hiện xác minh tính hợp lệ của dữ liệu ngay tại phía máy khách trước khi gửi dữ liệu tạo tài khoản về máy chủ nghiệp vụ. Bảng~\ref{tab:ui_03_spec} liệt kê các trường thông tin đăng ký bắt buộc.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Đăng ký Người dùng Mới (UI-03)}
+\label{tab:ui_03_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Trường Nhập liệu} & \textbf{Kiểu Điều khiển} & \textbf{Quy tắc Xác thực} & \textbf{Phản hồi Khi Vi phạm} \\
+\midrule
+Tên tài khoản & Hộp văn bản & Duy nhất, 4-20 ký tự & Báo lỗi đỏ nếu tên tài khoản đã tồn tại trong cơ sở dữ liệu. \\
+Thư điện tử email & Hộp văn bản email & Chuẩn cú pháp email & Báo lỗi định dạng thư điện tử không hợp lệ. \\
+Số điện thoại & Hộp văn bản số & Chuẩn 10 chữ số VN & Yêu cầu nhập đúng đầu số nhà mạng viễn thông Việt Nam. \\
+Mật khẩu khởi tạo & Hộp mật khẩu & Tối thiểu 6 ký tự & Yêu cầu kết hợp chữ cái và số để tăng cường bảo mật. \\
+Xác nhận mật khẩu & Hộp mật khẩu & Trùng khớp mật khẩu & Báo lỗi không khớp nếu hai giá trị mật khẩu sai lệch. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Đăng ký Tài khoản Người dùng Mới (UI-03)}
+    \label{fig:ui_03_register}
+\end{figure}
+
+\subsection{Giao diện Hồ sơ Cá nhân Người dùng (Mã: UI-04)}
+Giao diện hồ sơ (`Profile.jsx`, tuyến đường `/Profile`) dành riêng cho người dùng đã đăng nhập thành công. Màn hình trình bày tổng quan các thông tin định danh cá nhân, vai trò tài khoản, địa chỉ giao nhận mặc định và mốc thời gian tham gia hệ thống. Bảng~\ref{tab:ui_04_spec} mô tả chi tiết thông tin hiển thị tại trang hồ sơ.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Xem Hồ sơ Cá nhân (UI-04)}
+\label{tab:ui_04_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Khu vực Hiển thị} & \textbf{Kiểu Trình bày} & \textbf{Trường Dữ liệu} & \textbf{Thao tác Khả dụng} \\
+\midrule
+Thẻ đại diện tài khoản & Huy hiệu và Avatar & `fullName`, `role` & Hiển thị ảnh đại diện và vai trò người dùng thường hoặc quản trị viên. \\
+Thông tin liên lạc & Danh sách chi tiết & `email`, `phone` & Hiển thị trạng thái xác thực của thư điện tử và số điện thoại liên lạc. \\
+Địa chỉ giao hàng & Khối văn bản tĩnh & `address` & Hiển thị địa chỉ giao nhận mặc định dùng trong các đơn hàng tương lai. \\
+Nút chuyển hướng & Nút bấm điều hướng & Tuyến đường `/edit` & Kích hoạt chuyển hướng sang trang chỉnh sửa thông tin cá nhân. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Xem Thông tin Hồ sơ Cá nhân Người dùng (UI-04)}
+    \label{fig:ui_04_profile}
+\end{figure}
+
+\subsection{Giao diện Chỉnh sửa Thông tin Cá nhân (Mã: UI-05)}
+Giao diện cập nhật thông tin (`EditProfile.jsx`, tuyến đường `/edit`) cho phép người dùng thay đổi họ tên, số điện thoại liên lạc và địa chỉ nhận hàng mặc định. Dữ liệu cũ được nạp tự động vào các trường biểu mẫu khi khởi tạo trang. Bảng~\ref{tab:ui_05_spec} mô tả các phần tử nhập liệu và luồng xử lý cập nhật.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Chỉnh sửa Thông tin Cá nhân (UI-05)}
+\label{tab:ui_05_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Trường Chỉnh sửa} & \textbf{Kiểu Điều khiển} & \textbf{Giá trị Mặc định} & \textbf{Hành vi Gửi Dữ liệu} \\
+\midrule
+Họ và tên & Hộp văn bản text & `user.fullName` & Cập nhật tên hiển thị trong toàn bộ hệ thống bán lẻ. \\
+Số điện thoại & Hộp văn bản số & `user.phone` & Kiểm tra tính hợp lệ của chuỗi số trước khi lưu vào CSDL. \\
+Địa chỉ giao hàng & Vùng văn bản nhiều dòng & `user.address` & Cập nhật địa chỉ nhận hàng mặc định cho các phiên thanh toán tiếp theo. \\
+Nút lưu thay đổi & Nút bấm lệnh chính & Không & Gửi yêu cầu cập nhật lên máy chủ và hiển thị thông báo thành công. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Chỉnh sửa Thông tin Cá nhân Người dùng (UI-05)}
+    \label{fig:ui_05_edit_profile}
+\end{figure}
+
+\subsection{Giao diện Kết quả Tìm kiếm Sản phẩm (Mã: UI-06)}
+Giao diện tìm kiếm (`SearchResults.jsx`, tuyến đường `/search`) hiển thị danh sách các sản phẩm khớp với từ khóa người dùng nhập trên thanh tiêu đề chung. Trang trích xuất tham số truy vấn từ địa chỉ URL và phát yêu cầu lọc dữ liệu tới máy chủ nghiệp vụ. Bảng~\ref{tab:ui_06_spec} tóm tắt các tính năng của trang tìm kiếm.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Kết quả Tìm kiếm Sản phẩm (UI-06)}
+\label{tab:ui_06_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Tham số Lọc} & \textbf{Hành vi và Chuyển đổi Trạng thái} \\
+\midrule
+Tiêu đề kết quả & Nhãn văn bản động & Từ khóa `q` & Thông báo số lượng sản phẩm tìm thấy hoặc thông báo không tìm thấy kết quả. \\
+Bộ sắp xếp thứ tự & Hộp thả chọn lọc & Giá tăng/giảm & Tái sắp xếp danh sách kết quả theo đơn giá hoặc độ phổ biến của mặt hàng. \\
+Lưới kết quả sản phẩm & Khung lưới thẻ card & Danh sách `products` & Trình bày ảnh, thông số rút gọn, giá tiền và liên kết tới trang chi tiết. \\
+Phân trang danh sách & Thanh chuyển trang & Chỉ số trang & Điều hướng xem các trang tiếp theo khi số lượng kết quả vượt quá giới hạn trang. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Kết quả Tìm kiếm Sản phẩm Theo Từ khóa (UI-06)}
+    \label{fig:ui_06_search}
+\end{figure}
+
+\subsection{Giao diện Danh mục Laptop Phân khúc (Mã: UI-07)}
+Giao diện phân khúc máy tính xách tay (`LaptopMenu.jsx`, tuyến đường `/laptop/:category`) lọc các sản phẩm laptop dựa trên nhu cầu sử dụng thực tế của khách hàng như Gaming, Đồ họa, Sinh viên hoặc Doanh nhân. Dữ liệu được trích xuất từ bảng chuyên biệt `LaptopUser`. Bảng~\ref{tab:ui_07_spec} mô tả đặc tả giao diện phân khúc laptop.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh mục Laptop Phân khúc (UI-07)}
+\label{tab:ui_07_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Giao diện} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Mục đích Nghiệp vụ} \\
+\midrule
+Thẻ phân khúc & Tab chuyển danh mục & Danh mục cấu hình & Lọc nhanh theo nhu cầu văn phòng mỏng nhẹ, gaming hiệu năng cao hoặc lập trình. \\
+Thẻ sản phẩm laptop & Card chuyên biệt & `LaptopUser` & Hiển thị thông số CPU, RAM, GPU, kích thước màn hình và giá bán ưu đãi. \\
+Bộ lọc thương hiệu & Hộp kiểm đa chọn & Hãng sản xuất & Lọc sản phẩm theo các thương hiệu danh tiếng như Asus, Dell, Lenovo, Apple. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh mục Laptop Theo Phân khúc Người dùng (UI-07)}
+    \label{fig:ui_07_laptop_menu}
+\end{figure}
+
+\subsection{Giao diện Danh mục Linh kiện Sự kiện (Mã: UI-08)}
+Giao diện danh mục sự kiện (`EventListPage.jsx`, tuyến đường `/component/:category`) phục vụ việc hiển thị các linh kiện máy tính phần cứng thuộc các chiến dịch kích cầu tiêu dùng. Màn hình truy vấn dữ liệu từ bộ sưu tập `eventList`. Bảng~\ref{tab:ui_08_spec} mô tả chi tiết giao diện sự kiện linh kiện.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh mục Linh kiện Sự kiện (UI-08)}
+\label{tab:ui_08_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Hiển thị} \\
+\midrule
+Biểu ngữ sự kiện & Ảnh biểu ngữ tĩnh & Tệp cấu hình sự kiện & Nêu bật chủ đề sự kiện khuyến mãi phần cứng và thời hạn diễn ra chiến dịch. \\
+Thẻ linh kiện sự kiện & Lưới thẻ card & `eventList` & Hiển thị giá niêm yết cũ, giá khuyến mãi giảm sốc và tỷ lệ chiết khấu phần trăm. \\
+Nút thêm giỏ hàng & Nút bấm lệnh nhanh & Bảng `cart` & Thêm trực tiếp linh kiện sự kiện vào giỏ hàng với thông tin định danh chính xác. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh mục Linh kiện Phần cứng Tham gia Sự kiện (UI-08)}
+    \label{fig:ui_08_event_list}
+\end{figure}
+
+\subsection{Giao diện Danh mục Sản phẩm Phân loại Mẹ (Mã: UI-09)}
+Giao diện danh mục mẹ (`CategoryPage.jsx`, tuyến đường `/category/:category`) là trang phân loại toàn diện các nhóm mặt hàng trong cửa hàng dựa trên bảng danh mục `catenogies`. Khách hàng có thể dễ dàng điều hướng giữa các nhánh sản phẩm lớn như thiết bị mạng, linh kiện nâng cấp hoặc phụ kiện âm thanh. Bảng~\ref{tab:ui_09_spec} mô tả các phần tử cấu thành trang danh mục cha.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh mục Sản phẩm Phân loại Mẹ (UI-09)}
+\label{tab:ui_09_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Trường Liên kết} & \textbf{Chức năng Nghiệp vụ} \\
+\midrule
+Cây danh mục con & Thanh điều hướng bên & Mã phân loại con & Lọc sâu vào các nhóm sản phẩm cụ thể thuộc danh mục mẹ đã chọn. \\
+Bộ lọc khoảng giá & Thanh trượt hai đầu & Trường đơn giá & Lọc hiển thị danh sách sản phẩm nằm trong tầm ngân sách của người mua. \\
+Danh sách sản phẩm & Lưới thẻ responsive & Bảng `products` & Trình bày các mặt hàng thỏa mãn điều kiện lọc với hình ảnh sắc nét. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh mục Sản phẩm Phân loại Mẹ (UI-09)}
+    \label{fig:ui_09_category}
+\end{figure}
+
+\subsection{Giao diện Danh sách Tin tức Công nghệ (Mã: UI-10)}
+Giao diện tin tức (`News.jsx`, tuyến đường `/news`) là chuyên trang tổng hợp các bài viết phân tích kỹ thuật, tin tức công nghệ mới và hướng dẫn lắp ráp máy tính do đội ngũ biên tập viên phát hành. Dữ liệu nạp từ bộ sưu tập `news`. Bảng~\ref{tab:ui_10_spec} mô tả cấu trúc của trang tin tức.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh sách Tin tức Công nghệ (UI-10)}
+\label{tab:ui_10_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Giao diện} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Mục đích Hiển thị} \\
+\midrule
+Bài viết tiêu điểm & Khung ảnh khổ lớn & `news[0]` & Đưa bài viết mới nhất hoặc có lượng tương tác cao nhất lên đầu trang. \\
+Lưới bài viết nhánh & Lưới thẻ card bài viết & Bảng `news` & Hiển thị ảnh đại diện, tiêu đề bài viết, tên tác giả và số lượt xem bài viết. \\
+Phân trang bài viết & Nút điều hướng trang & Chỉ số trang & Cho phép người đọc xem lại các bài viết kỹ thuật công nghệ đã đăng tải trước đó. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh sách Tin tức và Tư vấn Công nghệ (UI-10)}
+    \label{fig:ui_10_news}
+\end{figure}
+
+\subsection{Giao diện Chi tiết Bài viết Tin tức (Mã: UI-11)}
+Giao diện chi tiết bài viết (`NewsDetail.jsx`, tuyến đường `/news/:id`) hiển thị toàn văn nội dung bài viết kỹ thuật. Màn hình tự động cập nhật tăng chỉ số lượt xem trong cơ sở dữ liệu khi khách hàng mở bài viết. Bảng~\ref{tab:ui_11_spec} tóm tắt các khu vực nội dung của trang chi tiết tin tức.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Chi tiết Bài viết Tin tức (UI-11)}
+\label{tab:ui_11_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Khu vực Nội dung} & \textbf{Kiểu Trình bày} & \textbf{Trường Dữ liệu} & \textbf{Ý nghĩa Hiển thị} \\
+\midrule
+Tiêu đề và tác giả & Tiêu đề chính h1 & `title`, `author` & Nêu rõ tên bài viết và người chịu trách nhiệm nội dung. \\
+Thời gian xuất bản & Dòng nhãn phụ & `createdAt`, `views` & Thể hiện tính cập nhật của bài viết và mức độ quan tâm của độc giả. \\
+Toàn văn nội dung & Khối văn bản định dạng & `content` & Trình bày các đoạn văn phân tích chuyên sâu kèm hình ảnh minh họa chi tiết. \\
+Bài viết liên quan & Danh sách liên kết & Bảng `news` & Đề xuất các chủ đề công nghệ tương tự nhằm giữ chân người đọc. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Chi tiết Bài viết Tin tức Công nghệ (UI-11)}
+    \label{fig:ui_11_news_detail}
+\end{figure}
+
+\subsection{Giao diện Chi tiết Sản phẩm và Đánh giá (Mã: UI-12)}
+Giao diện chi tiết sản phẩm (`ProductDetail.jsx`, tuyến đường `/product/:id`) là một trong những màn hình tương tác quan trọng nhất của hệ thống. Tại đây, khách hàng có thể quan sát cận cảnh hình ảnh phần cứng, xem thông số kỹ thuật chi tiết, kiểm tra số lượng hàng trong kho, đọc các bình luận của người mua trước và gửi đánh giá cá nhân.
+
+Về mặt kỹ thuật vòng đời, thành phần trích xuất định danh sản phẩm từ tham số URL thông qua hook `useParams()`. Khi giá trị tham số thay đổi, hook `useEffect` phụ thuộc tự động làm mới toàn bộ dữ liệu sản phẩm và danh sách bình luận tương ứng từ hai điểm cuối `/products/:id` và `/reviews?productId=:id`. Trạng thái số lượng sản phẩm đặt mua được quản lý bởi `useState` với các ràng buộc số học nghiêm ngặt: giá trị tối thiểu là 1 và giá trị tối đa bị chặn bởi trường tồn kho khả dụng `product.stock`. Hook `useMemo` được ứng dụng để tính toán điểm đánh giá sao trung bình và tỷ lệ phần trăm phân bổ số sao từ danh sách bình luận, ngăn chặn việc tính toán lại không cần thiết khi các trạng thái giao diện khác thay đổi.
+
+Về mặt xử lý trạng thái giao diện, màn hình tích hợp đầy đủ bốn trạng thái vận hành. Khi đang nạp dữ liệu chi tiết (Loading State), giao diện hiển thị hoạt ảnh khung xương mô phỏng ảnh bìa và khối thông số. Khi sản phẩm không tồn tại do sai lệch mã định danh (Not Found / Empty State), một giao diện thông báo sản phẩm không còn kinh doanh xuất hiện kèm nút quay lại danh mục. Khi xảy ra lỗi mạng trong lúc gửi đánh giá hoặc thêm giỏ hàng (Error State), hệ thống kích hoạt thông báo lỗi cục bộ màu đỏ mà không xóa nội dung văn bản người dùng đang nhập dở. Khi dữ liệu nạp thành công (Success State), các nút chức năng mua hàng được kích hoạt sẵn sàng tương tác.
+
+Bảng~\ref{tab:ui_12_spec} mô tả chi tiết các phần tử tương tác trên trang chi tiết sản phẩm.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Chi tiết Sản phẩm và Đánh giá (UI-12)}
+\label{tab:ui_12_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Tương tác Người dùng} \\
+\midrule
+Bộ sưu tập hình ảnh & Thư viện ảnh zoom & `product.image` & Cho phép xem ảnh độ phân giải cao và phóng to chi tiết linh kiện phần cứng. \\
+Khu vực giá và tồn kho & Khối nhãn nổi bật & `price`, `stock` & Hiển thị đơn giá khuyến mãi và cảnh báo nếu số lượng hàng trong kho sắp hết. \\
+Bộ chọn số lượng & Hộp tăng giảm số & Biến trạng thái & Cho phép khách hàng chọn số lượng cần mua, tự động giới hạn không vượt quá tồn kho. \\
+Nút thêm giỏ hàng & Nút bấm lệnh chính & Bảng `cart` & Gọi API thêm sản phẩm vào giỏ, hiển thị thông báo popup xác nhận thành công. \\
+Khu vực đánh giá & Danh sách và biểu mẫu & `reviews` & Trình bày số sao trung bình, danh sách bình luận và form cho phép gửi nhận xét mới. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Chi tiết Sản phẩm và Bình luận Đánh giá (UI-12)}
+    \label{fig:ui_12_product_detail}
+\end{figure}
+
+\subsection{Giao diện Trang Sản phẩm Mở rộng (Mã: UI-13)}
+Giao diện sản phẩm mở rộng (`ProductPage.jsx`, tuyến đường `/page/:id`) phục vụ việc hiển thị các dòng linh kiện chuyên dụng từ bảng cấu hình `ProductPagies`. Màn hình này hỗ trợ việc bố trí bố cục linh hoạt cho các bộ máy tính lắp ráp sẵn theo yêu cầu chuyên biệt. Bảng~\ref{tab:ui_13_spec} tóm tắt đặc tả giao diện sản phẩm mở rộng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Trang Sản phẩm Mở rộng (UI-13)}
+\label{tab:ui_13_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Đặc điểm Nghiệp vụ} \\
+\midrule
+Bảng cấu hình PC & Bảng thông số linh kiện & `ProductPagies` & Trình bày danh sách chi tiết từng linh kiện cấu thành dàn máy tính trọn bộ. \\
+Đơn giá trọn bộ & Nhãn nổi bật màu đỏ & Tổng đơn giá & Tính toán tự động tổng chi phí cấu hình máy kèm mức chiết khấu lắp ráp. \\
+Nút đặt trọn bộ & Nút bấm mua hàng & Bảng `cart` & Thêm toàn bộ danh sách linh kiện cấu hình vào giỏ hàng chỉ với một thao tác. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Trang Sản phẩm Mở rộng và Cấu hình Trọn bộ (UI-13)}
+    \label{fig:ui_13_product_page}
+\end{figure}
+
+\subsection{Giao diện Thực đơn Danh mục Sản phẩm (Mã: UI-14)}
+Giao diện thực đơn (`ProductMenu.jsx`, tuyến đường `/menu/:id`) hỗ trợ phân nhóm thiết bị theo hệ thống thực đơn động từ bảng `ProductMenus`. Khách hàng có thể khám phá sản phẩm dựa trên thương hiệu nhà sản xuất hoặc dải giá mong muốn. Bảng~\ref{tab:ui_14_spec} mô tả đặc tả giao diện thực đơn sản phẩm.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Thực đơn Danh mục Sản phẩm (UI-14)}
+\label{tab:ui_14_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Giao diện} & \textbf{Kiểu Trình bày} & \textbf{Trường Dữ liệu} & \textbf{Chức năng Hiển thị} \\
+\midrule
+Tiêu đề nhóm thực đơn & Khung biểu ngữ nhỏ & `menuTitle` & Giới thiệu chủ đề nhóm sản phẩm phần cứng được chọn từ thanh điều hướng. \\
+Lưới mặt hàng & Khung thẻ card lưới & `ProductMenus` & Hiển thị các sản phẩm thuộc danh mục thực đơn kèm thông số tóm tắt. \\
+Bộ điều hướng nhanh & Thanh nút liên kết & Nhóm danh mục & Chuyển đổi nhanh giữa các nhóm thực đơn liên quan trong cùng ngành hàng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Thực đơn Danh mục Sản phẩm Động (UI-14)}
+    \label{fig:ui_14_product_menu}
+\end{figure}
+
+\subsection{Giao diện Chi tiết Máy tính Xách tay Chuyên sâu (Mã: UI-15)}
+Giao diện chi tiết laptop (`LaptopPage.jsx`, tuyến đường `/laptop-detail/:id`) phục vụ khách hàng tìm hiểu sâu về các dòng máy tính xách tay cao cấp từ bảng `LaptopUser`. Màn hình trình bày bảng thông số kỹ thuật chuẩn hóa cho CPU, RAM, dung lượng SSD, chip đồ họa và thời lượng pin. Bảng~\ref{tab:ui_15_spec} liệt kê các thông số chi tiết.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Chi tiết Laptop Chuyên sâu (UI-15)}
+\label{tab:ui_15_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Khu vực Thông số} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Ý nghĩa Kỹ thuật} \\
+\midrule
+Bảng cấu hình phần cứng & Bảng hai cột chi tiết & `LaptopUser` & Nêu bật mã hiệu vi xử lý, xung nhịp, dung lượng bộ nhớ và card đồ họa rời. \\
+Bộ chọn phiên bản màu & Nút tròn màu sắc & Thuộc tính mở rộng & Cho phép người mua chọn lựa phiên bản màu vỏ máy theo sở thích cá nhân. \\
+Nút kiểm tra trả góp & Nút mở hộp thoại popup & Công cụ tính toán & Hỗ trợ khách hàng tính toán số tiền thanh toán hàng tháng theo kỳ hạn vay. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Chi tiết Máy tính Xách tay Chuyên sâu (UI-15)}
+    \label{fig:ui_15_laptop_page}
+\end{figure}
+
+\subsection{Giao diện Chi tiết Linh kiện Phần cứng (Mã: UI-16)}
+Giao diện linh kiện (`ComponentPage.jsx`, tuyến đường `/component-category/:id`) cung cấp thông tin chuyên biệt cho từng loại linh kiện phần cứng rời như bo mạch chủ, nguồn máy tính hoặc quạt tản nhiệt nước. Bảng~\ref{tab:ui_16_spec} mô tả đặc tả giao diện chi tiết linh kiện.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Chi tiết Linh kiện Phần cứng (UI-16)}
+\label{tab:ui_16_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Nghiệp vụ} \\
+\midrule
+Thông số chân cắm & Dòng thuộc tính nổi bật & Bảng linh kiện & Cảnh báo độ tương thích về socket bo mạch chủ và kích thước chân cắm RAM. \\
+Sơ đồ kết nối dây cắm & Hình ảnh kỹ thuật & Ảnh mô tả & Hướng dẫn trực quan cách cắm dây nguồn và dây quạt cho người dùng tự lắp ráp. \\
+Nút thêm cấu hình & Nút bấm lệnh & Bảng `cart` & Đưa linh kiện vào danh sách lắp ráp của đơn hàng hiện thời. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Chi tiết Linh kiện Phần cứng Rời (UI-16)}
+    \label{fig:ui_16_component_page}
+\end{figure}
+
+\subsection{Giao diện Săn Sale Khuyến mãi Đếm ngược (Mã: UI-17)}
+Giao diện săn sale (`FlashSalePage.jsx`, tuyến đường `/san-sale`) tạo động lực mua sắm khẩn cấp thông qua cơ chế đếm ngược thời gian thực và hiển thị số lượng tồn kho theo thời gian thực từ bảng `flashSales`. Bảng~\ref{tab:ui_17_spec} mô tả chi tiết giao diện Flash Sale.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Săn Sale Khuyến mãi Đếm ngược (UI-17)}
+\label{tab:ui_17_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Tương tác} \\
+\midrule
+Đồng hồ đếm ngược & Hộp số đếm lùi & Thời gian kết thúc & Hiển thị số giờ, phút, giây còn lại của khung giờ săn sale hiện tại. \\
+Thanh trạng thái bán lẻ & Thanh tiến trình màu đỏ & Tỷ lệ bán/kho & Trực quan hóa độ khan hiếm hàng hóa để kích thích hành vi thanh toán nhanh. \\
+Nút mua chớp nhoáng & Nút bấm lệnh đặc biệt & Đặt hàng nhanh & Chuyển thẳng tới quy trình thanh toán với mức giá trợ giá trong sự kiện. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Săn Sale Khuyến mãi Khung Giờ Vàng (UI-17)}
+    \label{fig:ui_17_flash_sale}
+\end{figure}
+
+\subsection{Giao diện Trưng bày Hàng Demo Trải nghiệm (Mã: UI-18)}
+Giao diện hàng demo (`Prodemo.jsx`, tuyến đường `/proDemo`) phục vụ việc thanh lý hoặc trưng bày các sản phẩm mở hộp trải nghiệm tại showroom. Các thiết bị này có mức giá hấp dẫn đi kèm chính sách bảo hành riêng biệt. Bảng~\ref{tab:ui_18_spec} mô tả đặc tả giao diện hàng demo.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Trưng bày Hàng Demo Trải nghiệm (UI-18)}
+\label{tab:ui_18_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Mục đích Hiển thị} \\
+\midrule
+Tình trạng ngoại quan & Nhãn phần trăm mới & Thuộc tính sản phẩm & Mô tả độ mới của sản phẩm demo (99\%, 98\%, trầy xước nhẹ vỏ hộp). \\
+Mức giá thanh lý & Nhãn giá gạch ngang & Đơn giá demo & So sánh đơn giá hàng mới nguyên seal và mức giá thanh lý trải nghiệm. \\
+Chính sách bảo hành & Khối cam kết dịch vụ & Điều khoản bảo hành & Nêu rõ thời hạn bảo hành đổi mới trong ba mươi ngày đầu sử dụng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Trưng bày Hàng Demo Mở Hộp Trải nghiệm (UI-18)}
+    \label{fig:ui_18_prodemo}
+\end{figure}
+
+\subsection{Giao diện Sản phẩm Phong cách Manga Mới (Mã: UI-19)}
+Giao diện sản phẩm phong cách đồ họa (`ProductMangaNew.jsx`, tuyến đường `/product-manga-new`) là màn hình chuyên biệt hướng tới tệp khách hàng trẻ yêu thích văn hóa Anime và Manga. Giao diện tích hợp các linh kiện máy tính có phối màu đặc biệt, vỏ case in hình nhân vật hoặc phụ kiện giới hạn. Bảng~\ref{tab:ui_19_spec} mô tả đặc tả giao diện sản phẩm phong cách mới.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Sản phẩm Phong cách Manga Mới (UI-19)}
+\label{tab:ui_19_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Giao diện} & \textbf{Kiểu Trình bày} & \textbf{Trường Dữ liệu} & \textbf{Ý nghĩa Nghệ thuật} \\
+\midrule
+Khung ảnh phong cách Manga & Khung viền đồ họa & Ảnh phiên bản đặc biệt & Trình bày các mẫu linh kiện mang thiết kế phối màu cá tính độc đáo. \\
+Thẻ phiên bản giới hạn & Huy hiệu vàng & Số lượng phát hành & Nhấn mạnh tính độc quyền của các lô hàng sản xuất giới hạn trên thế giới. \\
+Bộ sưu tập phụ kiện đi kèm & Lưới ảnh nhỏ & Quà tặng kèm & Liệt kê các vật phẩm lưu niệm đính kèm khi khách hàng mua linh kiện. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Bộ sưu tập Sản phẩm Phong cách Đồ họa Manga (UI-19)}
+    \label{fig:ui_19_product_manga}
+\end{figure}
+
+\subsection{Giao diện Danh mục Thiết bị Gia dụng Thông minh (Mã: UI-20)}
+Giao diện thiết bị gia dụng (`ProductManaCategory.jsx`, tuyến đường `/appliance/:id`) quản lý các mặt hàng công nghệ phục vụ đời sống gia đình như máy lọc không khí thông minh, robot hút bụi hoặc đèn bàn bảo vệ mắt từ bảng `appliances`. Bảng~\ref{tab:ui_20_spec} mô tả đặc tả giao diện thiết bị gia dụng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh mục Thiết bị Gia dụng Thông minh (UI-20)}
+\label{tab:ui_20_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Đặc điểm Thông số} \\
+\midrule
+Chỉ số tiết kiệm điện & Nhãn công suất tiêu thụ & `power`, `appliances` & Hiển thị công suất vận hành tính bằng Watt và nhãn năng lượng tiêu chuẩn. \\
+Hệ sinh thái kết nối & Biểu tượng ứng dụng & Giao thức không dây & Nêu rõ khả năng đồng bộ với ứng dụng di động qua kết nối mạng không dây WiFi. \\
+Nút kiểm tra khuyến mãi & Nút bấm lệnh phụ & Bảng `vouchers` & Gợi ý các mã giảm giá áp dụng riêng cho ngành hàng điện gia dụng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh mục Thiết bị Gia dụng Thông minh (UI-20)}
+    \label{fig:ui_20_appliances}
+\end{figure}
+
+\subsection{Giao diện Ví Voucher Tri ân Khách hàng (Mã: UI-21)}
+Giao diện ví voucher (`VoucherWallet.jsx`, tuyến đường `/tri-an-khach-hang`) yêu cầu người dùng đăng nhập tài khoản. Màn hình cho phép khách hàng theo dõi danh sách các mã ưu đãi đã thu thập vào ví cá nhân từ bảng `userVouchers` và bấm thu thập thêm các mã khuyến mãi công khai từ bảng `vouchers`. Bảng~\ref{tab:ui_21_spec} mô tả đặc tả ví voucher.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Ví Voucher Tri ân Khách hàng (UI-21)}
+\label{tab:ui_21_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Khu vực Giao diện} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Quy trình Nghiệp vụ} \\
+\midrule
+Tab mã khả dụng & Danh sách thẻ voucher & `userVouchers` (chưa dùng) & Hiển thị các mã giảm giá sẵn sàng áp dụng kèm điều kiện giá trị đơn hàng tối thiểu. \\
+Tab mã đã sử dụng & Danh sách thẻ voucher mờ & `userVouchers` (đã dùng) & Lưu trữ lịch sử các mã voucher đã được sử dụng trong các đơn hàng trước. \\
+Khu vực săn voucher mới & Lưới mã có nút lưu & Bảng `vouchers` & Khách hàng bấm nút nhận mã để lưu trực tiếp mã khuyến mãi vào ví cá nhân. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Ví Mã Khuyến mãi Tri ân Khách hàng (UI-21)}
+    \label{fig:ui_21_voucher_wallet}
+\end{figure}
+
+\subsection{Giao diện Thông tin Liên hệ và Gửi Phản hồi (Mã: UI-22)}
+Giao diện liên hệ (`ContactPage.jsx`, tuyến đường `/lien-he`) cung cấp địa chỉ trụ sở showroom, số tổng đài chăm sóc khách hàng và biểu mẫu trực tuyến cho phép khách hàng gửi thắc mắc hoặc phản hồi dịch vụ. Bảng~\ref{tab:ui_22_spec} mô tả các phần tử của trang liên hệ.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Thông tin Liên hệ và Phản hồi (UI-22)}
+\label{tab:ui_22_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Nhập liệu} & \textbf{Kiểu Điều khiển} & \textbf{Yêu cầu Kiểm tra} & \textbf{Mục đích Phản hồi} \\
+\midrule
+Họ tên người gửi & Hộp văn bản text & Không để trống & Ghi nhận danh tính người dùng cần được hỗ trợ kỹ thuật. \\
+Thư điện tử liên hệ & Hộp văn bản email & Chuẩn định dạng email & Dùng để gửi phản hồi tự động giải đáp câu hỏi của khách hàng. \\
+Nội dung phản hồi & Vùng văn bản textarea & Tối thiểu 10 ký tự & Mô tả chi tiết vấn đề khách hàng cần hỗ trợ giải đáp hoặc đóng góp ý kiến. \\
+Bản đồ vị trí showroom & Khung nhúng bản đồ số & Địa chỉ thực tế & Hướng dẫn đường đi trực quan tới địa điểm cửa hàng thực tế của HCore Store. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Thông tin Liên hệ Showroom và Gửi Phản hồi (UI-22)}
+    \label{fig:ui_22_contact}
+\end{figure}
+
+\subsection{Giao diện Quản lý Giỏ hàng (Mã: UI-23)}
+Giao diện giỏ hàng (`Cart.jsx`, tuyến đường `/cart`) yêu cầu người dùng xác thực tài khoản. Màn hình cho phép tùy chỉnh số lượng từng sản phẩm, tự động tính tổng tiền hàng và đối soát tồn kho khả dụng để chặn việc người mua nhập số lượng vượt quá khả năng cung ứng của kho.
+
+Về mặt xử lý dữ liệu và tối ưu hóa hiệu năng, thành phần áp dụng kỹ thuật cập nhật lạc quan (Optimistic UI Update). Khi người dùng nhấp nút tăng hoặc giảm số lượng, trạng thái giao diện lập tức phản ánh con số mới trên bảng hiển thị trong khi yêu cầu HTTP `PATCH /api/cart/:id` được gửi ngầm tới máy chủ Express. Nhằm ngăn chặn tình trạng khách hàng bấm chuột liên tục phát sinh quá tải yêu cầu (Network Spam), hệ thống tích hợp kỹ thuật trì hoãn thực thi (Debounce) với khoảng chờ ba trăm mili-giây. Nếu máy chủ phản hồi lỗi do số lượng vượt trần tồn kho thực tế, giao diện tự động hoàn nguyên số lượng về trạng thái hợp lệ trước đó và bật thông báo cảnh báo màu đỏ.
+
+Về các trạng thái giao diện, khi người dùng chưa có sản phẩm nào trong giỏ (Empty Cart State), trang hiển thị hình minh họa giỏ hàng rỗng cùng nút kêu gọi hành động điều hướng về trang chủ mua sắm. Trong trạng thái có sản phẩm (Populated State), bảng chi tiết liệt kê hình ảnh, tên linh kiện, đơn giá và tổng thành tiền từng dòng kèm hộp tóm tắt nổi bật hiển thị tổng giá trị tạm tính.
+
+Bảng~\ref{tab:ui_23_spec} mô tả các thao tác xử lý giỏ hàng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Quản lý Giỏ hàng (UI-23)}
+\label{tab:ui_23_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Thao tác API} & \textbf{Xử lý Phía Máy khách} \\
+\midrule
+Nút tăng/giảm số lượng & Cặp nút bấm cộng trừ & `PATCH /api/cart/:id` & Cập nhật số lượng tức thời, tự động chặn nếu đạt ngưỡng tồn kho tối đa. \\
+Nút xóa từng mặt hàng & Biểu tượng thùng rác & `DELETE /api/cart/:id` & Xóa sản phẩm ra khỏi giỏ, cập nhật lại số lượng sản phẩm trên thanh tiêu đề. \\
+Nút dọn sạch giỏ hàng & Nút văn bản phụ & Xóa hàng loạt & Xóa toàn bộ sản phẩm đang lưu trữ trong giỏ hàng sau khi người dùng xác nhận. \\
+Hộp tóm tắt thanh toán & Khối nổi cố định & Tính toán cục bộ & Hiển thị tạm tính tổng tiền hàng và nút chuyển hướng sang trang đặt hàng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Quản lý Giỏ hàng Người dùng (UI-23)}
+    \label{fig:ui_23_cart}
+\end{figure}
+
+\subsection{Giao diện Đặt hàng và Chọn Cổng Thanh toán (Mã: UI-24)}
+Giao diện đặt hàng (`Checkout.jsx`, tuyến đường `/checkout`) là nút thắt nghiệp vụ trọng tâm của toàn bộ hệ thống bán lẻ. Người mua kiểm tra lại danh sách sản phẩm, nhập địa chỉ nhận hàng, chọn mã voucher chiết khấu và lựa chọn một trong ba phương thức thanh toán khả dụng gồm COD, VNPAY hoặc MoMo.
+
+Về cơ chế an toàn giao dịch, thành phần tự động khởi tạo chuỗi định danh duy nhất theo chuẩn RFC 4122 UUID v4 tại thời điểm nạp trang để làm khóa chống gửi trùng `requestId`. Khi người dùng bấm nút gửi đơn, cờ vô hiệu hóa nút bấm (Submit Debouncing) được kích hoạt ngay lập tức nhằm ngăn chặn hành vi nhấp đúp chuột. Nếu người dùng chọn thanh toán trực tuyến qua VNPAY hoặc MoMo, máy khách phát yêu cầu `POST /api/payments/:gateway/create` và tiếp nhận đường dẫn thanh toán an toàn để chuyển hướng trình duyệt của khách hàng sang hệ thống đối tác tài chính.
+
+Về quy tắc kiểm tra biểu mẫu, các trường họ tên, số điện thoại và địa chỉ giao hàng được xác thực thông qua biểu thức chính quy chuẩn hóa trước khi phát lệnh mạng. Tại khu vực khuyến mãi, khi khách hàng chọn hoặc nhập mã voucher, thành phần phát yêu cầu kiểm tra điều kiện giá trị đơn hàng tối thiểu `minOrder` và tính toán ngay số tiền chiết khấu thực tế hiển thị trên hóa đơn tạm tính.
+
+Bảng~\ref{tab:ui_24_spec} mô tả chi tiết các phần tử trên trang thanh toán.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Đặt hàng và Chọn Cổng Thanh toán (UI-24)}
+\label{tab:ui_24_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Khu vực Nhập liệu} & \textbf{Kiểu Điều khiển} & \textbf{Ràng buộc Dữ liệu} & \textbf{Ý nghĩa Xử lý Nghiệp vụ} \\
+\midrule
+Thông tin người nhận & Các hộp văn bản & Bắt buộc họ tên, sđt, địa chỉ & Khởi tạo thông tin giao hàng gắn liền với bản ghi đơn hàng snapshot. \\
+Bộ chọn mã giảm giá & Hộp thả và ô nhập mã & Mã voucher hợp lệ & Tự động tính toán số tiền giảm trừ chiết khấu và cập nhật lại tổng số tiền. \\
+Phương thức thanh toán & Nút chọn radio option & COD, VNPAY, MoMo & Quyết định tuyến đường điều hướng thanh toán sau khi người dùng nhấn đặt hàng. \\
+Khóa chống gửi trùng & Sinh ngẫu nhiên ngầm & Chuỗi UUID duy nhất & Ngăn chặn tình trạng người dùng nhấp đúp chuột tạo hai đơn hàng trùng lặp. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Đặt hàng và Lựa chọn Cổng Thanh toán Trực tuyến (UI-24)}
+    \label{fig:ui_24_checkout}
+\end{figure}
+
+\subsection{Giao diện Thông báo Kết quả Thanh toán Trực tuyến (Mã: UI-25)}
+Giao diện kết quả (`PaymentResult.jsx`, tuyến đường `/payment-result`) tiếp nhận khách hàng sau khi hoàn tất quy trình từ cổng thanh toán của ngân hàng chuyển về. Giao diện trích xuất mã token ngẫu nhiên trên thanh địa chỉ và gọi API xác nhận trạng thái đơn hàng.
+
+Về quy trình xử lý bất đồng bộ, màn hình sử dụng cơ chế thăm dò ngắn hạn (Short Polling) với chu kỳ ba giây gọi điểm cuối `GET /api/payments/result/:lookupToken`. Trong trường hợp thông báo IPN từ máy chủ ngân hàng tới máy chủ bán hàng bị trễ do nghẽn mạng đối tác, giao diện hiển thị trạng thái chờ xử lý kèm thông điệp trấn an khách hàng. Ngay khi máy chủ ghi nhận trạng thái đã thanh toán thành công, màn hình lập tức chuyển sang biểu tượng huy hiệu xanh lá cùng hóa đơn điện tử tóm tắt. Nếu giao dịch bị hủy hoặc thanh toán thất bại, giao diện hiển thị rõ nguyên nhân do phía ngân hàng phản hồi kèm nút bấm thanh toán lại giúp khách hàng khởi tạo phiên thanh toán mới mà không cần chọn lại sản phẩm từ đầu.
+
+Bảng~\ref{tab:ui_25_spec} mô tả các trạng thái hiển thị của trang kết quả.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Thông báo Kết quả Thanh toán (UI-25)}
+\label{tab:ui_25_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Trạng thái Đơn hàng} & \textbf{Biểu tượng Hiển thị} & \textbf{Thông tin Kèm theo} & \textbf{Hành động Khả dụng} \\
+\midrule
+Giao dịch thành công & Dấu tích xanh lục & Mã đơn hàng, số tiền đã trả, thời gian & Cung cấp nút xem chi tiết đơn hàng hoặc tiếp tục mua sắm linh kiện khác. \\
+Giao dịch thất bại & Dấu chéo màu đỏ & Lý do lỗi (Số dư không đủ, hủy bỏ) & Hiển thị nút thanh toán lại giúp khách hàng thử lại mà không phải tạo đơn mới. \\
+Đang chờ xử lý & Vòng quay màu vàng & Thông báo đang đồng bộ giao dịch & Tự động gọi lại API sau mỗi ba giây để cập nhật trạng thái mới nhất. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Thông báo Kết quả Giao dịch Thanh toán Trực tuyến (UI-25)}
+    \label{fig:ui_25_payment_result}
+\end{figure}
+
+\subsection{Giao diện Lịch sử và Tiến trình Đơn hàng Cá nhân (Mã: UI-26)}
+Giao diện đơn hàng cá nhân (`UserOrders.jsx`, tuyến đường `/orders`) cho phép khách hàng theo dõi toàn bộ các đơn hàng đã đặt trong quá khứ, kiểm tra tiến độ giao hàng theo máy trạng thái và bấm thanh toán lại đối với các đơn hàng trực tuyến chưa hoàn tất.
+
+Màn hình phân chia dữ liệu thành các tab trạng thái trực quan gồm: Tất cả đơn hàng, Đang chờ duyệt, Đã xác nhận đóng gói, Đang giao hàng, Đã hoàn tất và Đã hủy. Khách hàng có thể tra cứu nhanh mã đơn hàng hoặc tên sản phẩm thông qua ô lọc tìm kiếm. Đối với các đơn hàng đang ở mức chờ duyệt (`pending`), màn hình cung cấp nút bấm hủy đơn kèm hộp thoại xác nhận lý do; khi xác nhận, máy khách phát yêu cầu hủy đơn và máy chủ tự động thực hiện hoàn trả số lượng hàng vào kho tồn của cửa hàng.
+
+Bảng~\ref{tab:ui_26_spec} mô tả các thành phần tương tác trên trang đơn hàng người dùng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Lịch sử Đơn hàng Cá nhân (UI-26)}
+\label{tab:ui_26_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử Giao diện} & \textbf{Kiểu Trình bày} & \textbf{Trường Dữ liệu} & \textbf{Chức năng Nghiệp vụ} \\
+\midrule
+Huy hiệu trạng thái & Nhãn huy hiệu có màu & `orders.status` & Thể hiện rõ các giai đoạn: Chờ duyệt, Đã xác nhận, Đang giao, Hoàn tất, Đã hủy. \\
+Huy hiệu thanh toán & Nhãn trạng thái tiền & `orders.paymentStatus` & Báo rõ đã thanh toán hay chưa thanh toán để khách hàng an tâm nhận hàng. \\
+Nút thanh toán lại & Nút bấm lệnh nhanh & Đơn VNPAY chưa trả & Khởi tạo phiên thanh toán mới cho phép khách hàng trả nốt tiền đơn hàng. \\
+Nút hủy đơn hàng & Nút bấm xác nhận & Đơn ở mức `pending` & Cho phép người mua hủy đơn khi đơn hàng chưa bước vào giai đoạn đóng gói giao. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Lịch sử Đơn hàng và Vòng đời Xử lý Cá nhân (UI-26)}
+    \label{fig:ui_26_user_orders}
+\end{figure}
+
+\subsection{Giao diện Danh sách Sản phẩm Quan tâm (Mã: UI-27)}
+Giao diện sản phẩm yêu thích (`Wishlist.jsx`, tuyến đường `/wishlist`) quản lý danh mục các mặt hàng khách hàng đã bấm lưu để theo dõi giá hoặc mua trong tương lai từ bảng `wishlist`. Bảng~\ref{tab:ui_27_spec} mô tả đặc tả giao diện danh sách yêu thích.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Danh sách Sản phẩm Quan tâm (UI-27)}
+\label{tab:ui_27_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Nghiệp vụ} \\
+\midrule
+Lưới thẻ sản phẩm lưu & Khung lưới responsive & Bảng `wishlist` & Hiển thị ảnh, thông số tóm tắt và giá bán hiện hành của sản phẩm yêu thích. \\
+Nút chuyển vào giỏ & Nút bấm lệnh mua & Bảng `cart` & Đưa sản phẩm trực tiếp từ danh sách yêu thích vào giỏ hàng để tiến hành mua sắm. \\
+Nút bỏ thích & Biểu tượng trái tim vỡ & Xóa khỏi `wishlist` & Xóa sản phẩm ra khỏi danh sách yêu thích và cập nhật lại số lượng trên thanh công cụ. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Danh sách Sản phẩm Quan tâm Yêu thích (UI-27)}
+    \label{fig:ui_27_wishlist}
+\end{figure}
+
+\section{Triển khai Các Tiện ích Tương tác Nổi Toàn trang}
+Bên cạnh các trang định tuyến chính, hệ thống phát triển ba tiện ích nổi toàn trang phục vụ việc nâng cao trải nghiệm khách hàng và hỗ trợ mua sắm thông minh.
+
+\subsection{Tiện ích Trợ lý Ảo AI RAG Tương tác Nổi (Widget-1)}
+Tiện ích trợ lý ảo (`ChatBot.jsx`) hiển thị ở góc phải phía dưới trên toàn bộ các trang giao diện khách hàng. Khách hàng có thể mở khung hội thoại bất kỳ lúc nào để nhập câu hỏi tự nhiên bằng tiếng Việt nhờ kết nối trực tiếp với dịch vụ FastAPI vận hành tại cổng 8000.
+
+Về mặt vòng đời đối thoại và quản lý trạng thái, thành phần sử dụng mảng trạng thái `messages` để lưu trữ chuỗi hội thoại gồm vai trò (`user` hoặc `assistant`), nội dung tin nhắn, thời điểm gửi và danh sách nguồn sản phẩm đính kèm. Khi người dùng nhấn nút gửi, tin nhắn của người dùng lập tức được bổ sung vào giao diện (Optimistic Append) và trạng thái `isTyping = true` được kích hoạt để hiển thị hiệu ứng bong bóng suy nghĩ của trợ lý ảo. Yêu cầu HTTP `POST http://127.0.0.1:8000/api/chat` được phát bất đồng bộ với tải trọng JSON chứa câu truy vấn và thông tin người dùng. Khi dịch vụ AI phản hồi, nội dung tư vấn cùng danh sách liên kết sản phẩm được giải nén và nạp vào dòng hội thoại. Nếu máy chủ AI gặp sự cố mất mạng hoặc hết hạn mức kết nối Gemini, thành phần bắt lỗi `catch` và kích hoạt ngay thông điệp phản hồi dự phòng nội bộ, hướng dẫn khách hàng xem các mẫu linh kiện bán chạy tại trang chủ mà không gây cảm giác hệ thống bị sập.
+
+Bảng~\ref{tab:widget_1_spec} mô tả đặc tả kỹ thuật của tiện ích trợ lý ảo.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Kỹ thuật Tiện ích Trợ lý Ảo AI RAG Thông minh (Widget-1)}
+\label{tab:widget_1_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Nguồn Xử lý} & \textbf{Chức năng và Hiệu ứng} \\
+\midrule
+Nút mở bong bóng chat & Nút tròn nổi cố định & Cục bộ React & Hiển thị biểu tượng robot phát sáng và số lượng tin nhắn mới chưa đọc. \\
+Cửa sổ hội thoại & Hộp thoại kích thước nổi & Quản lý lịch sử chat & Trình bày dòng tin nhắn qua lại giữa khách hàng và trợ lý trí tuệ nhân tạo. \\
+Hiệu ứng chờ câu trả lời & Vòng quay hoạt họa & Bất đồng bộ HTTP & Hiển thị trạng thái đang suy nghĩ trong lúc mô hình tính toán vector ngữ nghĩa. \\
+Thẻ gợi ý sản phẩm & Thẻ liên kết nhanh & Trích dẫn từ RAG & Cho phép khách hàng nhấp chuột để mở ngay trang chi tiết sản phẩm được tư vấn. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{example-image}
+    \caption{Tiện ích Trợ lý Ảo Tư vấn Phần cứng Thông minh AI RAG (Widget-1)}
+    \label{fig:widget_01_chatbot}
+\end{figure}
+
+\subsection{Tiện ích Nổi Danh sách Yêu thích Truy cập Nhanh (Widget-2)}
+Tiện ích danh sách yêu thích nổi (`WishlistFloatingWidget.jsx`) được cố định ở cạnh bên màn hình, hiển thị huy hiệu báo số lượng mặt hàng đang được người dùng đánh dấu quan tâm trong cơ sở dữ liệu. Nhấp chọn tiện ích sẽ mở nhanh ngăn kéo danh sách sản phẩm yêu thích mà không làm gián đoạn luồng xem trang hiện tại. Bảng~\ref{tab:widget_2_spec} mô tả chi tiết tiện ích.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Tiện ích Nổi Danh sách Yêu thích Nhanh (Widget-2)}
+\label{tab:widget_2_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử UI} & \textbf{Kiểu Trình bày} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Nghiệp vụ} \\
+\midrule
+Biểu tượng trái tim nổi & Nút ghim bên hông & Bảng `wishlist` & Luôn xuất hiện trên màn hình, báo số lượng sản phẩm bằng số đỏ trên huy hiệu. \\
+Ngăn kéo trượt bên & Drawer mở rộng & Danh sách `wishlist` & Trượt ra từ cạnh phải hiển thị nhanh ảnh và giá các sản phẩm đang quan tâm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{example-image}
+    \caption{Tiện ích Nổi Danh sách Sản phẩm Yêu thích Nhanh (Widget-2)}
+    \label{fig:widget_02_wishlist}
+\end{figure}
+
+\subsection{Nút Điều khiển Cuộn Nhanh Lên Đầu Trang (Widget-3)}
+Tiện ích cuộn trang (`BackToTop.jsx`) tự động phát hiện vị trí cuộn chuột của người dùng. Khi độ dài cuộn vượt quá ngưỡng ba trăm pixel từ đầu trang, nút bấm tròn có mũi tên hướng lên sẽ xuất hiện với hiệu ứng mờ dần. Nhấp chọn nút sẽ kích hoạt chuyển động cuộn mượt mà đưa khung nhìn quay về đầu trang. Bảng~\ref{tab:widget_3_spec} mô tả đặc tả tiện ích cuộn trang.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Nút Điều khiển Cuộn Nhanh Lên Đầu Trang (Widget-3)}
+\label{tab:widget_3_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Sự kiện Lắng nghe} & \textbf{Ngưỡng Kích hoạt} & \textbf{Hành vi Xử lý} \\
+\midrule
+Nút tròn cuộn lên & Sự kiện `window.scroll` & Lớn hơn 300px & Kích hoạt hàm `window.scrollTo({ top: 0, behavior: 'smooth' })`. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{example-image}
+    \caption{Tiện ích Nút Cuộn Nhanh Lên Đầu Trang (Widget-3)}
+    \label{fig:widget_03_backtotop}
+\end{figure}
+
+\section{Triển khai Phân hệ Giao diện Quản trị Viên}
+Phân hệ quản trị viên bao gồm chín màn hình chuyên sâu phục vụ công tác giám sát kinh doanh, điều hành chuỗi cung ứng, cấu hình sản phẩm và bảo đảm an toàn hệ thống. Mọi màn hình trong phân hệ này đều được bảo vệ bởi thành phần bảo vệ định tuyến phía máy khách, tự động chuyển hướng người dùng không mang vai trò quản trị về trang đăng nhập.
+
+\subsection{Giao diện Quản trị Kho Hàng và Danh mục Sản phẩm (Mã: UI-28)}
+Giao diện quản lý kho hàng (`ProductManager.jsx`, tuyến đường `/admin/products`) cung cấp công cụ toàn diện để quản trị viên kiểm soát danh mục sản phẩm. Màn hình hỗ trợ phân trang dữ liệu, tìm kiếm nhanh và biểu mẫu chỉnh sửa thông tin giá bán và số lượng tồn kho khả dụng.
+
+Về quy trình quản lý biểu mẫu, thành phần xây dựng hộp thoại Modal tương tác chứa các trường nhập tên thiết bị, danh mục cha, giá niêm yết, tồn kho và đường dẫn hình ảnh đại diện. Khi quản trị viên bấm lưu, biểu mẫu kiểm tra tính hợp lệ về mặt số học (giá và tồn kho không được âm). Lệnh mạng `POST /api/products` (thêm mới) hoặc `PUT /api/products/:id` (chỉnh sửa) được thực thi và tự động làm mới danh sách dữ liệu hiển thị. Khi quản trị viên chọn thao tác xóa, hệ thống hiển thị hộp thoại xác nhận bắt buộc để ngăn chặn thao tác nhầm lẫn; thao tác này thực thi xóa mềm `DELETE /api/products/:id` nhằm đánh dấu trường `deleted = true`, bảo toàn tính toàn vẹn của các đơn hàng trong quá khứ.
+
+Bảng~\ref{tab:ui_28_spec} mô tả các tính năng quản lý sản phẩm.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Quản trị Kho Hàng và Sản phẩm (UI-28)}
+\label{tab:ui_28_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Điểm cuối API} & \textbf{Hành vi Quản trị} \\
+\midrule
+Nút thêm sản phẩm mới & Nút bấm mở modal form & `POST /api/products` & Khởi tạo bản ghi phần cứng mới với ảnh, tên gọi, giá niêm yết và số lượng kho. \\
+Bảng danh mục sản phẩm & Bảng dữ liệu có phân trang & `GET /api/products` & Trình bày danh sách thiết bị kèm hình ảnh thu nhỏ, tồn kho và số lượt bán ra. \\
+Nút chỉnh sửa thông tin & Biểu tượng bút chỉnh sửa & `PUT /api/products/:id` & Cập nhật giá niêm yết, số lượng hàng mới nhập vào kho và đường dẫn ảnh đại diện. \\
+Nút xóa sản phẩm & Biểu tượng thùng rác & `DELETE /api/products/:id` & Đánh dấu cờ xóa mềm sản phẩm nhằm bảo toàn tính toàn vẹn của các đơn hàng cũ. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Quản trị Kho Hàng và Danh mục Sản phẩm (UI-28)}
+    \label{fig:ui_28_admin_products}
+\end{figure}
+
+\subsection{Giao diện Quản trị Đơn hàng và Vận hành (Mã: UI-29)}
+Giao diện quản trị đơn hàng (`AdminOrders.jsx`, tuyến đường `/admin/orders`) là trung tâm điều hành chuỗi cung ứng của cửa hàng. Quản trị viên thực hiện việc chuyển đổi trạng thái đơn hàng theo máy trạng thái hữu hạn, xác nhận thanh toán và điều phối đơn vị vận chuyển.
+
+Về cơ chế kiểm soát trạng thái nghiệp vụ, danh sách lựa chọn trạng thái chỉ hiển thị các trạng thái kế tiếp hợp lệ theo ma trận chuyển đổi FSM. Đối với các đơn hàng lựa chọn phương thức VNPAY nhưng trạng thái thanh toán chưa là `paid`, hệ thống tự động khóa nút duyệt sang giai đoạn đóng gói giao hàng nhằm triệt tiêu nguy cơ xuất kho nhầm. Khi đơn hàng bị hủy (`cancelled`), máy khách hiển thị biểu mẫu ghi nhận lý do hủy đơn và máy chủ tự động kích hoạt hàm hoàn trả số lượng hàng vào kho tồn của từng linh kiện tương ứng.
+
+Bảng~\ref{tab:ui_29_spec} mô tả đặc tả giao diện duyệt đơn hàng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Quản trị Đơn hàng và Vận hành (UI-29)}
+\label{tab:ui_29_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử UI} & \textbf{Kiểu Điều khiển} & \textbf{Quy tắc FSM} & \textbf{Tác động Dữ liệu} \\
+\midrule
+Hộp chọn đổi trạng thái & Dropdown lựa chọn & Máy trạng thái & Chỉ cho phép chọn các trạng thái kế tiếp hợp lệ theo quy định của FSM. \\
+Khóa an toàn đơn VNPAY & Ràng buộc tự động & `paymentStatus == paid` & Chặn tuyệt đối nút duyệt giao hàng đối với các đơn hàng trực tuyến chưa thu tiền. \\
+Hộp thoại lý do hủy đơn & Modal nhập lý do & Hoàn trả tồn kho & Tự động gọi hàm phục hồi tồn kho sản phẩm tương ứng khi quản trị viên hủy đơn. \\
+Bộ lọc trạng thái đơn & Tab chọn lọc nhanh & Lọc theo trường trạng thái & Giúp nhân viên kho dễ dàng lọc riêng các đơn đang chờ duyệt đóng gói. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Quản trị Đơn hàng và Vận hành Chuỗi Cung ứng (UI-29)}
+    \label{fig:ui_29_admin_orders}
+\end{figure}
+
+\subsection{Giao diện Quản trị Tài khoản Người dùng và Phân quyền (Mã: UI-30)}
+Giao diện người dùng (`UserManager.jsx`, tuyến đường `/admin/users`) cho phép người quản trị tối cao theo dõi danh sách thành viên, nâng hạ vai trò truy cập giữa tài khoản người dùng và quản trị viên, hoặc tạm thời khóa các tài khoản có dấu hiệu vi phạm chính sách kinh doanh. Bảng~\ref{tab:ui_30_spec} mô tả chi tiết giao diện quản trị thành viên.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Quản trị Người dùng và Phân quyền (UI-30)}
+\label{tab:ui_30_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Trường Can thiệp} & \textbf{Quy tắc Bảo mật} \\
+\midrule
+Nút chuyển đổi quyền hạn & Hộp chọn lựa chọn & `user.role` & Thay đổi vai trò người dùng thành quản trị viên hoặc ngược lại. \\
+Nút khóa/mở khóa tài khoản & Công tắc chuyển đổi & `user.status` & Đổi trạng thái giữa kích hoạt và tạm khóa nhằm ngăn đăng nhập trái phép. \\
+Thanh tìm kiếm tài khoản & Hộp nhập tìm kiếm & Tên hoặc email & Hỗ trợ tìm nhanh thành viên theo tên tài khoản, địa chỉ email hoặc số điện thoại. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Quản trị Tài khoản Người dùng và Phân quyền (UI-30)}
+    \label{fig:ui_30_admin_users}
+\end{figure}
+
+\subsection{Giao diện Báo cáo Thống kê Doanh thu (Mã: UI-31)}
+Giao diện thống kê (`Statistics.jsx`, tuyến đường `/admin/statistics`) cung cấp bức tranh tài chính toàn diện cho ban lãnh đạo cửa hàng. Màn hình sử dụng thư viện Recharts để trực quan hóa biểu đồ doanh thu theo ngày và tháng, cũng như phân tích tỷ lệ đóng góp của từng phương thức thanh toán.
+
+Về mặt xử lý dữ liệu tổng hợp, thành phần phát yêu cầu `GET /api/admin/orders` và thực thi các phép tổng hợp dữ liệu mảng phức tạp bằng `useMemo`. Dữ liệu doanh thu thuần chỉ tính toán trên các đơn hàng có trạng thái vòng đời là `completed` hoặc có trạng thái thanh toán là `paid`. Thuật toán nhóm dữ liệu theo từng ngày trong tháng tạo ra chuỗi thời gian liên tục phục vụ biểu đồ vùng diện tích (`<AreaChart>`), trực quan hóa xu hướng tăng trưởng doanh thu theo ngày trong tuần. Phân tích tỷ trọng phương thức thanh toán sử dụng biểu đồ tròn bánh quấn (`<PieChart>`) để phân tách tỷ lệ giữa VNPAY, MoMo và tiền mặt COD. Toàn bộ các thành phần đồ họa được bao bọc bởi thẻ co giãn thích ứng `<ResponsiveContainer width="100%" height={320}>`, bảo đảm khả năng hiển thị hoàn hảo trên mọi độ phân giải màn hình máy tính của nhà quản trị.
+
+Bảng~\ref{tab:ui_31_spec} tóm tắt các chỉ số thống kê.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Báo cáo Thống kê Doanh thu (UI-31)}
+\label{tab:ui_31_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Chỉ số Thống kê} & \textbf{Kiểu Biểu đồ} & \textbf{Khoảng Thời gian} & \textbf{Ý nghĩa Phân tích} \\
+\midrule
+Tổng doanh thu thuần & Thẻ số liệu lớn & Toàn thời gian & Tổng giá trị thực thu từ các đơn hàng ở trạng thái đã hoàn tất giao hàng. \\
+Biểu đồ đường doanh số & Biểu đồ diện tích Area & 30 ngày gần nhất & Đánh giá xu hướng tăng trưởng doanh thu theo chu kỳ từng tuần và từng tháng. \\
+Biểu đồ tròn phương thức & Biểu đồ hình tròn Donut & Tỷ trọng phần trăm & Đo lường tỷ lệ thanh toán trực tuyến qua VNPAY/MoMo so với tiền mặt COD. \\
+Bảng xếp hạng mặt hàng & Bảng danh sách Top 10 & Theo doanh số bán & Xác định các dòng máy tính và linh kiện chủ lực mang lại lợi nhuận cao nhất. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Báo cáo Thống kê Doanh thu và Phân tích Kinh doanh (UI-31)}
+    \label{fig:ui_31_admin_stats}
+\end{figure}
+
+\subsection{Giao diện Kiểm duyệt Đánh giá và Bình luận (Mã: UI-32)}
+Giao diện quản lý đánh giá (`ReviewManager.jsx`, tuyến đường `/admin/reviews`) giúp quản trị viên kiểm soát chất lượng phản hồi từ người mua hàng. Các đánh giá có nội dung thô tục, mang tính spam hoặc xuyên tạc sản phẩm có thể bị gỡ bỏ để bảo vệ uy tín thương hiệu cửa hàng. Bảng~\ref{tab:ui_32_spec} mô tả đặc tả giao diện kiểm duyệt bình luận.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Kiểm duyệt Đánh giá Khách hàng (UI-32)}
+\label{tab:ui_32_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Dữ liệu Nguồn} & \textbf{Hành vi Kiểm duyệt} \\
+\midrule
+Bảng phản hồi đánh giá & Bảng dữ liệu chi tiết & Bảng `reviews` & Trình bày tên khách hàng, sản phẩm được đánh giá, số sao và nội dung nhận xét. \\
+Bộ lọc số sao đánh giá & Hộp thả số sao & Lọc 1 sao đến 5 sao & Giúp bộ phận chăm sóc khách hàng tập trung xử lý các phản ánh tiêu cực. \\
+Nút xóa bình luận vi phạm & Biểu tượng thùng rác & `DELETE /api/reviews/:id` & Xóa bỏ nhận xét sai phạm, tự động tính lại điểm số sao trung bình của sản phẩm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Kiểm duyệt và Quản trị Đánh giá Khách hàng (UI-32)}
+    \label{fig:ui_32_admin_reviews}
+\end{figure}
+
+\subsection{Giao diện Phát hành và Quản lý Voucher (Mã: UI-33)}
+Giao diện khuyến mãi (`VoucherManager.jsx`, tuyến đường `/admin/vouchers`) phục vụ phòng tiếp thị phát hành các chiến dịch mã giảm giá mới. Quản trị viên thiết lập mã ký hiệu, hình thức chiết khấu, giá trị đơn hàng tối thiểu và số lượt thu thập tối đa. Bảng~\ref{tab:ui_33_spec} mô tả các phần tử quản lý mã voucher.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Quản trị và Phát hành Voucher (UI-33)}
+\label{tab:ui_33_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Trường Thiết lập} & \textbf{Kiểu Nhập liệu} & \textbf{Giá trị Mẫu} & \textbf{Quy tắc Áp dụng} \\
+\midrule
+Mã ký tự voucher & Hộp văn bản in hoa & `XUAN2026` & Mã duy nhất khách hàng nhập khi thanh toán hoặc lưu vào ví. \\
+Hình thức chiết khấu & Hộp chọn lựa chọn & `percent` hoặc `fixed` & Giảm trừ theo tỷ lệ phần trăm tiền hàng hoặc trừ một khoản tiền cố định. \\
+Giá trị giảm trừ & Hộp số nguyên & 50000 hoặc 10 & Số tiền cố định hoặc tỷ lệ phần trăm tương ứng với hình thức đã chọn. \\
+Đơn hàng tối thiểu & Hộp số nguyên & 500000 VNĐ & Điều kiện tổng giá trị đơn hàng bắt buộc phải đạt để kích hoạt mã. \\
+Giới hạn thu thập & Hộp số nguyên & 100 lượt & Số lượng khách hàng tối đa được phép lưu voucher vào ví cá nhân. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Phát hành và Quản lý Mã Giảm giá Voucher (UI-33)}
+    \label{fig:ui_33_admin_vouchers}
+\end{figure}
+
+\subsection{Giao diện Thiết lập Sự kiện Flash Sale (Mã: UI-34)}
+Giao diện quản lý giảm giá chớp nhoáng (`FlashSaleManager.jsx`, tuyến đường `/admin/flash-sale`) cho phép quản trị viên lên lịch các khung giờ vàng trong ngày, gán danh sách sản phẩm tham gia chương trình và ấn định mức trợ giá đặc biệt. Bảng~\ref{tab:ui_34_spec} mô tả đặc tả giao diện sự kiện Flash Sale.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Thiết lập Sự kiện Flash Sale (UI-34)}
+\label{tab:ui_34_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Thành phần UI} & \textbf{Kiểu Điều khiển} & \textbf{Trường Dữ liệu} & \textbf{Ý nghĩa Quản trị} \\
+\midrule
+Bộ chọn khung giờ & Bộ chọn ngày giờ & Thời gian bắt đầu/kết thúc & Xác định chính xác khoảng thời gian đồng hồ đếm ngược hoạt động trên trang chủ. \\
+Bảng sản phẩm tham gia & Bảng danh sách chọn & `flashSales.products` & Thiết lập giá bán trợ giá và số lượng hàng tối đa được phép bán trong sự kiện. \\
+Nút kích hoạt/kết thúc & Công tắc trạng thái & Trạng thái sự kiện & Cho phép bật hoặc đóng sớm chương trình khuyến mãi chớp nhoáng khi cần. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Thiết lập và Quản lý Khung Giờ Flash Sale (UI-34)}
+    \label{fig:ui_34_admin_flash_sale}
+\end{figure}
+
+\subsection{Giao diện Tiếp nhận Xử lý Yêu cầu Bảo hành (Mã: UI-35)}
+Giao diện bảo hành kỹ thuật (`AdminServiceRequests.jsx`, tuyến đường `/admin/service-requests`) là công cụ làm việc của phòng kỹ thuật. Nhân viên tiếp nhận các phiếu báo lỗi phần cứng từ khách hàng, cập nhật tiến độ kiểm tra sửa chữa và thông báo kết quả trả bảo hành cho người dùng. Bảng~\ref{tab:ui_35_spec} mô tả chi tiết quy trình xử lý phiếu bảo hành.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Xử lý Yêu cầu Bảo hành Kỹ thuật (UI-35)}
+\label{tab:ui_35_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Phần tử UI} & \textbf{Kiểu Trình bày} & \textbf{Tiến độ Xử lý} & \textbf{Hành vi Nghiệp vụ} \\
+\midrule
+Bảng phiếu dịch vụ & Bảng phân loại tiến độ & Bảng `serviceRequests` & Hiển thị mã phiếu, người gửi, tên linh kiện và mô tả sự cố kỹ thuật gặp phải. \\
+Hộp chuyển tiến độ & Hộp chọn dropdown & Tiếp nhận, Đang sửa, Xong & Chuyển đổi trạng thái phiếu dịch vụ và tự động gửi thông báo tới người dùng. \\
+Khối ghi chú kỹ thuật & Hộp văn bản ghi chú & Biên bản sửa chữa & Ghi lại phương án can thiệp kỹ thuật như thay thế tụ điện hoặc cài lại phần mềm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Tiếp nhận và Xử lý Yêu cầu Dịch vụ Kỹ thuật (UI-35)}
+    \label{fig:ui_35_admin_services}
+\end{figure}
+
+\subsection{Giao diện Nhật ký Kiểm toán Thao tác Hệ thống (Mã: UI-36)}
+Giao diện nhật ký kiểm toán (`AuditLogManager.jsx`, tuyến đường `/admin/audit-logs`) là chốt chặn an ninh tối quan trọng phục vụ công tác điều tra và giám sát nội bộ. Toàn bộ các thao tác nhạy cảm của các tài khoản quản trị như chỉnh sửa giá bán, xóa đơn hàng, cấp quyền quản trị đều được ghi vết tự động kèm địa chỉ IP nguồn và thời điểm chính xác. Bảng~\ref{tab:ui_36_spec} mô tả chi tiết giao diện nhật ký kiểm toán.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Giao diện Nhật ký Kiểm toán Hệ thống (UI-36)}
+\label{tab:ui_36_spec}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3cm}p{2.5cm}X}
+\toprule
+\textbf{Cột Dữ liệu} & \textbf{Kiểu Định dạng} & \textbf{Nguồn Dữ liệu} & \textbf{Ý nghĩa Giám sát Bảo mật} \\
+\midrule
+Mốc thời gian & Ngày giờ chi tiết & `auditLogs.timestamp` & Xác định thời điểm chính xác diễn ra thao tác can thiệp hệ thống. \\
+Quản trị viên thực hiện & Tên định danh tài khoản & `auditLogs.adminId` & Nêu rõ danh tính cá nhân đã thực hiện thay đổi dữ liệu trong cơ sở dữ liệu. \\
+Hành động thực thi & Chuỗi mô tả hành vi & `auditLogs.action` & Ghi rõ hành vi: cập nhật đơn hàng, thay đổi giá sản phẩm hoặc xóa dữ liệu. \\
+Thực thể bị tác động & Tên bảng và mã bản ghi & `auditLogs.targetEntity` & Xác định chính xác bản ghi chịu tác động trong các bộ sưu tập dữ liệu. \\
+Địa chỉ IP nguồn & Chuỗi địa chỉ mạng & `auditLogs.ipAddress` & Phục vụ công tác đối soát an ninh mạng khi phát hiện dấu hiệu can thiệp bất thường. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{example-image}
+    \caption{Giao diện Nhật ký Kiểm toán Thao tác Quản trị Hệ thống (UI-36)}
+    \label{fig:ui_36_admin_audit}
+\end{figure}

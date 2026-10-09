@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import "nprogress/nprogress.css";
@@ -44,9 +50,17 @@ import BackToTop from "./components/BackToTop/BackToTop";
 import PaymentResult from "./pages/PaymentResult";
 import AuditLogManager from "./components/AdminDashboash/AuditLogManager";
 import { apiFetch, clearAuthSession, getCurrentUser } from "./utils/api";
+import BannerManager from "./components/AdminDashboash/BannerManager";
+import TradeInPage from "./pages/Promotions/TradeInPage";
+import InstallmentPage from "./pages/Promotions/InstallmentPage";
+import StudentPromoPage from "./pages/Promotions/StudentPromoPage";
+import BusinessCustomerPage from "./pages/Promotions/BusinessCustomerPage";
 
 // BẢO VỆ ROUTE ADMIN
-const AdminProtectedRoute = ({ children, roles = ["admin", "warehouse", "support"] }) => {
+const AdminProtectedRoute = ({
+  children,
+  roles = ["admin", "warehouse", "support"],
+}) => {
   const [state, setState] = useState({ loading: true, user: getCurrentUser() });
 
   useEffect(() => {
@@ -61,11 +75,14 @@ const AdminProtectedRoute = ({ children, roles = ["admin", "warehouse", "support
         clearAuthSession();
         if (active) setState({ loading: false, user: null });
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Nếu chưa đăng nhập HOẶC đăng nhập rồi nhưng không phải admin -> Đá thẳng về trang login
-  if (state.loading) return <div style={{ padding: 32 }}>Đang xác minh phiên đăng nhập...</div>;
+  if (state.loading)
+    return <div style={{ padding: 32 }}>Đang xác minh phiên đăng nhập...</div>;
   if (!state.user || !roles.includes(state.user.role)) {
     return <Navigate to="/login" replace />;
   }
@@ -119,6 +136,10 @@ function App() {
         <Route path="/appliance/:id" element={<ProductManaCategory />} />
         <Route path="/tri-an-khach-hang" element={<VoucherWallet />} />
         <Route path="/lien-he" element={<ContactPage />} />
+        <Route path="/thu-cu-doi-moi" element={<TradeInPage />} />
+        <Route path="/tra-gop" element={<InstallmentPage />} />
+        <Route path="/uu-dai-sinh-vien" element={<StudentPromoPage />} />
+        <Route path="/doanh-nghiep" element={<BusinessCustomerPage />} />
 
         {/* Giỏ hàng & Thanh toán */}
         <Route path="/cart" element={<Cart />} />
@@ -137,15 +158,86 @@ function App() {
           }
         >
           <Route index element={<Navigate to="orders" replace />} />
-          <Route path="products" element={<AdminProtectedRoute roles={["admin", "warehouse"]}><ProductManager /></AdminProtectedRoute>} />
-          <Route path="orders" element={<AdminProtectedRoute><AdminOrders /></AdminProtectedRoute>} />
-          <Route path="users" element={<AdminProtectedRoute roles={["admin", "support"]}><UserManager /></AdminProtectedRoute>} />
-          <Route path="statistics" element={<AdminProtectedRoute roles={["admin"]}><Statistics /></AdminProtectedRoute>} />
-          <Route path="reviews" element={<AdminProtectedRoute roles={["admin", "support"]}><ReviewManager /></AdminProtectedRoute>} />
-          <Route path="vouchers" element={<AdminProtectedRoute roles={["admin"]}><VoucherManager /></AdminProtectedRoute>} />
-          <Route path="flash-sale" element={<AdminProtectedRoute roles={["admin"]}><FlashSaleManager /></AdminProtectedRoute>} />
-          <Route path="service-requests" element={<AdminProtectedRoute roles={["admin", "support"]}><AdminServiceRequests /></AdminProtectedRoute>} />
-          <Route path="audit-logs" element={<AdminProtectedRoute><AuditLogManager /></AdminProtectedRoute>} />
+          <Route
+            path="products"
+            element={
+              <AdminProtectedRoute roles={["admin", "warehouse"]}>
+                <ProductManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="banners"
+            element={
+              <AdminProtectedRoute roles={["admin"]}>
+                <BannerManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="orders"
+            element={
+              <AdminProtectedRoute>
+                <AdminOrders />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <AdminProtectedRoute roles={["admin", "support"]}>
+                <UserManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="statistics"
+            element={
+              <AdminProtectedRoute roles={["admin"]}>
+                <Statistics />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="reviews"
+            element={
+              <AdminProtectedRoute roles={["admin", "support"]}>
+                <ReviewManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="vouchers"
+            element={
+              <AdminProtectedRoute roles={["admin"]}>
+                <VoucherManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="flash-sale"
+            element={
+              <AdminProtectedRoute roles={["admin"]}>
+                <FlashSaleManager />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="service-requests"
+            element={
+              <AdminProtectedRoute roles={["admin", "support"]}>
+                <AdminServiceRequests />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="audit-logs"
+            element={
+              <AdminProtectedRoute>
+                <AuditLogManager />
+              </AdminProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
       <CustomerFloatingWidgets />

@@ -1,388 +1,421 @@
 /* ==========================================================================
-   1. KHUNG CHỨA CHÍNH (LAYOUT TỔNG)
+   HCORE STORE - LOGIN PAGE STYLES (ĐĂNG NHẬP CHUẨN SÀN TMĐT)
    ========================================================================== */
+
 .login-page {
-  background-color: #f5f7fa; /* Nền xám nhạt nhẹ nhàng làm nổi bật hộp đăng nhập */
-  padding: 30px 0 60px 0;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 120px);
+  padding: 24px 0 60px;
+  font-family: inherit;
+  box-sizing: border-box;
 }
 
-/* Breadcrumb - Thanh điều hướng phụ */
-.breadcrumb {
-  max-width: 1200px;
+/* 1. CONTAINER CHUẨN */
+.login-container {
+  max-width: 980px;
   margin: 0 auto;
-  padding: 0 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #666;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
-.breadcrumb a {
-  color: #0b63b6;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-.breadcrumb a:hover {
-  color: #e30019;
-}
-
-.breadcrumb span {
-  width: 114px;
-  height: 28px;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-
-  color: #666;
-  font-size: 12px;
-  font-weight: 600;
-
-  transition: 0.25s;
-}
-
-.breadcrumb span:hover {
-  background: #0b63b6;
-  border-color: #0b63b6;
-  color: #fff;
-}
-
-.breadcrumb p,
-.breadcrumb .active-path {
-  margin: 0;
-  color: #333;
-  font-weight: 600;
-}
-
-/* Container bọc ngoài (Hỗ trợ grid/flex tốt hơn) */
-.containers {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 15px;
-}
-
-/* Khung hộp đăng nhập chia 2 bên */
-.login-wrapper {
-  display: flex;
-  background: #ffffff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Đổ bóng mờ hiện đại */
-  min-height: 550px;
-}
-
-/* ==========================================================================
-   2. BÊN TRÁI: BANNER TÍNH NĂNG (LOGIN-LEFT)
-   ========================================================================== */
-@media (max-width: 992px) {
-  .login-left {
-    display: none; /* Ẩn cột trái khi màn hình nhỏ (Tablet/Mobile) để tránh chật chội */
-  }
-}
-.login-left {
-  flex: 1;
-  background: linear-gradient(135deg, #0b63b6, #084b8a);
-  color: #fff;
-  border-radius: 18px;
-  padding: 40px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-.login-overlay {
-  width: 100%;
-  max-width: 420px;
-}
-
-.login-overlay h2 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.welcome-text {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.6;
-  margin-bottom: 28px;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.feature-icon {
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 17px;
-}
-
-.feature-item h4 {
-  margin: 0 0 6px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.feature-item p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* ==========================================================================
-   3. BÊN PHẢI: FORM NHẬP LIỆU (LOGIN-RIGHT)
-   ========================================================================== */
-.login-right {
-  flex: 1;
-  padding: 50px 60px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-@media (max-width: 576px) {
-  .login-right {
-    padding: 30px 20px; /* Thu nhỏ khoảng cách padding trên điện thoại */
-  }
-}
-
-.login-right h2 {
-  font-size: 28px;
-  color: #222222;
-  margin: 0 0 8px 0;
-  font-weight: 700;
-}
-
-.register-link {
-  font-size: 14.5px;
-  color: #666666;
-  margin-bottom: 30px;
-}
-
-.register-link a {
-  color: #0b63b6;
-  text-decoration: none;
-  font-weight: 600;
-  margin-left: 5px;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
-}
-
-/* Các nhóm form nhập liệu */
-.form-group {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-.form-group label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #444444;
-  margin-bottom: 8px;
-}
-
-/* Cụm Input chứa Icon lồng bên trong */
-.input-group {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-group input {
-  height: 52px;
-  padding: 0 50px;
-  font-size: 14px;
-}
-
-.input-icon {
-  width: 14px;
-  height: 50px;
-  position: absolute;
-  left: 20px;
-  color: #999999;
-  font-size: 16px;
-  pointer-events: none;
-}
-
-.eye-icon {
-  bottom: -12px;
-  width: 16px;
-  height: 50px;
-  position: absolute;
-  right: 14px;
-  color: #999999;
-  font-size: 16px;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.eye-icon:hover {
-  color: #0b63b6;
-}
-
-/* Thẻ input thực tế */
-.input-group input {
-  width: 100%;
-  padding: 13px 16px 13px 42px; /* Lùi text sang phải nhường chỗ cho Icon */
-  font-size: 15px;
-  border: 1px solid #dddddd;
-  border-radius: 8px;
-  outline: none;
-  background-color: #fafafa;
-  transition: all 0.25s ease;
-  color: #333333;
-}
-
-/* Khi người dùng click vào ô nhập */
-.input-group input:focus {
-  border-color: #8d00ff;
-  background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(141, 0, 255, 0.1); /* Viền sáng nhẹ bao quanh */
-}
-
-/* Đổi màu icon tương ứng khi ô input được active */
-.input-group input:focus + .input-icon {
-  color: #8d00ff;
-}
-
-/* Lựa chọn ghi nhớ & Quên mật khẩu */
-.login-option {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  margin-bottom: 25px;
-}
-
-.remember {
+/* 2. BREADCRUMB */
+.login-breadcrumb {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #555555;
+  font-size: 13.5px;
+  margin-bottom: 20px;
+}
+
+.breadcrumb-link {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #d70018;
+}
+
+.breadcrumb-separator {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.breadcrumb-current {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* 3. KHUNG CARD CHÍNH (2 CỘT CHUẨN) */
+.login-card-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e2e8f0;
+  min-height: 520px;
+  margin-bottom: 40px;
+}
+
+/* ==========================================================================
+   4. CỘT TRÁI: ẢNH BANNER CÔNG NGHỆ SẠCH SẼ (KHÔNG TEXT DÀI DÒNG)
+   ========================================================================== */
+.login-banner-col {
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+  min-height: 100%;
+}
+
+.login-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+}
+
+.login-card-container:hover .login-banner-img {
+  transform: scale(1.03);
+}
+
+.login-banner-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0.75) 100%);
+  pointer-events: none;
+}
+
+.login-banner-caption {
+  position: absolute;
+  bottom: 32px;
+  left: 32px;
+  right: 32px;
+  color: #ffffff;
+  z-index: 2;
+  text-align: left;
+}
+
+.caption-tag {
+  display: inline-block;
+  background: rgba(215, 0, 24, 0.9);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.login-banner-caption h3 {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   5. CỘT PHẢI: FORM ĐĂNG NHẬP CHUẨN MỰC
+   ========================================================================== */
+.login-form-col {
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.form-header {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.form-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+}
+
+.form-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.highlight-link {
+  color: #d70018;
+  text-decoration: none;
+  font-weight: 700;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+}
+
+.highlight-link:hover {
+  color: #b30014;
+  text-decoration: underline;
+}
+
+/* Form inputs */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.input-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgot-pass-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d70018;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgot-pass-link:hover {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
+.input-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.field-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 15px;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.auth-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 42px 0 40px;
+  font-size: 14.5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  background-color: #ffffff;
+  color: #0f172a;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: #d70018;
+  box-shadow: 0 0 0 3px rgba(215, 0, 24, 0.1);
+}
+
+.auth-input:focus ~ .field-icon,
+.auth-input:focus + .field-icon {
+  color: #d70018;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #0f172a;
+}
+
+/* Checkbox */
+.auth-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.remember-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #475569;
   cursor: pointer;
   user-select: none;
 }
 
-.remember input {
+.custom-checkbox {
   width: 16px;
   height: 16px;
-  accent-color: #0b63b6; /* Đổi màu checkbox sang màu tím đồng bộ */
+  accent-color: #d70018;
   cursor: pointer;
 }
 
-.login-option a {
-  color: #666666;
-  text-decoration: none;
-}
-
-.login-option a:hover {
-  color: #d3d1f5;
-  text-decoration: underline;
-}
-
-/* Nút đăng nhập chính */
-.login-btn {
+/* Nút Submit */
+.btn-auth-submit {
   width: 100%;
-  padding: 14px;
-  background-color: #0b63b6;
+  height: 46px;
+  background-color: #d70018;
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15.5px;
+  font-weight: 700;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    transform 0.1s;
-}
-
-.login-btn:hover {
-  background-color: #7200cc;
-}
-
-.login-btn:active {
-  transform: scale(0.99); /* Hiệu ứng lún nút nhẹ khi bấm */
-}
-
-/* Đường gạch ngang chữ "hoặc đăng nhập với" */
-.line {
-  text-align: center;
-  position: relative;
-  margin: 30px 0 20px 0;
-}
-
-.line::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background-color: #e0e0e0;
-  z-index: 1;
-}
-
-.line span {
-  background-color: #ffffff;
-  padding: 0 15px;
-  color: #888888;
-  font-size: 13.5px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Khối các nút đăng nhập mạng xã hội (Google / FB) */
-.social-login {
-  display: flex;
-  gap: 15px;
-}
-
-.social-login button {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 12px;
-  border: 1px solid #0b63b6;
-  border-radius: 8px;
-  background-color: #0b63b6;
-  color: #ebeef0;
-  font-size: 14.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  margin-top: 4px;
 }
 
-/* Hiệu ứng hover riêng từng nút mạng xã hội */
-.social-login button:first-child:hover {
-  background-color: #fff5f5;
-  border-color: #ea4335; /* Đỏ Google */
+.btn-auth-submit:hover:not(:disabled) {
+  background-color: #b30014;
+}
+
+.btn-auth-submit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.btn-auth-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Phân cách */
+.social-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 22px 0 16px;
+}
+
+.social-divider::before,
+.social-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.social-divider span {
+  padding: 0 12px;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+/* Mạng xã hội */
+.social-login-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.social-btn {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.social-icon {
+  font-size: 15px;
+}
+
+.google-icon {
   color: #ea4335;
 }
 
-.social-login button:last-child:hover {
-  background-color: #f0f4fc;
-  border-color: #1877f2; /* Xanh Facebook */
+.facebook-icon {
   color: #1877f2;
+}
+
+/* ==========================================================================
+   6. RESPONSIVE
+   ========================================================================== */
+@media (max-width: 860px) {
+  .login-card-container {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .login-banner-col {
+    display: none; /* Ẩn cột ảnh trên màn hình nhỏ để tập trung form */
+  }
+
+  .login-form-col {
+    padding: 36px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 16px 0 40px;
+  }
+
+  .login-form-col {
+    padding: 28px 18px;
+  }
+
+  .form-title {
+    font-size: 23px;
+  }
+
+  .social-login-grid {
+    grid-template-columns: 1fr;
+  }
 }

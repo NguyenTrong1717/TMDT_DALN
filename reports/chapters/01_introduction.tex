@@ -1,0 +1,71 @@
+\chapter{Cơ sở Lý thuyết và Công nghệ Áp dụng}
+
+\section{Tổng quan về Thương mại Điện tử và Mô hình B2C}
+Thương mại điện tử là hình thức tổ chức kinh doanh, phân phối và mua bán hàng hóa thông qua mạng Internet. Trong bối cảnh chuyển đổi số, mô hình B2C (Business to Consumer) đóng vai trò nòng cốt trong việc kết nối trực tiếp các đơn vị bán lẻ với người tiêu dùng cuối cùng. Đối với ngành hàng thiết bị công nghệ, máy tính và phần cứng điện tử, việc xây dựng một hệ thống thương mại trực tuyến đặt ra những yêu cầu kỹ thuật khắt khe hơn so với các mặt hàng tiêu dùng thông thường.
+
+Trước hết, các thiết bị phần cứng máy tính sở hữu cấu trúc thông số kỹ thuật phức tạp với nhiều tiêu chuẩn tương thích phần cứng như socket vi xử lý, chuẩn giao tiếp bộ nhớ và công suất nguồn. Thực tế này đòi hỏi hệ sinh thái phần mềm phải cung cấp cơ chế tra cứu chuẩn xác nhằm hỗ trợ người dùng đưa ra quyết định lựa chọn linh kiện phù hợp. Bên cạnh đó, giá trị giao dịch của các đơn hàng công nghệ thường ở mức cao, đòi hỏi hệ thống thanh toán trực tuyến phải đảm bảo tính toàn vẹn dữ liệu, loại bỏ nguy cơ gian lận và ngăn chặn triệt để tình trạng ghi nhận trùng lặp giao dịch. Đồng thời, người tiêu dùng luôn kỳ vọng một trải nghiệm tương tác liền mạch, phản hồi tức thời mà không bị gián đoạn bởi các thao tác tải lại toàn bộ trang web. Nhằm giải quyết đồng thời các thách thức trên, đề tài tập trung nghiên cứu và xây dựng giải pháp kết hợp giữa kiến trúc ứng dụng web hiện đại và công nghệ tìm kiếm tăng cường tạo sinh (Retrieval-Augmented Generation).
+
+\section{Kiến trúc Ứng dụng Web Đơn trang}
+\subsection{Nguyên lý Vận hành của Ứng dụng Web Đơn trang}
+Trái ngược với kiến trúc ứng dụng web nhiều trang truyền thống vốn yêu cầu máy chủ phải kết xuất và phản hồi một tài liệu HTML mới sau mỗi thao tác điều hướng, ứng dụng web đơn trang (Single Page Application - SPA) chỉ nạp một tài liệu HTML khởi tạo duy nhất tại lần truy cập đầu tiên. Toàn bộ logic giao diện, chuyển đổi trạng thái hiển thị và xử lý sự kiện người dùng được thực thi trực tiếp tại môi trường trình duyệt thông qua JavaScript.
+
+Khi người dùng thực hiện chuyển trang hoặc lọc sản phẩm, ứng dụng phát các yêu cầu bất đồng bộ đến máy chủ để truy xuất dữ liệu thô dưới định dạng JSON. Cây cấu trúc đối tượng tài liệu được cập nhật cục bộ dựa trên dữ liệu nhận về mà không cần tải lại toàn bộ trang. Cơ chế này giúp tối ưu hóa băng thông mạng truyền tải, giảm tải tính toán kết xuất cho máy chủ và mang lại tốc độ phản hồi mượt mà tương tự như một phần mềm cài đặt cục bộ trên máy tính.
+
+\subsection{Thư viện React 19 và Công cụ Xây dựng Vite}
+Hệ thống sử dụng phiên bản React 19 làm nền tảng phát triển giao diện người dùng. React vận hành dựa trên kiến trúc hướng thành phần, chia nhỏ các giao diện phức tạp thành các khối độc lập có khả năng tái sử dụng cao.
+
+Điểm cốt lõi trong cơ chế vận hành của React là việc duy trì một mô hình cây DOM ảo trong bộ nhớ. Khi trạng thái hoặc thuộc tính dữ liệu của thành phần thay đổi, thuật toán đối chiếu sẽ so sánh cây ảo mới với cây ảo trước đó để xác định tập hợp các thay đổi tối thiểu cần thiết, sau đó mới áp dụng lên cây DOM thực tế của trình duyệt. Cơ chế này loại bỏ chi phí tính toán bố cục tốn kém do việc vẽ lại giao diện liên tục. Song song với đó, hệ thống ứng dụng các React Hooks hiện đại nhằm kiểm soát trạng thái cục bộ và vòng đời của từng thành phần, tạo nên cấu trúc mã nguồn gãy gọn và thuận tiện cho việc bảo trì.
+
+Đối với môi trường biên dịch và đóng gói, dự án tích hợp Vite phiên bản 8. Khác biệt với các công cụ đóng gói truyền thống phải phân tích toàn bộ cây phụ thuộc trước khi khởi chạy, Vite tận dụng cơ chế nạp mô-đun chuẩn của trình duyệt hiện đại kết hợp với trình biên dịch viết bằng ngôn ngữ bậc thấp. Nhờ đó, máy chủ phát triển đạt thời gian khởi động dưới 300 mili-giây và hỗ trợ tính năng thay thế mô-đun nóng với độ trễ dưới 50 mili-giây, giúp nâng cao năng suất lập trình trong quá trình hoàn thiện sản phẩm.
+
+\subsection{Hệ thống Định dạng Giao diện Bootstrap 5}
+Lớp trình bày của hệ thống được xây dựng trên nền tảng Bootstrap 5 và React-Bootstrap, kết hợp các tệp định dạng CSS chuyên biệt cho từng phân hệ. Hệ thống lưới mười hai cột của Bootstrap cung cấp khả năng thích ứng linh hoạt trên nhiều kích thước khung nhìn khác nhau, từ thiết bị di động cá nhân đến màn hình máy tính để bàn độ phân giải cao. Các thành phần giao diện mẫu mực như thanh điều hướng, bảng đối thoại và biểu mẫu nhập liệu được tiêu chuẩn hóa, tạo nên tính đồng bộ xuyên suốt toàn bộ ứng dụng.
+
+\section{Nền tảng Máy chủ Node.js và Framework Express.js}
+\subsection{Mô hình Vào ra Không chặn của Node.js}
+Máy chủ dịch vụ chính được phát triển trên nền tảng Node.js phiên bản 22. Điểm đặc trưng giúp Node.js đáp ứng tốt khối lượng truy cập đồng thời trong thương mại điện tử là kiến trúc vòng lặp sự kiện đơn luồng kết hợp cơ chế vào ra không chặn (Non-blocking I/O).
+
+Thay vì phân bổ một luồng thực thi độc lập cho mỗi kết nối từ khách hàng như mô hình đa luồng truyền thống, Node.js tiếp nhận tất cả các yêu cầu trên một luồng chính duy nhất. Khi phát sinh các thao tác vào ra tốn thời gian như truy vấn cơ sở dữ liệu MongoDB hoặc giao tiếp với cổng thanh toán bên thứ ba, tác vụ sẽ được chuyển giao cho nhóm luồng công nhân bên dưới nền tảng C++ xử lý. Khi tác vụ hoàn tất, thông báo được đẩy vào hàng đợi sự kiện để luồng chính thực thi hàm gọi lại tương ứng. Nhờ kiến trúc này, máy chủ có khả năng duy trì hàng nghìn kết nối đồng thời với mức tiêu hao bộ nhớ thấp và loại bỏ hoàn toàn chi phí chuyển đổi ngữ cảnh giữa các luồng.
+
+\subsection{Thiết kế Giao diện Lập trình RESTful trên Express.js}
+Hệ thống sử dụng Express.js phiên bản 5 nhằm định tuyến và điều phối các yêu cầu mạng. Thiết kế hệ thống tuân thủ chặt chẽ các nguyên lý của phong cách kiến trúc REST. Tính chất phi trạng thái được đảm bảo khi mỗi yêu cầu từ máy khách đều mang theo định danh người dùng qua tiêu đề yêu cầu hoặc mã truy vấn, máy chủ không lưu trữ phiên làm việc trong bộ nhớ cục bộ, giúp hệ thống thuận lợi mở rộng quy mô máy chủ theo chiều ngang.
+
+Các phương thức HTTP được áp dụng đúng chuẩn ngữ nghĩa kỹ thuật. Phương thức GET được sử dụng cho các thao tác đọc dữ liệu an toàn và không gây tác dụng phụ. Phương thức POST phục vụ việc tạo mới tài nguyên hoặc kích hoạt nghiệp vụ đặt hàng và tạo phiên thanh toán. Phương thức PATCH được dùng để cập nhật từng phần thuộc tính bản ghi như chuyển trạng thái đơn hàng. Phương thức PUT thay thế toàn bộ bản ghi và phương thức DELETE thực hiện việc thu hồi tài nguyên. Hệ thống phản hồi các mã trạng thái tiêu chuẩn như 200, 201, 400, 401, 403, 404, 409 khi phát hiện xung đột trạng thái và 500 khi xảy ra lỗi nội bộ.
+
+\section{Cơ sở Dữ liệu NoSQL MongoDB}
+\subsection{Mô hình Lưu trữ Tài liệu BSON}
+Cơ sở dữ liệu của dự án được triển khai trên MongoDB phiên bản 7 thông qua thư viện kết nối chính thức~\cite{chodorow2013mongodb}. Khác với mô hình quan hệ bảng biểu cố định, MongoDB tổ chức dữ liệu dưới dạng các tài liệu BSON linh hoạt tập hợp trong các bộ sưu tập.
+
+Trong lĩnh vực linh kiện điện tử, mỗi chủng loại phần cứng sở hữu tập thuộc tính hoàn toàn khác biệt. Cấu trúc tài liệu linh hoạt cho phép các mặt hàng khác nhau cùng tồn tại trong một bộ sưu tập mà không cần phân tách thành nhiều bảng quan hệ phụ trợ. Hơn nữa, đối với nghiệp vụ đơn hàng, danh sách sản phẩm khách hàng lựa chọn được nhúng trực tiếp dưới dạng một mảng tài liệu con bên trong đơn hàng. Thiết kế này tạo ra một bản chụp dữ liệu bất biến tại thời điểm phát sinh giao dịch, bảo vệ lịch sử thanh toán không bị sai lệch nếu giá niêm yết của sản phẩm gốc có sự điều chỉnh sau đó. Các chỉ mục đơn và chỉ mục kết hợp được thiết lập trên trường định danh giúp độ phức tạp của các thao tác tìm kiếm đạt mức tiệm cận tối ưu.
+
+\section{Kiến trúc Tìm kiếm Tăng cường Tạo sinh}
+\subsection{Hạn chế của Mô hình Ngôn ngữ Lớn Độc lập}
+Các mô hình ngôn ngữ lớn dựa trên kiến trúc Transformer~\cite{vaswani2017attention} sở hữu năng lực suy luận và thấu hiểu ngữ nghĩa tự nhiên vượt trội. Tuy nhiên, khi áp dụng độc lập vào bài toán tư vấn bán hàng, các mô hình này bộc lộ hai rào cản kỹ thuật rõ rệt. Thứ nhất là giới hạn tri thức tĩnh, mô hình không thể tự động cập nhật biến động giá bán, số lượng tồn kho hay các chương trình khuyến mãi ngắn hạn của cửa hàng nếu không trải qua quá trình huấn luyện lại tốn kém. Thứ hai là hiện tượng ảo giác, khi thiếu dữ liệu thực tế, mô hình có xu hướng tự tạo ra các thông số phần cứng hoặc mức giá không có thật, gây rủi ro sai lệch thông tin đối với khách hàng.
+
+\subsection{Nguyên lý Hoạt động của Kiến trúc RAG}
+Kiến trúc tìm kiếm tăng cường tạo sinh (RAG)~\cite{lewis2020rag} kết hợp hệ thống truy xuất thông tin với mô hình ngôn ngữ lớn để khắc phục triệt để hiện tượng ảo giác. Thay vì phụ thuộc hoàn toàn vào tri thức tiềm ẩn trong các trọng số nơ-ron, hệ thống cung cấp một kho tri thức thực tế bên ngoài được đồng bộ từ cơ sở dữ liệu sản phẩm.
+
+Quy trình xử lý trải qua ba giai đoạn liên tiếp. Ở giai đoạn truy xuất, câu hỏi của khách hàng được phân tích và so khớp với kho dữ liệu để tìm ra các sản phẩm có độ tương đồng ngữ nghĩa cao nhất. Ở giai đoạn tăng cường ngữ cảnh, các thông số kỹ thuật, giá niêm yết và số lượng hàng thực tế được chèn trực tiếp vào câu lệnh chỉ thị hệ thống. Cuối cùng, ở giai đoạn tạo sinh, mô hình ngôn ngữ dựa vào ngữ cảnh đã được tăng cường để biên soạn câu trả lời tự nhiên, chính xác và bám sát thực tế kinh doanh của cửa hàng. Dịch vụ AI này được đóng gói độc lập trên nền tảng FastAPI~\cite{fastapi2024docs}.
+
+\subsection{Mô hình Nhúng Vector FastEmbed và Độ tương đồng Cosine}
+Để thực hiện việc tìm kiếm theo ngữ nghĩa, văn bản mô tả sản phẩm cần được chuyển đổi thành các vector số học nhiều chiều. Hệ thống tích hợp thư viện FastEmbed vận hành trên nền tảng ONNX Runtime viết bằng C++.
+
+Mô hình nhúng BGE-Small chuyển đổi câu hỏi thành vector đặc trưng trong không gian 384 chiều. Nền tảng ONNX Runtime biên dịch tối ưu giúp mô hình thực thi trực tiếp trên bộ vi xử lý của máy chủ mà không cần trang bị phần cứng đồ họa chuyên dụng, đạt tốc độ nhúng dưới 30 mili-giây với mức tiêu thụ bộ nhớ dưới 200 megabyte. Mức độ liên quan giữa câu hỏi của người dùng và các sản phẩm trong kho được định lượng thông qua chỉ số độ tương đồng Cosine, phản ánh góc giữa hai vector đặc trưng trong không gian đa chiều theo công thức toán học sau:
+\begin{equation}
+\text{Cosine Similarity}(\vec{u}, \vec{v}) = \frac{\sum_{i=1}^{n} u_i v_i}{\sqrt{\sum_{i=1}^{n} u_i^2} \sqrt{\sum_{i=1}^{n} v_i^2}}
+\end{equation}
+
+Sau khi tính toán, các sản phẩm có điểm số tương đồng cao nhất được chọn lọc để làm ngữ cảnh tham chiếu. Tại tầng tạo sinh, hệ thống gọi API mô hình Google Gemini Flash để tổng hợp câu trả lời tư vấn ngắn gọn, mạch lạc và tự nhiên.
+
+\section{Công nghệ Thanh toán Điện tử và Cơ chế Webhook IPN}
+Cổng thanh toán đóng vai trò trung gian bảo mật giữa nền tảng thương mại điện tử và các tổ chức tài chính. Hệ thống thực hiện tích hợp hai cổng thanh toán phổ biến tại Việt Nam bao gồm VNPAY~\cite{vnpay2024specs} và MoMo~\cite{momo2024specs} trên môi trường thử nghiệm.
+
+Nhằm bảo vệ hệ thống trước các hành vi giả mạo kết quả giao dịch từ phía trình duyệt, kiến trúc thanh toán phân định rạch ròi hai luồng dữ liệu độc lập. Luồng chuyển hướng trình duyệt của khách hàng chỉ đảm nhiệm chức năng đưa người dùng quay lại giao diện thông báo kết quả. Ngược lại, luồng thông báo thanh toán tức thời (Instant Payment Notification - IPN) được thực hiện thông qua kết nối mạng ngầm trực tiếp giữa máy chủ của cổng thanh toán và máy chủ của ứng dụng.
+
+Gói tin IPN truyền đi được bảo vệ bằng chữ ký điện tử mật mã. Cổng VNPAY áp dụng thuật toán băm HMAC-SHA512 với khóa bí mật nội bộ, trong khi cổng MoMo sử dụng thuật toán HMAC-SHA256. Máy chủ ứng dụng thực hiện giải mã và so khớp chữ ký kiểm tra; chỉ khi chữ ký hợp lệ và mã phản hồi xác nhận thành công, trạng thái thanh toán của đơn hàng mới chính thức được ghi nhận vào cơ sở dữ liệu.
+
+\section{Môi trường Đóng gói Ứng dụng Docker}
+Hệ sinh thái ứng dụng được đóng gói và cô lập bằng công nghệ Docker. Việc ảo hóa ở cấp độ hệ điều hành đảm bảo sự đồng nhất tuyệt đối giữa môi trường phát triển và môi trường vận hành thực tế.
+
+Cấu hình Docker Compose thiết lập ba vùng chứa dịch vụ độc lập bao gồm máy chủ giao diện React~\cite{react2024docs}, máy chủ nghiệp vụ Node.js Express~\cite{tilkov2010node, fielding2000architectural} và máy chủ trí tuệ nhân tạo FastAPI~\cite{fastapi2024docs}. Các vùng chứa liên lạc thông qua mạng cầu nối nội bộ với cơ chế kiểm tra sức khỏe dịch vụ định kỳ, tạo tiền đề thuận lợi cho việc kiểm thử và triển khai phân tán trên hạ tầng máy chủ đám mây.
+

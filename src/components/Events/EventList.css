@@ -4,9 +4,9 @@
 
 .event-list {
   background: #f8fafc;
-  max-width: 1240px;
+  max-width: var(--container-max-w, 1200px);
   margin: 0 auto;
-  padding: 36px 20px;
+  padding: 36px 16px;
   border-top: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
   box-sizing: border-box;
@@ -95,8 +95,10 @@
 /* Grid */
 .component-grid-layout {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .component-grid-layout p {
@@ -110,19 +112,23 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .component-grid-layout {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .component-grid-layout {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 }
 
-@media (max-width: 440px) {
+@media (max-width: 520px) {
+  .event-list {
+    padding: 24px 12px;
+  }
   .component-grid-layout {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }

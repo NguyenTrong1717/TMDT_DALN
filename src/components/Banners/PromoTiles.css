@@ -1,0 +1,118 @@
+.promo-tiles-section {
+  width: 100%;
+  margin: 20px 0 28px 0;
+  clear: both;
+}
+
+.promo-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.promo-tile-card {
+  background-color: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border, #E6E6E9);
+  border-radius: var(--radius-md, 10px);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-card, 0 1px 2px rgba(22, 22, 26, 0.06));
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+}
+
+.promo-tile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 22, 26, 0.08);
+  border-color: var(--brand-600, #D70018);
+}
+
+.promo-tile-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--brand-50, #FFF4F5);
+  color: var(--brand-600, #D70018);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.promo-tile-card:hover .promo-tile-icon-box {
+  background-color: var(--brand-600, #D70018);
+  color: #FFFFFF;
+}
+
+.promo-tile-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.promo-tile-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-main, #18181B);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.promo-tile-sub {
+  font-size: 0.74rem;
+  color: var(--text-sub, #5C5C66);
+  margin-top: 2px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Skeleton Grid */
+.promo-tiles-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin: 16px 0 24px 0;
+}
+
+.promo-tile-skeleton {
+  height: 64px;
+  background-color: #EAEAEF;
+  border-radius: var(--radius-md, 10px);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 1200px) {
+  .promo-tiles-grid,
+  .promo-tiles-skeleton-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .promo-tiles-grid,
+  .promo-tiles-skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .promo-tile-card {
+    padding: 10px 10px;
+    gap: 8px;
+  }
+  .promo-tile-icon-box {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+}
