@@ -1,15 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-// --- IMPORT THƯ VIỆN SONNER CAO CẤP ---
 import { toast, Toaster } from "sonner";
-import "./Login.css";
 import Header from "../../components/Header/Header";
 import FooterUser from "../../components/Footer/FooterUser";
-import { IoLogoFreebsdDevil } from "react-icons/io";
-import { AiFillSafetyCertificate } from "react-icons/ai";
-
+import Sevicer from "../Sevicer/Sevicer";
 import {
-  FaShip,
   FaUser,
   FaLock,
   FaEye,
@@ -17,8 +12,13 @@ import {
   FaGoogle,
   FaFacebookF,
   FaShieldAlt,
+  FaBolt,
+  FaTruck,
+  FaUserShield,
+  FaArrowRight,
+  FaCheckCircle,
 } from "react-icons/fa";
-import Sevicer from "../Sevicer/Sevicer";
+import "./Login.css";
 
 const API_URL = "http://localhost:3000";
 
@@ -26,16 +26,34 @@ const Login = () => {
   const [account, setAccount] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  // Load tài khoản đã lưu nếu trước đó đã tích "Ghi nhớ"
+  useEffect(() => {
+    const savedAccount = localStorage.getItem("savedLoginAccount");
+    if (savedAccount) {
+      setAccount(savedAccount);
+    }
+  }, []);
+
+  // Đăng nhập nhanh bằng tài khoản Demo
+  const fillDemoAccount = (demoEmail, demoPass) => {
+    setAccount(demoEmail);
+    setPassword(demoPass);
+    toast.info(`Đã điền thông tin tài khoản demo: ${demoEmail}`);
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    // 1. Sonner bắn cảnh báo khi bỏ trống ô nhập liệu
-    if (!account.trim() || !password.trim()) {
-      toast.warning("Vui lòng nhập đầy đủ thông tin đăng nhập!");
+    const cleanAccount = account.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanAccount || !cleanPassword) {
+      toast.warning("Vui lòng nhập đầy đủ tài khoản và mật khẩu!");
       return;
     }
 
@@ -45,59 +63,59 @@ const Login = () => {
       const response = await fetch(`${API_URL}/users`);
 
       if (!response.ok) {
-        throw new Error(`Lỗi kết nối Server! Mã lỗi: ${response.status}`);
+        throw new Error(`Lỗi kết nối máy chủ! Mã lỗi: ${response.status}`);
       }
 
       const users = await response.json();
 
-      // Kiểm tra tìm kiếm tài khoản
-      // Kiểm tra tìm kiếm tài khoản (Không phân biệt chữ hoa / chữ thường ở Email)
+      // So khớp người dùng: hỗ trợ Email, Số điện thoại hoặc Username
       const foundUser = users.find((user) => {
         const matchEmail =
-          user.email && account
-            ? user.email.toLowerCase() === account.trim().toLowerCase()
-            : false;
+          user.email &&
+          user.email.toLowerCase() === cleanAccount.toLowerCase();
         const matchPhone =
-          user.phone && account ? user.phone.trim() === account.trim() : false;
-        const matchPassword =
-          user.password && password
-            ? String(user.password).trim() === password.trim()
-            : false;
+          user.phone &&
+          user.phone.trim() === cleanAccount;
+        const matchUsername =
+          user.username &&
+          user.username.toLowerCase() === cleanAccount.toLowerCase();
 
-        return (matchEmail || matchPhone) && matchPassword;
+        const matchPass =
+          user.password &&
+          String(user.password).trim() === cleanPassword;
+
+        return (matchEmail || matchPhone || matchUsername) && matchPass;
       });
 
       if (foundUser) {
-        //  2. Sonner bắn lỗi khi tài khoản bị khóa
-        if (foundUser.status !== "active") {
-          toast.error("Tài khoản của bạn hiện đang bị khóa!");
+        if (foundUser.status === "inactive" || foundUser.status === "blocked") {
+          toast.error("Tài khoản của bạn hiện đang bị tạm khóa. Vui lòng liên hệ CSKH!");
           return;
         }
 
-        // Đăng nhập thành công -> Lưu dữ liệu
+        // Lưu trạng thái đăng nhập
         localStorage.setItem("currentUser", JSON.stringify(foundUser));
         window.dispatchEvent(new Event("authChange"));
 
-        // 3. Sonner bắn thông báo thành công theo từng quyền hạn
-        if (foundUser.role === "admin") {
-          toast.success(" Đăng nhập thành công với quyền Admin!");
-          setTimeout(() => navigate("/admin"), 1000);
+        if (rememberMe) {
+          localStorage.setItem("savedLoginAccount", cleanAccount);
         } else {
-          toast.success(`Chào mừng ${foundUser.fullName} quay trở lại!`);
-          setTimeout(() => navigate("/"), 1000);
+          localStorage.removeItem("savedLoginAccount");
+        }
+
+        if (foundUser.role === "admin") {
+          toast.success("Đăng nhập thành công! Đang chuyển hướng vào bảng quản trị Admin...");
+          setTimeout(() => navigate("/admin"), 750);
+        } else {
+          toast.success(`Chào mừng ${foundUser.fullName || "bạn"} đã quay trở lại HCore Store!`);
+          setTimeout(() => navigate("/"), 750);
         }
       } else {
-        // 4. Sonner bắn lỗi sai thông tin
-        toast.error("Mật khẩu hoặc tài khoản không chính xác!");
-        setPassword("");
-        setAccount(""); //
+        toast.error("Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!");
       }
     } catch (error) {
-      console.error("Chi tiết lỗi API đăng nhập:", error);
-      // 5. Sonner bắn lỗi sập server json-server
-      toast.error(
-        "Không thể kết nối tới server. Hãy chắc chắn bạn đã chạy json-server!",
-      );
+      console.error("Lỗi đăng nhập:", error);
+      toast.error("Không thể kết nối đến máy chủ backend (Port 3000). Vui lòng thử lại!");
     } finally {
       setIsLoading(false);
     }
@@ -106,158 +124,244 @@ const Login = () => {
   return (
     <>
       <Header />
-      <div className="login-page">
-        <div className="containers">
-          <div className="breadcrumb">
-            <Link to="/">
-              <span>Trang chủ </span>
-            </Link>
-            <Link to="/login">
-              <span>Đăng Nhập</span>
-            </Link>
-          </div>
+
+      <main className="login-page">
+        {/* Breadcrumb Navigation */}
+        <div className="login-container">
+          <nav className="login-breadcrumb" aria-label="breadcrumb">
+            <Link to="/" className="breadcrumb-link">Trang chủ</Link>
+            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-current">Đăng Nhập</span>
+          </nav>
         </div>
 
-        <div className="container">
-          <div className="login-wrapper">
-            {/* BÊN TRÁI: Các tính năng giới thiệu */}
-            <div className="login-left">
-              <div className="login-overlay">
-                <h2>Chào mừng trở lại!</h2>
-                <p className="welcome-text">
-                  Đăng nhập để tiếp tục mua sắm và nhận nhiều ưu đãi hấp dẫn.
-                </p>
-                <div className="feature-item">
-                  <div className="feature-icon">
-                    <FaUser />
-                  </div>
-                  <div>
-                    <h4>Mua sắm dễ dàng</h4>
-                    <p>Thêm sản phẩm vào giỏ hàng và thanh toán nhanh chóng.</p>
-                  </div>
-                </div>
-                <div className="feature-item">
-                  <div className="feature-icon">
+        {/* Khung đăng nhập trung tâm 2 cột */}
+        <div className="login-container">
+          <div className="login-card-container">
+            {/* CỘT TRÁI: Băng giới thiệu HCore Store */}
+            <div className="login-brand-col">
+              <div className="brand-badge">
+                <FaBolt className="badge-bolt-icon" /> HCORE ECOSYSTEM
+              </div>
+
+              <h2 className="brand-headline">
+                Chào Mừng Trở Lại <br />
+                <span className="brand-gradient-text">HCore Store</span>
+              </h2>
+
+              <p className="brand-desc">
+                Đăng nhập để nhận giá độc quyền thành viên H-Member, theo dõi tình trạng đơn hàng và tích điểm đổi quà công nghệ.
+              </p>
+
+              {/* Danh sách quyền lợi */}
+              <div className="brand-perks-list">
+                <div className="perk-card">
+                  <div className="perk-icon-bubble">
                     <FaShieldAlt />
                   </div>
-                  <div>
-                    <h4>Nhiều ưu đãi</h4>
-                    <p>
-                      Nhận thông tin khuyến mãi và giá ưu đãi dành riêng cho
-                      bạn.
-                    </p>
+                  <div className="perk-body">
+                    <h4>Bảo Mật Chuẩn SSO</h4>
+                    <p>Mã hóa dữ liệu 256-bit an toàn, bảo vệ thông tin cá nhân và lịch sử giao dịch.</p>
                   </div>
                 </div>
-                <div className="feature-item">
-                  <div className="feature-icon">
-                    <FaLock />
+
+                <div className="perk-card">
+                  <div className="perk-icon-bubble">
+                    <FaBolt />
                   </div>
-                  <div>
-                    <h4>Bảo mật thông tin</h4>
-                    <p>Tài khoản của bạn luôn được bảo vệ an toàn tuyệt đối.</p>
+                  <div className="perk-body">
+                    <h4>Ưu Đãi Trợ Giá H-Member</h4>
+                    <p>Giảm thêm đến 500.000đ khi mua máy mới và hỗ trợ thu cũ đổi mới lên đến 3.000.000đ.</p>
+                  </div>
+                </div>
+
+                <div className="perk-card">
+                  <div className="perk-icon-bubble">
+                    <FaTruck />
+                  </div>
+                  <div className="perk-body">
+                    <h4>Giao Nhanh 2H Miễn Phí</h4>
+                    <p>Miễn phí giao hàng toàn quốc và hỗ trợ bảo hành 1 đổi 1 trong 30 ngày.</p>
                   </div>
                 </div>
               </div>
+
+              {/* Cam kết chân cột */}
+              <div className="brand-trust-footer">
+                <FaCheckCircle className="trust-check-icon" />
+                <span>Cam kết 100% sản phẩm chính hãng, VAT đầy đủ</span>
+              </div>
             </div>
 
-            {/* BÊN PHẢI: Form xử lý */}
-            <div className="login-right">
-              <h2>Đăng nhập</h2>
-              <p className="register-link">
-                Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
-              </p>
+            {/* CỘT PHẢI: Form xử lý đăng nhập */}
+            <div className="login-form-col">
+              <div className="form-header">
+                <h1 className="form-title">Đăng Nhập</h1>
+                <p className="form-subtitle">
+                  Chưa có tài khoản?{" "}
+                  <Link to="/register" className="highlight-link">
+                    Đăng ký tài khoản mới &rsaquo;
+                  </Link>
+                </p>
+              </div>
 
-              <form onSubmit={handleLogin}>
-                <div className="form-group">
-                  <label>Email hoặc số điện thoại</label>
-                  <div className="input-group">
-                    <FaUser className="input-icon" />
+              {/* Nút đăng nhập thử nghiệm Demo tiện lợi */}
+              <div className="quick-demo-accounts">
+                <span className="demo-label">⚡ Đăng nhập nhanh thử nghiệm:</span>
+                <div className="demo-btns-wrap">
+                  <button
+                    type="button"
+                    className="demo-btn demo-admin"
+                    onClick={() => fillDemoAccount("admin@gmail.com", "123456")}
+                    title="Điền tài khoản Quản Trị Viên"
+                  >
+                    <FaUserShield className="demo-icon" /> Admin Demo
+                  </button>
+                  <button
+                    type="button"
+                    className="demo-btn demo-user"
+                    onClick={() => fillDemoAccount("trongtho@gmail.com", "trongtho")}
+                    title="Điền tài khoản Khách Hàng"
+                  >
+                    <FaUser className="demo-icon" /> Khách Hàng Demo
+                  </button>
+                </div>
+              </div>
+
+              {/* Biểu mẫu đăng nhập */}
+              <form onSubmit={handleLogin} className="auth-form" noValidate>
+                <div className="auth-input-group">
+                  <label htmlFor="login-account" className="input-label">
+                    Email, Số điện thoại hoặc Username
+                  </label>
+                  <div className="input-field-wrap">
+                    <FaUser className="field-icon" />
                     <input
+                      id="login-account"
                       type="text"
-                      placeholder="Nhập email hoặc số điện thoại"
+                      className="auth-input"
+                      placeholder="Ví dụ: admin@gmail.com hoặc 0911..."
                       value={account}
                       onChange={(e) => setAccount(e.target.value)}
                       disabled={isLoading}
+                      autoComplete="username"
+                      required
                     />
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Mật khẩu</label>
-                  <div className="input-group">
-                    <FaLock className="input-icon" />
+                <div className="auth-input-group">
+                  <div className="label-with-action">
+                    <label htmlFor="login-password" className="input-label">
+                      Mật khẩu
+                    </label>
+                    <Link to="/forgot-password" className="forgot-pass-link">
+                      Quên mật khẩu?
+                    </Link>
+                  </div>
+                  <div className="input-field-wrap">
+                    <FaLock className="field-icon" />
                     <input
+                      id="login-password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Nhập mật khẩu"
+                      className="auth-input"
+                      placeholder="Nhập mật khẩu của bạn"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isLoading}
+                      autoComplete="current-password"
+                      required
                     />
-                    <span
-                      className="eye-icon"
-                      onClick={() =>
-                        !isLoading && setShowPassword(!showPassword)
-                      }
-                      style={{ cursor: "pointer" }}
+                    <button
+                      type="button"
+                      className="password-toggle-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                      tabIndex={-1}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
-                    </span>
+                    </button>
                   </div>
                 </div>
 
-                <div className="login-option">
-                  <label className="remember">
-                    <input type="checkbox" disabled={isLoading} /> Ghi nhớ đăng
-                    nhập
+                {/* Ghi nhớ đăng nhập */}
+                <div className="auth-options-row">
+                  <label className="remember-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={isLoading}
+                      className="custom-checkbox"
+                    />
+                    <span>Ghi nhớ đăng nhập trên thiết bị này</span>
                   </label>
-                  <Link to="/forgot-password">Quên mật khẩu?</Link>
                 </div>
 
+                {/* Nút bấm Submit */}
                 <button
                   type="submit"
-                  className="login-btn"
+                  className={`btn-auth-submit ${isLoading ? "is-loading" : ""}`}
                   disabled={isLoading}
                 >
-                  {isLoading ? "Đang kết nối..." : "Đăng nhập"}
+                  {isLoading ? (
+                    <span className="submit-loading-text">
+                      <span className="spinner-dot" /> Đang xác thực...
+                    </span>
+                  ) : (
+                    <>
+                      Đăng Nhập Ngay <FaArrowRight className="submit-arrow" />
+                    </>
+                  )}
                 </button>
               </form>
 
-              <div className="line">
-                <span>hoặc đăng nhập với</span>
+              {/* Phân cách hoặc mạng xã hội */}
+              <div className="social-divider">
+                <span>Hoặc tiếp tục với</span>
               </div>
-              <div className="social-login">
+
+              <div className="social-login-grid">
                 <button
                   type="button"
+                  className="social-btn google-btn"
                   disabled={isLoading}
                   onClick={() =>
                     toast.info(
-                      "Cổng OAuth Google đang kích hoạt. Bạn có thể đăng nhập nhanh bằng tài khoản demo!",
+                      "Đăng nhập Google: Vui lòng sử dụng tài khoản Demo hoặc đăng ký tài khoản trực tiếp!"
                     )
                   }
                 >
-                  <FaGoogle /> Google
+                  <FaGoogle className="social-icon google-icon" />
+                  <span>Google</span>
                 </button>
+
                 <button
                   type="button"
+                  className="social-btn facebook-btn"
                   disabled={isLoading}
                   onClick={() =>
                     toast.info(
-                      "Cổng OAuth Facebook đang kích hoạt. Bạn có thể đăng nhập nhanh bằng tài khoản demo!",
+                      "Đăng nhập Facebook: Vui lòng sử dụng tài khoản Demo hoặc đăng ký tài khoản trực tiếp!"
                     )
                   }
                 >
-                  <FaFacebookF /> Facebook
+                  <FaFacebookF className="social-icon facebook-icon" />
+                  <span>Facebook</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Khối chính sách / dịch vụ */}
         <Sevicer />
-      </div>
+      </main>
+
       <FooterUser />
 
-      {/*THÀNH PHẦN <Toaster /> CỦA SONNER ĐỂ HIỂN THỊ THÔNG BÁO ĐĂNG NHẬP */}
-      <Toaster position="top-right" richColors closeButton duration={3000} />
+      {/* Toaster hiển thị thông báo */}
+      <Toaster position="top-right" richColors closeButton duration={3200} />
     </>
   );
 };
