@@ -11,12 +11,6 @@ import {
   FaEyeSlash,
   FaGoogle,
   FaFacebookF,
-  FaShieldAlt,
-  FaBolt,
-  FaTruck,
-  FaUserShield,
-  FaArrowRight,
-  FaCheckCircle,
 } from "react-icons/fa";
 import "./Login.css";
 
@@ -38,13 +32,6 @@ const Login = () => {
       setAccount(savedAccount);
     }
   }, []);
-
-  // Đăng nhập nhanh bằng tài khoản Demo
-  const fillDemoAccount = (demoEmail, demoPass) => {
-    setAccount(demoEmail);
-    setPassword(demoPass);
-    toast.info(`Đã điền thông tin tài khoản demo: ${demoEmail}`);
-  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -104,18 +91,18 @@ const Login = () => {
         }
 
         if (foundUser.role === "admin") {
-          toast.success("Đăng nhập thành công! Đang chuyển hướng vào bảng quản trị Admin...");
+          toast.success("Đăng nhập thành công! Đang chuyển hướng vào bảng quản trị...");
           setTimeout(() => navigate("/admin"), 750);
         } else {
-          toast.success(`Chào mừng ${foundUser.fullName || "bạn"} đã quay trở lại HCore Store!`);
+          toast.success(`Chào mừng ${foundUser.fullName || "bạn"} đã quay trở lại!`);
           setTimeout(() => navigate("/"), 750);
         }
       } else {
-        toast.error("Tài khoản hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại!");
+        toast.error("Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại!");
       }
     } catch (error) {
       console.error("Lỗi đăng nhập:", error);
-      toast.error("Không thể kết nối đến máy chủ backend (Port 3000). Vui lòng thử lại!");
+      toast.error("Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng!");
     } finally {
       setIsLoading(false);
     }
@@ -131,108 +118,44 @@ const Login = () => {
           <nav className="login-breadcrumb" aria-label="breadcrumb">
             <Link to="/" className="breadcrumb-link">Trang chủ</Link>
             <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">Đăng Nhập</span>
+            <span className="breadcrumb-current">Đăng nhập</span>
           </nav>
         </div>
 
-        {/* Khung đăng nhập trung tâm 2 cột */}
+        {/* Khung đăng nhập 2 cột chuẩn các sàn TMĐT */}
         <div className="login-container">
           <div className="login-card-container">
-            {/* CỘT TRÁI: Băng giới thiệu HCore Store */}
-            <div className="login-brand-col">
-              <div className="brand-badge">
-                <FaBolt className="badge-bolt-icon" /> HCORE ECOSYSTEM
-              </div>
-
-              <h2 className="brand-headline">
-                Chào Mừng Trở Lại <br />
-                <span className="brand-gradient-text">HCore Store</span>
-              </h2>
-
-              <p className="brand-desc">
-                Đăng nhập để nhận giá độc quyền thành viên H-Member, theo dõi tình trạng đơn hàng và tích điểm đổi quà công nghệ.
-              </p>
-
-              {/* Danh sách quyền lợi */}
-              <div className="brand-perks-list">
-                <div className="perk-card">
-                  <div className="perk-icon-bubble">
-                    <FaShieldAlt />
-                  </div>
-                  <div className="perk-body">
-                    <h4>Bảo Mật Chuẩn SSO</h4>
-                    <p>Mã hóa dữ liệu 256-bit an toàn, bảo vệ thông tin cá nhân và lịch sử giao dịch.</p>
-                  </div>
-                </div>
-
-                <div className="perk-card">
-                  <div className="perk-icon-bubble">
-                    <FaBolt />
-                  </div>
-                  <div className="perk-body">
-                    <h4>Ưu Đãi Trợ Giá H-Member</h4>
-                    <p>Giảm thêm đến 500.000đ khi mua máy mới và hỗ trợ thu cũ đổi mới lên đến 3.000.000đ.</p>
-                  </div>
-                </div>
-
-                <div className="perk-card">
-                  <div className="perk-icon-bubble">
-                    <FaTruck />
-                  </div>
-                  <div className="perk-body">
-                    <h4>Giao Nhanh 2H Miễn Phí</h4>
-                    <p>Miễn phí giao hàng toàn quốc và hỗ trợ bảo hành 1 đổi 1 trong 30 ngày.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Cam kết chân cột */}
-              <div className="brand-trust-footer">
-                <FaCheckCircle className="trust-check-icon" />
-                <span>Cam kết 100% sản phẩm chính hãng, VAT đầy đủ</span>
+            {/* CỘT TRÁI: Ảnh banner công nghệ sạch sẽ, không text rườm rà */}
+            <div className="login-banner-col">
+              <img
+                src="/images/login_banner.jpg"
+                alt="HCore Store Gaming & Tech"
+                className="login-banner-img"
+              />
+              <div className="login-banner-gradient" />
+              <div className="login-banner-caption">
+                <span className="caption-tag">HCORE STORE</span>
+                <h3>Thế Giới Công Nghệ & Gaming Đỉnh Cao</h3>
               </div>
             </div>
 
-            {/* CỘT PHẢI: Form xử lý đăng nhập */}
+            {/* CỘT PHẢI: Form đăng nhập chuẩn mực */}
             <div className="login-form-col">
               <div className="form-header">
-                <h1 className="form-title">Đăng Nhập</h1>
+                <h1 className="form-title">Đăng nhập</h1>
                 <p className="form-subtitle">
                   Chưa có tài khoản?{" "}
                   <Link to="/register" className="highlight-link">
-                    Đăng ký tài khoản mới &rsaquo;
+                    Đăng ký ngay
                   </Link>
                 </p>
-              </div>
-
-              {/* Nút đăng nhập thử nghiệm Demo tiện lợi */}
-              <div className="quick-demo-accounts">
-                <span className="demo-label">⚡ Đăng nhập nhanh thử nghiệm:</span>
-                <div className="demo-btns-wrap">
-                  <button
-                    type="button"
-                    className="demo-btn demo-admin"
-                    onClick={() => fillDemoAccount("admin@gmail.com", "123456")}
-                    title="Điền tài khoản Quản Trị Viên"
-                  >
-                    <FaUserShield className="demo-icon" /> Admin Demo
-                  </button>
-                  <button
-                    type="button"
-                    className="demo-btn demo-user"
-                    onClick={() => fillDemoAccount("trongtho@gmail.com", "trongtho")}
-                    title="Điền tài khoản Khách Hàng"
-                  >
-                    <FaUser className="demo-icon" /> Khách Hàng Demo
-                  </button>
-                </div>
               </div>
 
               {/* Biểu mẫu đăng nhập */}
               <form onSubmit={handleLogin} className="auth-form" noValidate>
                 <div className="auth-input-group">
                   <label htmlFor="login-account" className="input-label">
-                    Email, Số điện thoại hoặc Username
+                    Email hoặc số điện thoại
                   </label>
                   <div className="input-field-wrap">
                     <FaUser className="field-icon" />
@@ -240,7 +163,7 @@ const Login = () => {
                       id="login-account"
                       type="text"
                       className="auth-input"
-                      placeholder="Ví dụ: admin@gmail.com hoặc 0911..."
+                      placeholder="Nhập email hoặc số điện thoại"
                       value={account}
                       onChange={(e) => setAccount(e.target.value)}
                       disabled={isLoading}
@@ -265,7 +188,7 @@ const Login = () => {
                       id="login-password"
                       type={showPassword ? "text" : "password"}
                       className="auth-input"
-                      placeholder="Nhập mật khẩu của bạn"
+                      placeholder="Nhập mật khẩu"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       disabled={isLoading}
@@ -294,31 +217,23 @@ const Login = () => {
                       disabled={isLoading}
                       className="custom-checkbox"
                     />
-                    <span>Ghi nhớ đăng nhập trên thiết bị này</span>
+                    <span>Ghi nhớ đăng nhập</span>
                   </label>
                 </div>
 
                 {/* Nút bấm Submit */}
                 <button
                   type="submit"
-                  className={`btn-auth-submit ${isLoading ? "is-loading" : ""}`}
+                  className="btn-auth-submit"
                   disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <span className="submit-loading-text">
-                      <span className="spinner-dot" /> Đang xác thực...
-                    </span>
-                  ) : (
-                    <>
-                      Đăng Nhập Ngay <FaArrowRight className="submit-arrow" />
-                    </>
-                  )}
+                  {isLoading ? "Đang xử lý..." : "Đăng nhập"}
                 </button>
               </form>
 
-              {/* Phân cách hoặc mạng xã hội */}
+              {/* Phân cách tiếp tục với */}
               <div className="social-divider">
-                <span>Hoặc tiếp tục với</span>
+                <span>Hoặc đăng nhập với</span>
               </div>
 
               <div className="social-login-grid">
@@ -328,7 +243,7 @@ const Login = () => {
                   disabled={isLoading}
                   onClick={() =>
                     toast.info(
-                      "Đăng nhập Google: Vui lòng sử dụng tài khoản Demo hoặc đăng ký tài khoản trực tiếp!"
+                      "Đăng nhập nhanh bằng tài khoản email hoặc đăng ký tài khoản mới!"
                     )
                   }
                 >
@@ -342,7 +257,7 @@ const Login = () => {
                   disabled={isLoading}
                   onClick={() =>
                     toast.info(
-                      "Đăng nhập Facebook: Vui lòng sử dụng tài khoản Demo hoặc đăng ký tài khoản trực tiếp!"
+                      "Đăng nhập nhanh bằng tài khoản email hoặc đăng ký tài khoản mới!"
                     )
                   }
                 >
@@ -361,7 +276,7 @@ const Login = () => {
       <FooterUser />
 
       {/* Toaster hiển thị thông báo */}
-      <Toaster position="top-right" richColors closeButton duration={3200} />
+      <Toaster position="top-right" richColors closeButton duration={3000} />
     </>
   );
 };
