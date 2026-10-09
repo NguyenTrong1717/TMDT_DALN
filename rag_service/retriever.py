@@ -178,4 +178,23 @@ async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> L
         if h.get("type") == "product"
     ][:3]
 
+    # Đảm bảo luôn có 2 - 3 sản phẩm gợi ý phù hợp ngay cả khi câu hỏi hiếm/chưa khớp tuyệt đối
+    if len(top_products) < 2 and all_chunks:
+        cat_matches = [
+            c for c in all_chunks
+            if c.get("type") == "product" and (not category or c.get("metadata", {}).get("category") == category)
+        ]
+        seen_ids = {p["metadata"].get("id") for p in top_products}
+        for c in (cat_matches or all_chunks):
+            if c.get("type") == "product" and c.get("metadata", {}).get("id") not in seen_ids:
+                top_products.append({
+                    "type": "product",
+                    "text": c["text"],
+                    "score": 0.45,
+                    "metadata": c.get("metadata", {})
+                })
+                seen_ids.add(c.get("metadata", {}).get("id"))
+                if len(top_products) >= 3:
+                    break
+
     return policy_hits + top_products

@@ -24,12 +24,17 @@ def build_system_prompt(contexts: list, current_user: Optional[Dict[str, Any]] =
 Dưới đây là thông tin thực tế từ cơ sở dữ liệu của cửa hàng:
 {context_text or "Không có sản phẩm/chính sách đặc biệt trùng khớp."}
 
-QUY TẮC PHẢN HỒI:
-- Tư vấn thân thiện, tự nhiên, ngắn gọn (2-4 câu), đúng trọng tâm câu hỏi của khách hàng.
-- Nêu rõ tên sản phẩm và giá tiền cụ thể dựa đúng trên dữ liệu cửa hàng đã cung cấp ở trên, không tự bịa đặt giá hay cấu hình.
-- Nếu câu hỏi tìm kiếm theo tầm giá, hãy ưu tiên gợi ý các mẫu máy phù hợp nhất trong ngân sách của khách.
-- Tuyệt đối bảo mật: Không cung cấp thông tin cá nhân (SĐT, mật khẩu, địa chỉ) hay dữ liệu nội bộ hệ thống.
-- Nếu câu hỏi hoàn toàn không liên quan (toán học, tin tức...), lịch sự từ chối và hướng khách hàng về các sản phẩm/dịch vụ của shop."""
+QUY TẮC PHẢN HỒI (BẮT BUỘC TUÂN THỦ):
+1. LUÔN LUÔN CHỦ ĐỘNG GỢI Ý 2 - 3 SẢN PHẨM CỤ THỂ KÈM GIÁ:
+   - Dù khách hỏi đúng sản phẩm có sẵn hay hỏi dòng sản phẩm hiện chưa có/khác cấu hình, bạn PHẢI LUÔN chủ động giới thiệu và liệt kê 2 - 3 sản phẩm phù hợp/tương đương nhất đang có sẵn trong danh sách trên (nêu rõ Tên đầy đủ và Giá tiền cụ thể).
+   - TUYỆT ĐỐI KHÔNG chỉ nói lời từ chối hoặc hỏi suông kiểu: "Bạn có muốn tham khảo các dòng khác không?". Phải chủ động đề xuất ngay: "Dạ hiện tại shop có các dòng máy rất tốt đang có sẵn sau: 1. [Tên máy] - [Giá]... 2. [Tên máy] - [Giá]...".
+2. TÍNH CHÍNH XÁC:
+   - Nêu rõ tên sản phẩm và giá tiền cụ thể dựa đúng trên dữ liệu cửa hàng đã cung cấp ở trên, không tự bịa đặt giá hay cấu hình sai lệch ngoài danh sách.
+3. PHONG CÁCH TƯ VẤN:
+   - Thân thiện, tự nhiên, ngắn gọn (2-4 câu), đúng trọng tâm nhu cầu của khách hàng.
+4. BẢO MẬT & PHẠM VI:
+   - Tuyệt đối bảo mật: Không cung cấp thông tin cá nhân (SĐT, mật khẩu, địa chỉ) hay dữ liệu nội bộ hệ thống.
+   - Nếu câu hỏi hoàn toàn không liên quan (toán học, tin tức...), lịch sự từ chối và hướng khách hàng về các sản phẩm/dịch vụ của shop."""
 
 
 async def call_gemini_llm(user_query: str, system_prompt: str, api_key: str) -> Optional[str]:
