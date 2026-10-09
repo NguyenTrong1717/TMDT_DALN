@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./EventList.css";
 import ComponentCard from "../ProductCard/ComponentCard";
+import CategoryPromo from "../Banners/CategoryPromo";
 
 const TABS = [
   { label: "CARD ĐỒ HỌA", category: "vga" },
@@ -19,7 +20,7 @@ const EventList = ({ eventList }) => {
       <div className="event-section-header">
         <div className="event-header-left">
           <h2 className="event-section-title">LINH KIỆN MÁY TÍNH & BUILD PC</h2>
-          <span className="event-sub-tag">🔥 100% Chính hãng — Bảo hành 36 tháng 1 đổi 1</span>
+          <span className="event-sub-tag">100% Chính hãng — Bảo hành 36 tháng 1 đổi 1</span>
         </div>
         <button
           className="event-see-all-btn"
@@ -43,6 +44,9 @@ const EventList = ({ eventList }) => {
           ))}
         </nav>
       </div>
+
+      {/* Banner Khuyến Mãi Ngang Danh Mục Linh Kiện */}
+      <CategoryPromo category="component" titleFallback="Linh Kiện Máy Tính" />
 
       <div className="component-grid-layout">
         {eventList && eventList.length > 0 ? (

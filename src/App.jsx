@@ -42,6 +42,11 @@ import ContactPage from "./components/AdminDashboash/ContactPage";
 import BackToTop from "./components/BackToTop/BackToTop";
 import PaymentResult from "./pages/PaymentResult";
 import AuditLogManager from "./components/AdminDashboash/AuditLogManager";
+import BannerManager from "./components/AdminDashboash/BannerManager";
+import TradeInPage from "./pages/Promotions/TradeInPage";
+import InstallmentPage from "./pages/Promotions/InstallmentPage";
+import StudentPromoPage from "./pages/Promotions/StudentPromoPage";
+import BusinessCustomerPage from "./pages/Promotions/BusinessCustomerPage";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({ children }) => {
@@ -101,6 +106,10 @@ function App() {
         <Route path="/appliance/:id" element={<ProductManaCategory />} />
         <Route path="/tri-an-khach-hang" element={<VoucherWallet />} />
         <Route path="/lien-he" element={<ContactPage />} />
+        <Route path="/thu-cu-doi-moi" element={<TradeInPage />} />
+        <Route path="/tra-gop" element={<InstallmentPage />} />
+        <Route path="/uu-dai-sinh-vien" element={<StudentPromoPage />} />
+        <Route path="/doanh-nghiep" element={<BusinessCustomerPage />} />
 
         {/* Giỏ hàng & Thanh toán */}
         <Route path="/cart" element={<Cart />} />
@@ -120,6 +129,7 @@ function App() {
         >
           <Route index element={<Navigate to="products" replace />} />
           <Route path="products" element={<ProductManager />} />
+          <Route path="banners" element={<BannerManager />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="users" element={<UserManager />} />
           <Route path="statistics" element={<Statistics />} />

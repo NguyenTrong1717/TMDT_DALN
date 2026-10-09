@@ -4,9 +4,9 @@
 
 .laptop-menus {
   background: #ffffff;
-  max-width: 1240px;
+  max-width: var(--container-max-w, 1200px);
   margin: 0 auto;
-  padding: 36px 20px;
+  padding: 36px 0;
   box-sizing: border-box;
 }
 

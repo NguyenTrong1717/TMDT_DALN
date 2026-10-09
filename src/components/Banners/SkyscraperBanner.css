@@ -1,0 +1,132 @@
+/* ==========================================================================
+   Skyscraper Banners (2 Mép Cánh Gà Dạng Ảnh Poster Dọc Nguyên Tấm Chuẩn Sàn)
+   - Thiết kế thẳng góc phẳng hiện đại (KO BO GÓC: border-radius: 0).
+   - Kích thước dài hoành tráng: 155px x 580px chạy dài dọc theo sườn trang web.
+   - Vị trí: position: fixed; top: 110px; (Cuộn theo mượt mà khi người dùng cuộn chuột).
+   - Neo mép ngoài: Tuyệt đối không chạm hay đè lên layout container 1200px.
+   ========================================================================== */
+
+.skyscraper-wing {
+  position: fixed;
+  top: 110px;
+  width: 155px;
+  height: 580px;
+  border-radius: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 60;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  user-select: none;
+  background-color: #0A1128;
+  display: block;
+  box-sizing: border-box;
+}
+
+.skyscraper-wing:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 16px 44px rgba(0, 102, 255, 0.4);
+  border-color: rgba(59, 130, 246, 0.6);
+}
+
+/* Neo dạt sang 2 bên mép màn hình, luôn giữ khoảng cách an toàn với container 1200px */
+.skyscraper-wing.wing-left {
+  left: max(12px, calc(50vw - 600px - 155px - 20px));
+  right: auto;
+}
+
+.skyscraper-wing.wing-right {
+  right: max(12px, calc(50vw - 600px - 155px - 20px));
+  left: auto;
+}
+
+/* Nút tắt banner tinh tế */
+.skyscraper-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.skyscraper-close-btn:hover {
+  background: var(--brand-600, #D70018);
+  transform: scale(1.1);
+}
+
+/* Ảnh poster phủ 100% thẳng góc phẳng */
+.skyscraper-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 0 !important;
+}
+
+/* Responsive: Màn hình siêu rộng (> 1920px) */
+@media (min-width: 1920px) {
+  .skyscraper-wing {
+    width: 165px;
+    height: 600px;
+  }
+  .skyscraper-wing.wing-left {
+    left: max(20px, calc(50vw - 600px - 165px - 24px));
+    right: auto;
+  }
+  .skyscraper-wing.wing-right {
+    right: max(20px, calc(50vw - 600px - 165px - 24px));
+    left: auto;
+  }
+}
+
+/* Responsive: Màn hình trung bình (1440px - 1600px) co gọn nhẹ */
+@media (max-width: 1600px) and (min-width: 1440px) {
+  .skyscraper-wing {
+    width: 115px;
+    height: 480px;
+    top: 105px;
+  }
+  .skyscraper-wing.wing-left {
+    left: max(8px, calc(50vw - 600px - 115px - 16px));
+    right: auto;
+  }
+  .skyscraper-wing.wing-right {
+    right: max(8px, calc(50vw - 600px - 115px - 16px));
+    left: auto;
+  }
+}
+
+/* Co giãn theo chiều cao trình duyệt (tránh bị cấn thanh cuộn đáy trên laptop nhỏ) */
+@media (max-height: 760px) {
+  .skyscraper-wing {
+    height: 440px;
+    top: 95px;
+  }
+}
+@media (max-height: 620px) {
+  .skyscraper-wing {
+    height: 380px;
+    top: 85px;
+  }
+}
+
+/* Ẩn hoàn toàn khi màn hình không đủ khoảng trống ngoài lề (< 1440px) */
+@media (max-width: 1439px) {
+  .skyscraper-wing {
+    display: none !important;
+  }
+}

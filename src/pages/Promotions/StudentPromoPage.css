@@ -1,0 +1,387 @@
+/* ========================================================
+   HCORE STORE - ƯU ĐÃI SINH VIÊN (STUDENT PROMO PAGE)
+   ======================================================== */
+
+.student-promo-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-promo-main {
+  flex: 1;
+}
+
+.student-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+/* Hero */
+.student-hero {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+  color: #ffffff;
+  padding: 56px 16px 60px;
+  text-align: center;
+}
+
+.student-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #a7f3d0;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.student-hero h1 {
+  font-size: 34px;
+  font-weight: 900;
+  margin: 0 0 14px 0;
+  letter-spacing: -0.5px;
+}
+
+.student-sub {
+  font-size: 16px;
+  color: #d1fae5;
+  max-width: 760px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* 4 Perks */
+.student-perks-section {
+  padding: 40px 0 20px;
+}
+
+.perks-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.perk-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s;
+}
+
+.perk-box:hover {
+  transform: translateY(-3px);
+  border-color: #10b981;
+}
+
+.perk-icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #ecfdf5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 14px auto;
+}
+
+.perk-box h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.perk-box p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Majors Recommendation */
+.student-majors-section {
+  padding: 40px 0;
+}
+
+.majors-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.major-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+}
+
+.major-card:hover {
+  border-color: #059669;
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.1);
+  transform: translateY(-2px);
+}
+
+.major-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #d1fae5;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.major-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 12px 0;
+}
+
+.major-specs-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+
+.major-specs-box strong {
+  font-size: 11px;
+  color: #047857;
+  text-transform: uppercase;
+}
+
+.major-specs-box span {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.major-card p {
+  font-size: 13.5px;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0 0 20px 0;
+  flex: 1;
+}
+
+.btn-view-major {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-view-major:hover {
+  background: #047857;
+  color: #ffffff;
+}
+
+/* Form Section */
+.student-form-section {
+  padding: 30px 0 60px;
+}
+
+.student-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 36px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.form-info-col h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 12px 0;
+}
+
+.form-info-col p {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+}
+
+.form-bullet-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-bullet-points li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #334155;
+}
+
+.form-bullet-points li svg {
+  color: #059669;
+}
+
+.voucher-result-banner {
+  background: #ecfdf5;
+  border: 1.5px solid #059669;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.voucher-result-banner span {
+  font-size: 12px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.code-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px dashed #059669;
+  cursor: pointer;
+}
+
+.code-display code {
+  font-size: 16px;
+  font-weight: 800;
+  color: #047857;
+  letter-spacing: 1px;
+}
+
+.voucher-result-banner small {
+  font-size: 11px;
+  color: #047857;
+}
+
+/* Reg Form */
+.student-reg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #f8fafc;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.reg-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reg-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.reg-group input,
+.reg-group select {
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  outline: none;
+  background: #ffffff;
+}
+
+.reg-group input:focus,
+.reg-group select:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.12);
+}
+
+.btn-get-student-code {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+  margin-top: 6px;
+}
+
+.btn-get-student-code:hover {
+  background: #065f46;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 992px) {
+  .perks-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .majors-grid {
+    grid-template-columns: 1fr;
+  }
+  .student-form-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .student-hero h1 {
+    font-size: 26px;
+  }
+  .perks-grid {
+    grid-template-columns: 1fr;
+  }
+  .student-form-card {
+    padding: 20px;
+  }
+}

@@ -1,0 +1,976 @@
+\chapter{Thiết kế Hệ thống và Kiến trúc}
+
+\section{Kiến trúc Phân tầng Tổng thể của Hệ thống}
+Hệ thống Thương mại Điện tử HCore Store được thiết kế theo mô hình đa tầng kết hợp kiến trúc dịch vụ nhỏ phân tán. Sự phân tách ranh giới rõ ràng giữa các tầng đảm bảo tính độc lập về mặt nghiệp vụ, giảm thiểu mức độ phụ thuộc lẫn nhau giữa các thành phần và tạo điều kiện thuận lợi cho việc kiểm thử, bảo trì cũng như mở rộng năng lực tính toán.
+
+Hệ thống được cấu thành từ bốn tầng chức năng chính. Thứ nhất, tầng trình bày vận hành tại cổng 5173 là một ứng dụng web đơn trang phát triển trên React 19 và đóng gói bởi Vite. Tầng này chịu trách nhiệm hiển thị giao diện người dùng, tiếp nhận tương tác, điều hướng trang qua thư viện React Router DOM và giao tiếp bất đồng bộ với các máy chủ dịch vụ thông qua giao thức HTTP RESTful JSON. Thứ hai, tầng dịch vụ nghiệp vụ chính vận hành tại cổng 3000 trên nền tảng Node.js và Express 5. Thành phần này đóng vai trò là trung tâm điều phối dữ liệu, xử lý nghiệp vụ giỏ hàng, áp dụng mã giảm giá, kiểm soát vòng đời đơn hàng theo máy trạng thái hữu hạn, khởi tạo giao dịch thanh toán và tiếp nhận thông báo thanh toán tức thời từ các đối tác tài chính. Thứ ba, tầng trợ lý trí tuệ nhân tạo vận hành tại cổng 8000 sử dụng Python 3.11 và FastAPI. Dịch vụ này được tách biệt hoàn toàn khỏi máy chủ nghiệp vụ nhằm cô lập các tác vụ tính toán ma trận vector tốn tài nguyên của mô hình FastEmbed ONNX và kết nối với dịch vụ ngôn ngữ lớn Google Gemini Flash, tránh gây ảnh hưởng tới vòng lặp sự kiện của máy chủ bán hàng. Cuối cùng, tầng lưu trữ dữ liệu ứng dụng cơ sở dữ liệu MongoDB Atlas lưu trữ các tài liệu BSON phi cấu trúc, mang lại khả năng mở rộng linh hoạt cho danh mục sản phẩm đa thuộc tính.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    node distance=0.6cm and 0.5cm,
+    layer/.style={draw=black!60, fill=black!2, rounded corners=4pt, dashed, inner sep=6pt},
+    layerlabel/.style={font=\bfseries\footnotesize, text=black!80},
+    comp/.style={draw=black!80, fill=white, rounded corners=2pt, minimum height=0.75cm, minimum width=2.5cm, align=center, thick},
+    compai/.style={draw=black!80, fill=black!5, rounded corners=2pt, minimum height=0.75cm, minimum width=2.5cm, align=center, thick},
+    ext/.style={draw=black!80, fill=black!8, rounded corners=2pt, minimum height=0.75cm, minimum width=2.2cm, align=center, thick},
+    arr/.style={-{Stealth[scale=0.9]}, thick, draw=black!75}
+]
+
+% Tầng 1: Presentation Layer
+\node[comp] (client_user) {Giao diện Khách hàng\\(React 19 SPA :5173)};
+\node[comp, right=0.6cm of client_user] (client_admin) {Bảng Quản trị\\(Admin Portal)};
+\node[compai, right=0.6cm of client_admin] (client_chat) {Tiện ích Trợ lý Ảo\\(ChatBot Widget)};
+\begin{scope}[on background layer]
+    \node[layer, fit=(client_user)(client_admin)(client_chat), label={[layerlabel]above:TẦNG TRÌNH DIỄN (PRESENTATION LAYER - REACT 19 / VITE 8)}] (layer_pres) {};
+\end{scope}
+
+% Tầng 2: Application / Service Layer
+\node[comp, below=1.2cm of client_user] (srv_auth) {Xác thực \& Người dùng\\(Auth \& Users)};
+\node[comp, right=0.6cm of srv_auth] (srv_order) {Xử lý Đơn hàng \& FSM\\(Order \& Payments)};
+\node[compai, right=0.6cm of srv_order] (srv_rag) {Dịch vụ Trí tuệ Nhân tạo\\(FastAPI RAG :8000)};
+\begin{scope}[on background layer]
+    \node[layer, fit=(srv_auth)(srv_order)(srv_rag), label={[layerlabel]above:TẦNG DỊCH VỤ NGHIỆP VỤ (SERVICE LAYER - NODE.JS EXPRESS 5 \& PYTHON FASTAPI)}] (layer_srv) {};
+\end{scope}
+
+% Tầng 3: Data Persistence Layer
+\node[comp, below=1.2cm of srv_order] (db_mongo) {Cơ sở Dữ liệu NoSQL MongoDB Atlas\\(20 Collections: users, orders, products, paymentAttempts, v.v.)};
+\begin{scope}[on background layer]
+    \node[layer, fit=(db_mongo), label={[layerlabel]above:TẦNG DỮ LIỆU (DATA PERSISTENCE LAYER - MONGODB ATLAS CLOUD)}] (layer_data) {};
+\end{scope}
+
+% Tầng 4: External Services
+\node[ext, below=1.1cm of db_mongo, xshift=-3.5cm] (ext_vnpay) {Cổng VNPAY\\(HMAC-SHA512)};
+\node[ext, right=1.0cm of ext_vnpay] (ext_momo) {Ví MoMo\\(HMAC-SHA256)};
+\node[ext, right=1.0cm of ext_momo] (ext_gemini) {Google Gemini API\\(gemini-2.5-flash)};
+\begin{scope}[on background layer]
+    \node[layer, fit=(ext_vnpay)(ext_momo)(ext_gemini), label={[layerlabel]above:DỊCH VỤ ĐỐI TÁC NGOẠI VI (EXTERNAL SERVICES)}] (layer_ext) {};
+\end{scope}
+
+% Đường kết nối
+\draw[arr] (client_user.south) -- (srv_auth.north);
+\draw[arr] (client_admin.south) -- (srv_order.north);
+\draw[arr] (client_chat.south) -- (srv_rag.north);
+
+\draw[arr] (srv_auth.south) -- (srv_auth.south |- layer_data.north);
+\draw[arr] (srv_order.south) -- (db_mongo.north);
+\draw[arr] (srv_rag.south) -- (srv_rag.south |- layer_data.north);
+
+\draw[arr] (srv_order.south -| ext_vnpay.north) -- (ext_vnpay.north);
+\draw[arr] (srv_order.south -| ext_momo.north) -- (ext_momo.north);
+\draw[arr] (srv_rag.south -| ext_gemini.north) -- (ext_gemini.north);
+
+\end{tikzpicture}
+\caption{Sơ đồ Kiến trúc Phân tầng Tổng thể của Hệ thống HCore Store theo Chuẩn IEEE}
+\label{fig:overall_architecture}
+\end{figure}
+
+Hình~\ref{fig:overall_architecture} mô tả cấu trúc kiến trúc phân tầng toàn diện của hệ thống HCore Store. Mô hình tuân thủ nguyên lý tách biệt mối quan tâm khi phân định rạch ròi ranh giới giữa bốn tầng độc lập: tầng trình diễn phía máy khách, tầng dịch vụ nghiệp vụ phía máy chủ, tầng lưu trữ dữ liệu tập trung và tầng kết nối các đối tác điện toán đám mây ngoại vi. Sự phân tách này đảm bảo tính độc lập trong chu trình phát triển, cho phép tối ưu hóa hiệu năng tính toán và tạo điều kiện thuận lợi cho việc kiểm thử tự động từng phân hệ.
+
+Toàn bộ ba dịch vụ phần mềm được container hóa độc lập bằng Docker và liên kết nội bộ thông qua mạng ảo cầu nối, đảm bảo tính nhất quán tuyệt đối giữa môi trường phát triển cục bộ và môi trường máy chủ sản xuất.
+
+\section{Thiết kế Cơ sở Dữ liệu Chi tiết}
+\subsection{Chiến lược Mô hình hóa Dữ liệu trên MongoDB}
+Trong quá trình thiết kế cơ sở dữ liệu tài liệu cho HCore Store, hai chiến lược mô hình hóa chính được kết hợp hài hòa nhằm cân bằng giữa hiệu năng truy vấn và tính toàn vẹn dữ liệu.
+
+Đối với các thực thể có quan hệ mật thiết và dữ liệu mang tính bất biến theo thời gian, hệ thống áp dụng mô hình nhúng tài liệu con. Điển hình là danh sách sản phẩm trong mỗi đơn hàng tại bộ sưu tập đơn hàng. Toàn bộ thông tin định danh, tên gọi, đơn giá và số lượng của từng mặt hàng tại thời điểm phát sinh giao dịch được nhúng trực tiếp thành một mảng tài liệu con. Cách tiếp cận này tạo ra một bản chụp dữ liệu bất biến, bảo vệ lịch sử giao dịch không bị sai lệch nếu sau đó giá niêm yết của sản phẩm gốc có sự thay đổi, đồng thời giúp việc truy vấn chi tiết đơn hàng đạt độ phức tạp tối ưu mà không cần thực hiện phép kết nối bảng tốn kém tài nguyên.
+
+Đối với các thực thể độc lập có vòng đời biến động thường xuyên, hệ thống áp dụng mô hình tham chiếu thông qua các trường khóa ngoại logic. Mối quan hệ giữa tài khoản người dùng và đơn hàng được duy trì thông qua trường mã người dùng, hay mối quan hệ giữa đơn hàng và phiên thanh toán được liên kết thông qua trường mã đơn hàng. Mặc dù MongoDB không cưỡng chế ràng buộc toàn vẹn tham chiếu ở tầng công cụ cơ sở dữ liệu, tính nhất quán của dữ liệu được đảm bảo thông qua mã nguồn kiểm tra chặt chẽ tại tầng ứng dụng.
+
+\subsection{Từ điển Dữ liệu Phân hệ Bán hàng và Giao dịch}
+Phân hệ bán hàng bao gồm bảy bộ sưu tập nòng cốt gồm người dùng, đơn hàng, phiên thanh toán, giỏ hàng, danh mục khuyến mãi, ví khuyến mãi người dùng và sự kiện xả kho chớp nhoáng. Bảng~\ref{tab:dict_commerce} mô tả cấu trúc chi tiết, kiểu dữ liệu và ý nghĩa nghiệp vụ của từng trường thông tin trong phân hệ bán hàng và giao dịch.
+
+\begin{table}[H]
+\centering
+\caption{Từ điển Dữ liệu Chi tiết: Phân hệ Bán hàng và Giao dịch}
+\label{tab:dict_commerce}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{2.3cm}p{1.8cm}X}
+\toprule
+\textbf{Bộ sưu tập} & \textbf{Trường dữ liệu} & \textbf{Kiểu dữ liệu} & \textbf{Ràng buộc và Ý nghĩa Nghiệp vụ} \\
+\midrule
+`users` & `id` & Chuỗi ký tự & Khóa chính định danh tài khoản, đánh chỉ mục đơn duy nhất. \\
+& `username` & Chuỗi ký tự & Tên đăng nhập duy nhất vào hệ thống. \\
+& `password` & Chuỗi ký tự & Mật khẩu tài khoản đã được băm bảo mật. \\
+& `fullName` & Chuỗi ký tự & Họ và tên đầy đủ của chủ tài khoản. \\
+& `email` & Chuỗi ký tự & Thư điện tử xác thực và liên lạc. \\
+& `phone` & Chuỗi ký tự & Số điện thoại nhận hàng mặc định. \\
+& `address` & Chuỗi ký tự & Địa chỉ nhận hàng mặc định của người dùng. \\
+& `role` & Kiểu liệt kê & Vai trò truy cập gồm người dùng (`user`) hoặc quản trị (`admin`). \\
+& `status` & Kiểu liệt kê & Trạng thái hoạt động gồm kích hoạt (`active`) hoặc tạm khóa (`blocked`). \\
+& `createdAt` & Thời gian & Mốc thời gian khởi tạo bản ghi tài khoản theo chuẩn ISO 8601. \\
+\addlinespace
+`orders` & `id` & Chuỗi ký tự & Khóa chính định danh đơn hàng hệ thống. \\
+& `orderCode` & Chuỗi ký tự & Mã tra cứu đơn hàng thân thiện hiển thị cho khách hàng. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic liên kết tới bảng người dùng (`users.id`). \\
+& `fullName` & Chuỗi ký tự & Họ tên người nhận hàng tại thời điểm đặt đơn. \\
+& `phone` & Chuỗi ký tự & Số điện thoại nhận hàng tại thời điểm đặt đơn. \\
+& `email` & Chuỗi ký tự & Thư điện tử nhận thông báo xác nhận đơn hàng. \\
+& `address` & Chuỗi ký tự & Địa chỉ giao nhận hàng hóa chi tiết. \\
+& `paymentMethod` & Kiểu liệt kê & Phương thức thanh toán gồm COD, VNPAY hoặc MoMo. \\
+& `paymentStatus` & Kiểu liệt kê & Trạng thái thanh toán: `unpaid`, `pending`, `paid`, `failed`. \\
+& `status` & Kiểu liệt kê & Vòng đời đơn hàng: `pending`, `confirmed`, `shipping`, `completed`, `cancelled`. \\
+& `totalAmount` & Số thực & Tổng giá trị thanh toán thực tế sau khi trừ khuyến mãi. \\
+& `discountAmount` & Số thực & Số tiền giảm trừ thực tế từ voucher chiết khấu. \\
+& `voucherCode` & Chuỗi ký tự & Khóa ngoại logic liên kết tới mã giảm giá áp dụng (`vouchers.code`). \\
+& `products` & Mảng cấu trúc & Danh sách nhúng snapshot các sản phẩm đã mua tại thời điểm đặt. \\
+& `lookupToken` & Chuỗi ký tự & Chuỗi mã ngẫu nhiên phục vụ tra cứu kết quả an toàn. \\
+& `idempotencyKey` & Chuỗi ký tự & Khóa chống gửi trùng lặp yêu cầu thanh toán (`requestId`). \\
+& `latestPaymentAttemptId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới phiên thanh toán trực tuyến gần nhất. \\
+& `createdAt` & Thời gian & Mốc thời gian tạo đơn hàng theo chuẩn ISO 8601. \\
+& `updatedAt` & Thời gian & Mốc thời gian cập nhật trạng thái đơn hàng gần nhất. \\
+\addlinespace
+`paymentAttempts` & `id` & Chuỗi ký tự & Khóa chính định danh phiên giao dịch thanh toán trực tuyến. \\
+& `orderId` & Chuỗi ký tự & Khóa ngoại logic liên kết tới đơn hàng tương ứng (`orders.id`). \\
+& `gateway` & Kiểu liệt kê & Cổng thanh toán sử dụng gồm `vnpay` hoặc `momo`. \\
+& `txnRef` & Chuỗi ký tự & Mã tham chiếu giao dịch gửi sang đối tác tài chính. \\
+& `amount` & Số thực & Số tiền yêu cầu thanh toán theo đơn vị đồng Việt Nam. \\
+& `status` & Kiểu liệt kê & Trạng thái phiên: `pending`, `paid` hoặc `failed`. \\
+& `paymentUrl` & Chuỗi ký tự & Đường dẫn thanh toán được sinh từ cổng đối tác. \\
+& `ipAddress` & Chuỗi ký tự & Địa chỉ IP máy khách khởi tạo phiên thanh toán. \\
+& `createdAt` & Thời gian & Thời điểm bắt đầu khởi tạo giao dịch. \\
+& `expiresAt` & Thời gian & Thời điểm hết hạn của phiên thanh toán (15 phút). \\
+\addlinespace
+`cart` & `id` & Chuỗi ký tự & Khóa chính định danh mục hàng trong giỏ. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic liên kết tới chủ sở hữu giỏ (`users.id`). \\
+& `productId` & Chuỗi ký tự & Khóa ngoại logic liên kết tới mã sản phẩm (`products.id`). \\
+& `quantity` & Số nguyên & Số lượng sản phẩm thêm vào giỏ hàng. \\
+& `fromTable` & Chuỗi ký tự & Tên bảng dữ liệu gốc chứa sản phẩm phục vụ đối soát giá. \\
+\addlinespace
+`vouchers` & `id` & Chuỗi ký tự & Khóa chính định danh chương trình mã giảm giá. \\
+& `code` & Chuỗi ký tự & Mã khuyến mãi duy nhất người dùng nhập (`GIAM50K`). \\
+& `type` & Kiểu liệt kê & Phương thức chiết khấu gồm theo phần trăm (`percent`) hoặc cố định (`fixed`). \\
+& `value` & Số thực & Giá trị chiết khấu tương ứng với phương thức đã chọn. \\
+& `minOrder` & Số thực & Giá trị đơn hàng tối thiểu bắt buộc để áp dụng mã. \\
+& `maxCollect` & Số nguyên & Số lượng người dùng tối đa được phép thu thập mã vào ví. \\
+\addlinespace
+`userVouchers` & `id` & Chuỗi ký tự & Khóa chính bản ghi lưu mã voucher cá nhân. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới người sở hữu (`users.id`). \\
+& `voucherCode` & Chuỗi ký tự & Khóa ngoại logic trỏ tới mã khuyến mãi (`vouchers.code`). \\
+& `used` & Kiểu logic & Trạng thái xác nhận mã đã sử dụng trong đơn hàng hay chưa. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    entity/.style={draw=black!85, fill=white, thick, rounded corners=2pt, inner sep=4pt, text width=6.2cm, align=left},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    card/.style={font=\tiny\bfseries, fill=white, inner sep=1.5pt}
+]
+
+% Hàng 1 (Top)
+\node[entity] (users) {
+    \textbf{users} \hfill \textit{(Tài khoản người dùng)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK] \\
+    email: String [Unique, Indexed] \\
+    passwordHash: String \\
+    role: String ('user', 'admin') \\
+    name, phone, address: String \\
+    createdAt: Date
+};
+
+\node[entity, right=1.6cm of users] (vouchers) {
+    \textbf{vouchers} \hfill \textit{(Mã ưu đãi toàn sàn)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK] \\
+    code: String [Unique, Indexed] \\
+    discountPercent, maxDiscount: Number \\
+    minOrderValue, quantity: Number \\
+    startDate, endDate: Date \\
+    isActive: Boolean
+};
+
+% Hàng 2 (Middle)
+\node[entity, below=1.0cm of users] (cart) {
+    \textbf{cart} \hfill \textit{(Giỏ hàng tạm)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK] \\
+    userId: String [FK $\to$ users.\_id, Indexed] \\
+    productId: String [FK $\to$ products.\_id] \\
+    quantity: Number \\
+    updatedAt: Date
+};
+
+\node[entity, below=1.0cm of vouchers] (userVouchers) {
+    \textbf{userVouchers} \hfill \textit{(Ví voucher khách hàng)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK] \\
+    userId: String [FK $\to$ users.\_id, Indexed] \\
+    voucherCode: String [FK $\to$ vouchers.code] \\
+    used: Boolean \\
+    collectedAt: Date
+};
+
+% Hàng 3 (Bottom)
+\node[entity, below=1.0cm of cart] (orders) {
+    \textbf{orders} \hfill \textit{(Đơn đặt hàng)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK, Indexed] \\
+    userId: String [FK $\to$ users.\_id] \\
+    status: String ('pending', 'confirmed', \dots) \\
+    totalAmount, discountAmount: Number \\
+    paymentMethod, shippingAddress: String \\
+    products: Array[Object] \textit{(Snapshot bất biến)} \\
+    createdAt: Date
+};
+
+\node[entity, below=1.0cm of userVouchers] (payments) {
+    \textbf{paymentAttempts} \hfill \textit{(Nhật ký thanh toán)} \\
+    \rule{6.2cm}{0.4pt} \\
+    \textbf{\_id}: String [PK] \\
+    orderId: String [FK $\to$ orders.\_id, Indexed] \\
+    gateway: String ('vnpay', 'momo') \\
+    transactionId, amount: Number/String \\
+    status: String ('pending', 'success', 'failed') \\
+    signature: String (HMAC) \\
+    createdAt: Date
+};
+
+% Quan hệ thực thể
+\draw[arr] (users.south) -- node[card, near start] {1} node[card, near end] {N} node[right, font=\tiny\itshape] {quản lý} (cart.north);
+\draw[arr] (users.east) -- node[card, near start] {1} node[card, near end] {N} node[above, font=\tiny\itshape] {sở hữu} (userVouchers.west);
+\draw[arr] (vouchers.south) -- node[card, near start] {1} node[card, near end] {N} node[right, font=\tiny\itshape] {phát hành} (userVouchers.north);
+\draw[arr] (cart.south) -- node[card, near start] {1} node[card, near end] {N} node[right, font=\tiny\itshape] {tạo thành} (orders.north);
+\draw[arr] (orders.east) -- node[card, near start] {1} node[card, near end] {N} node[above, font=\tiny\itshape] {ghi vết} (payments.west);
+
+\end{tikzpicture}
+\caption{Sơ đồ Thực thể Liên kết Phân hệ Bán hàng và Giao dịch theo Chuẩn IEEE}
+\label{fig:erd_commerce}
+\end{figure}
+
+Hình~\ref{fig:erd_commerce} mô tả chi tiết sơ đồ thực thể liên kết phân hệ bán hàng và giao dịch của hệ thống HCore Store. Mô hình dữ liệu thể hiện rõ chiến lược kết hợp giữa kỹ thuật tham chiếu chuẩn khóa ngoại logic và kỹ thuật lưu trữ tài liệu con dạng bản chụp. Cụ thể, mỗi tài khoản người dùng duy trì mối quan hệ một-nhiều với giỏ hàng tạm thời và danh sách mã ưu đãi cá nhân. Khi phát sinh giao dịch, dữ liệu giỏ hàng được chuyển hóa thành bản ghi đơn hàng với toàn bộ thuộc tính sản phẩm được đóng băng trong mảng tài liệu con, triệt tiêu phụ thuộc vào giá thay đổi của sản phẩm gốc. Mỗi đơn hàng tiếp tục liên kết một-nhiều với các phiên giao dịch thanh toán nhằm phục vụ đối soát chữ ký số và xử lý các kịch bản khách hàng thực hiện thanh toán lại.
+
+\subsection{Từ điển Dữ liệu Phân hệ Danh mục và Sản phẩm}
+Phân hệ danh mục và sản phẩm chịu trách nhiệm cấu trúc hóa toàn bộ kho hàng hóa công nghệ thông tin và thiết bị phần cứng. Hệ thống phân chia thành chín bộ sưu tập gồm sản phẩm cốt lõi, danh mục phân loại mẹ, máy tính xách tay phân khúc, sự kiện khuyến mãi, thiết bị gia dụng, các trang động mở rộng, thực đơn động, đánh giá của người dùng và tin tức tư vấn công nghệ. Cấu trúc chi tiết được trình bày trong Bảng~\ref{tab:dict_catalog}.
+
+\begin{table}[H]
+\centering
+\caption{Từ điển Dữ liệu Chi tiết: Phân hệ Danh mục và Sản phẩm}
+\label{tab:dict_catalog}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{2.3cm}p{1.8cm}X}
+\toprule
+\textbf{Bộ sưu tập} & \textbf{Trường dữ liệu} & \textbf{Kiểu dữ liệu} & \textbf{Ràng buộc và Ý nghĩa Nghiệp vụ} \\
+\midrule
+`products` & `id` & Chuỗi ký tự & Khóa chính định danh sản phẩm cốt lõi, đánh chỉ mục đơn. \\
+& `name` & Chuỗi ký tự & Tên thương mại đầy đủ của thiết bị hoặc linh kiện. \\
+& `price` & Số thực & Đơn giá niêm yết chính thức theo đồng Việt Nam. \\
+& `image` & Chuỗi ký tự & Đường dẫn URL hình ảnh đại diện của sản phẩm. \\
+& `stock` & Số nguyên & Số lượng hàng hóa khả dụng thực tế trong kho. \\
+& `sold` & Số nguyên & Số lượng sản phẩm đã bán ra thị trường. \\
+& `rating` & Số thực & Điểm đánh giá trung bình của sản phẩm trên thang điểm 5. \\
+& `reviewsCount` & Số nguyên & Tổng số lượt bình luận đánh giá của khách hàng. \\
+& `deleted` & Kiểu logic & Cờ xóa mềm hỗ trợ phục hồi dữ liệu trong quản trị. \\
+\addlinespace
+`catenogies` & `id` & Chuỗi ký tự & Khóa chính định danh danh mục sản phẩm mẹ. \\
+& `name` & Chuỗi ký tự & Tên gọi hiển thị của danh mục (Laptop, Linh kiện, Phụ kiện). \\
+& `slug` & Chuỗi ký tự & Chuỗi đường dẫn tối ưu hóa cho máy tìm kiếm. \\
+& `icon` & Chuỗi ký tự & Tên biểu tượng giao diện hiển thị trên thanh điều hướng. \\
+\addlinespace
+`LaptopUser` & `id` & Chuỗi ký tự & Khóa chính sản phẩm laptop chuyên biệt. \\
+& `name` & Chuỗi ký tự & Tên gọi máy tính xách tay. \\
+& `category` & Kiểu liệt kê & Phân khúc nhu cầu sử dụng: Gaming, Sinh viên, Văn phòng, Đồ họa. \\
+& `cpu` & Chuỗi ký tự & Thông số bộ vi xử lý trung tâm (Core i7, Ryzen 7). \\
+& `ram` & Chuỗi ký tự & Dung lượng bộ nhớ truy cập ngẫu nhiên (16GB, 32GB). \\
+& `storage` & Chuỗi ký tự & Dung lượng ổ cứng thể rắn lưu trữ dữ liệu (512GB, 1TB SSD). \\
+& `gpu` & Chuỗi ký tự & Bộ xử lý đồ họa chuyên dụng (RTX 4060, Intel Iris Xe). \\
+& `display` & Chuỗi ký tự & Kích thước màn hình và tần số quét (15.6 inch, 144Hz). \\
+& `price` & Số thực & Đơn giá bán chính thức của máy tính xách tay. \\
+\addlinespace
+`eventList` & `id` & Chuỗi ký tự & Khóa chính linh kiện thuộc chương trình xả kho sự kiện. \\
+& `name` & Chuỗi ký tự & Tên linh kiện máy tính tham gia sự kiện. \\
+& `eventTag` & Chuỗi ký tự & Nhãn chiến dịch khuyến mãi (Xả kho hè, Giảm sập sàn). \\
+& `discountPrice`& Số thực & Mức giá ưu đãi đặc biệt trong thời gian diễn ra sự kiện. \\
+& `originalPrice`& Số thực & Mức giá niêm yết ban đầu trước khi chiết khấu. \\
+\addlinespace
+`appliances` & `id` & Chuỗi ký tự & Khóa chính thiết bị điện máy và gia dụng thông minh. \\
+& `name` & Chuỗi ký tự & Tên gọi thiết bị điện máy công nghệ. \\
+& `power` & Chuỗi ký tự & Công suất vận hành danh định của thiết bị. \\
+& `brand` & Chuỗi ký tự & Thương hiệu nhà sản xuất thiết bị. \\
+& `warranty` & Chuỗi ký tự & Thời hạn bảo hành chính hãng (12 tháng, 24 tháng). \\
+\addlinespace
+`reviews` & `id` & Chuỗi ký tự & Khóa chính định danh phản hồi đánh giá. \\
+& `productId` & Chuỗi ký tự & Khóa ngoại logic liên kết tới sản phẩm (`products.id`). \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới tài khoản đánh giá (`users.id`). \\
+& `userName` & Chuỗi ký tự & Tên hiển thị công khai của người đánh giá. \\
+& `rating` & Số nguyên & Điểm số đánh giá từ 1 sao đến 5 sao. \\
+& `comment` & Chuỗi ký tự & Nội dung nhận xét chi tiết về chất lượng sản phẩm. \\
+& `createdAt` & Thời gian & Mốc thời gian gửi đánh giá lên hệ thống. \\
+\addlinespace
+`news` & `id` & Chuỗi ký tự & Khóa chính bài viết tin tức công nghệ. \\
+& `title` & Chuỗi ký tự & Tiêu đề bài viết hiển thị trên trang tin tức. \\
+& `author` & Chuỗi ký tự & Tác giả biên soạn nội dung bài viết. \\
+& `content` & Chuỗi ký tự & Toàn văn nội dung bài viết và phân tích công nghệ. \\
+& `image` & Chuỗi ký tự & Đường dẫn hình ảnh minh họa tiêu biểu của bài viết. \\
+& `views` & Số nguyên & Số lượt xem bài viết của bạn đọc. \\
+& `createdAt` & Thời gian & Thời điểm xuất bản bài viết lên hệ thống. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Từ điển Dữ liệu Phân hệ Tương tác, Hỗ trợ và Vận hành}
+Phân hệ tương tác và vận hành bao gồm năm bộ sưu tập chuyên trách việc ghi nhận tương tác đối thoại của trợ lý trí tuệ nhân tạo, thông báo người dùng, yêu cầu kỹ thuật bảo hành, danh sách sản phẩm yêu thích và nhật ký kiểm toán hệ thống. Cấu trúc các trường dữ liệu được chi tiết hóa trong Bảng~\ref{tab:dict_operations}.
+
+\begin{table}[H]
+\centering
+\caption{Từ điển Dữ liệu Chi tiết: Phân hệ Tương tác, Hỗ trợ và Vận hành}
+\label{tab:dict_operations}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{2.3cm}p{1.8cm}X}
+\toprule
+\textbf{Bộ sưu tập} & \textbf{Trường dữ liệu} & \textbf{Kiểu dữ liệu} & \textbf{Ràng buộc và Ý nghĩa Nghiệp vụ} \\
+\midrule
+`chatMessages` & `id` & Chuỗi ký tự & Khóa chính định danh lượt đối thoại của trợ lý thông minh. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới người gửi câu hỏi (`users.id`). \\
+& `userQuery` & Chuỗi ký tự & Nội dung câu hỏi truy vấn của khách hàng gửi vào hệ thống. \\
+& `botReply` & Chuỗi ký tự & Phản hồi tổng hợp từ mô hình trí tuệ nhân tạo hoặc bộ lọc dự phòng. \\
+& `sources` & Mảng chuỗi & Danh sách các sản phẩm thực tế được trích dẫn trong câu trả lời. \\
+& `timestamp` & Thời gian & Mốc thời gian thực hiện lượt đối thoại theo chuẩn ISO 8601. \\
+\addlinespace
+`notifications` & `id` & Chuỗi ký tự & Khóa chính định danh thông báo gửi tới người dùng. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới người nhận thông báo (`users.id`). \\
+& `title` & Chuỗi ký tự & Tiêu đề ngắn gọn của thông báo giao dịch hoặc hệ thống. \\
+& `message` & Chuỗi ký tự & Nội dung chi tiết của thông báo. \\
+& `isRead` & Kiểu logic & Trạng thái người dùng đã đọc thông báo hay chưa. \\
+& `createdAt` & Thời gian & Mốc thời gian phát hành thông báo. \\
+\addlinespace
+`serviceRequests`& `id` & Chuỗi ký tự & Khóa chính định danh phiếu yêu cầu dịch vụ kỹ thuật. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới người gửi yêu cầu (`users.id`). \\
+& `productName` & Chuỗi ký tự & Tên thiết bị hoặc linh kiện gặp sự cố cần bảo hành. \\
+& `description` & Chuỗi ký tự & Mô tả chi tiết hiện tượng lỗi phần cứng hoặc hỏng hóc. \\
+& `status` & Kiểu liệt kê & Tiến độ xử lý: tiếp nhận (`received`), đang sửa (`processing`), hoàn tất (`resolved`). \\
+& `createdAt` & Thời gian & Mốc thời gian tiếp nhận phiếu dịch vụ. \\
+\addlinespace
+`wishlist` & `id` & Chuỗi ký tự & Khóa chính bản ghi lưu sản phẩm quan tâm. \\
+& `userId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới người dùng sở hữu (`users.id`). \\
+& `productId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới sản phẩm yêu thích (`products.id`). \\
+& `addedAt` & Thời gian & Mốc thời gian người dùng bấm lưu vào danh sách quan tâm. \\
+\addlinespace
+`auditLogs` & `id` & Chuỗi ký tự & Khóa chính định danh bản ghi kiểm toán bảo mật hệ thống. \\
+& `action` & Chuỗi ký tự & Hành động can thiệp dữ liệu (Cập nhật đơn, Xóa sản phẩm, Đổi quyền). \\
+& `adminId` & Chuỗi ký tự & Khóa ngoại logic trỏ tới quản trị viên thực thi thao tác (`users.id`). \\
+& `targetEntity`& Chuỗi ký tự & Thực thể dữ liệu chịu tác động (`orders`, `products`, `users`). \\
+& `ipAddress` & Chuỗi ký tự & Địa chỉ IP nguồn phát sinh yêu cầu quản trị. \\
+& `timestamp` & Thời gian & Thời điểm chính xác phát sinh hành động kiểm toán. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Thiết kế Giao diện Lập trình Ứng dụng RESTful}
+Toàn bộ hệ thống giao tiếp giữa tầng trình bày và tầng nghiệp vụ được chuẩn hóa thông qua các giao diện lập trình ứng dụng RESTful. Dữ liệu truyền tải được đóng gói ở định dạng JSON tiêu chuẩn.
+
+\subsection{Đặc tả Giao diện Bán hàng và Thanh toán}
+Bảng~\ref{tab:api_orders} liệt kê chi tiết các điểm cuối phục vụ quy trình mua sắm, áp dụng mã chiết khấu và điều phối thanh toán trực tuyến trên máy chủ Node.js vận hành tại cổng 3000.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Các Giao diện Lập trình Ứng dụng Bán hàng và Cổng Thanh toán}
+\label{tab:api_orders}
+\begin{tabularx}{\textwidth}{p{1.8cm}p{4cm}p{2cm}X}
+\toprule
+\textbf{Phương thức} & \textbf{Đường dẫn Điểm cuối} & \textbf{Xác thực} & \textbf{Chức năng và Thao tác Xử lý Nghiệp vụ} \\
+\midrule
+`POST` & `/api/orders/checkout` & Header `x-user-id` & Xử lý tạo đơn hàng thanh toán khi nhận hàng COD. Kiểm tra khóa chống trùng lặp `requestId`, tạo bản ghi đơn hàng ở trạng thái chờ duyệt, xóa sản phẩm trong giỏ hàng, trừ kho và đánh dấu đã sử dụng mã voucher. \\
+\addlinespace
+`POST` & `/api/payments/vnpay/create` & Header `x-user-id` & Khởi tạo phiên thanh toán VNPAY Sandbox. Tạo bản ghi đơn hàng và bản ghi phiên thanh toán, tính toán chữ ký số HMAC-SHA512 và trả về đường dẫn thanh toán cho trình duyệt chuyển hướng. \\
+\addlinespace
+`GET` & `/api/payments/vnpay/return` & Công khai & Tiếp nhận điều hướng trình duyệt sau khi khách hàng hoàn tất tại VNPAY. Xác minh chữ ký băm, cập nhật trạng thái đơn hàng sang đã thanh toán và chuyển hướng sang giao diện kết quả. \\
+\addlinespace
+`GET` & `/api/payments/vnpay/ipn` & Webhook ngầm & Nhận thông báo thanh toán tức thời trực tiếp từ máy chủ VNPAY. Kiểm tra chữ ký, đối soát số tiền và cập nhật trạng thái đơn hàng an toàn độc lập với trình duyệt khách hàng. \\
+\addlinespace
+`POST` & `/api/payments/momo/create` & Header `x-user-id` & Khởi tạo phiên thanh toán ví điện tử MoMo Sandbox. Ký chữ ký số HMAC-SHA256 và trả về đường dẫn thanh toán hoặc mã QR để quét trên thiết bị di động. \\
+\addlinespace
+`POST` & `/api/payments/momo/ipn` & Webhook ngầm & Webhook từ máy chủ MoMo xác nhận kết quả thanh toán. Kiểm tra chữ ký đối tác và cập nhật trạng thái thanh toán sang thành công. \\
+\addlinespace
+`GET` & `/api/payments/result/:token` & Công khai & Tra cứu an toàn thông tin kết quả thanh toán thông qua chuỗi token ngẫu nhiên mà không để lộ mã định danh người dùng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Đặc tả Giao diện Quản trị và Kiểm toán Hệ thống}
+Bảng~\ref{tab:api_admin} trình bày danh mục các điểm cuối quản trị hệ thống. Mọi điểm cuối trong phân hệ này đều yêu cầu quyền hạn quản trị viên (`role = admin`) thông qua lớp lọc xác thực trung gian.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Các Giao diện Lập trình Ứng dụng Phân hệ Quản trị}
+\label{tab:api_admin}
+\begin{tabularx}{\textwidth}{p{1.8cm}p{4cm}p{2cm}X}
+\toprule
+\textbf{Phương thức} & \textbf{Đường dẫn Điểm cuối} & \textbf{Quyền hạn} & \textbf{Chức năng và Ràng buộc Nghiệp vụ} \\
+\midrule
+`GET` & `/api/admin/orders` & Quản trị viên & Truy vấn toàn bộ danh sách đơn hàng trong hệ thống kèm thông tin thanh toán, hỗ trợ phân trang và lọc theo trạng thái. \\
+\addlinespace
+`PATCH` & `/api/admin/orders/:id/status` & Quản trị viên & Cập nhật trạng thái vòng đời đơn hàng theo máy trạng thái hữu hạn. Chặn duyệt đơn VNPAY chưa thanh toán, tự động hoàn trả tồn kho khi đơn bị hủy. \\
+\addlinespace
+`DELETE` & `/api/admin/orders/:id` & Quản trị viên & Xóa vĩnh viễn đơn hàng đã hoàn tất hoặc đã hủy. Nghiêm cấm xóa các đơn hàng thanh toán trực tuyến nhằm bảo đảm đối soát. \\
+\addlinespace
+`POST` & `/api/products` & Quản trị viên & Thêm mới thiết bị phần cứng vào cơ sở dữ liệu, khởi tạo số lượng tồn kho và thông số kỹ thuật. \\
+\addlinespace
+`PUT` & `/api/products/:id` & Quản trị viên & Chỉnh sửa toàn diện thông tin sản phẩm, cập nhật giá bán niêm yết và số lượng hàng trong kho. \\
+\addlinespace
+`DELETE` & `/api/products/:id` & Quản trị viên & Đánh dấu cờ xóa mềm sản phẩm, loại bỏ khỏi danh mục tìm kiếm công khai nhưng bảo toàn lịch sử giao dịch cũ. \\
+\addlinespace
+`GET` & `/api/admin/users` & Quản trị viên & Truy xuất danh sách tài khoản người dùng, hỗ trợ thao tác khóa tài khoản hoặc phân quyền quản trị. \\
+\addlinespace
+`GET` & `/api/admin/statistics` & Quản trị viên & Tổng hợp số liệu doanh thu thực tế theo ngày, tháng và phân tích tỷ trọng giữa các phương thức thanh toán. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Đặc tả Giao diện Trợ lý Trí tuệ Nhân tạo RAG}
+Dịch vụ trợ lý thông minh vận hành tại cổng 8000 cung cấp hai điểm cuối chính phục vụ kiểm tra trạng thái và tương tác đối thoại ngữ nghĩa như mô tả trong Bảng~\ref{tab:api_rag}.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Các Giao diện Lập trình Dịch vụ Trí tuệ Nhân tạo RAG}
+\label{tab:api_rag}
+\begin{tabularx}{\textwidth}{p{1.8cm}p{3.5cm}p{2.2cm}X}
+\toprule
+\textbf{Phương thức} & \textbf{Đường dẫn Điểm cuối} & \textbf{Kiểu Dữ liệu} & \textbf{Chức năng và Quy trình Thực thi} \\
+\midrule
+`GET` & `/api/health` & Không tham số & Kiểm tra trạng thái sẵn sàng của dịch vụ, xác nhận mô hình FastEmbed ONNX đã được nạp thành công vào bộ nhớ RAM. \\
+\addlinespace
+`POST` & `/api/chat` & JSON Payload & Tiếp nhận câu hỏi của người dùng, thực thi chuỗi ba lớp phòng vệ an ninh, tính toán vector truy xuất sản phẩm tương đồng và sinh phản hồi tự nhiên qua Google Gemini Flash. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Mô hình Hóa Toán học và Các Thuật toán Cốt lõi}
+
+\subsection{Mô hình Tính toán Độ tương đồng Vector và Chuẩn hóa L2}
+Để xác định mức độ phù hợp giữa câu hỏi của khách hàng và danh mục sản phẩm của cửa hàng, dịch vụ trí tuệ nhân tạo sử dụng mô hình nhúng BGE-Small để ánh xạ câu hỏi $Q$ và thông tin sản phẩm $P_i$ thành các vector đặc trưng có số chiều $D = 384$ trong không gian Euclid:
+\begin{equation}
+\mathbf{e}_Q = \text{FastEmbed}(Q), \quad \mathbf{e}_{P_i} = \text{FastEmbed}(P_i)
+\end{equation}
+
+Mỗi vector sau khi trích xuất được chuẩn hóa theo chuẩn độ dài Euclid (L2-norm) nhằm đưa độ dài vector về đơn vị một:
+\begin{equation}
+\hat{\mathbf{e}}_Q = \frac{\mathbf{e}_Q}{\|\mathbf{e}_Q\|_2} = \frac{\mathbf{e}_Q}{\sqrt{\sum_{k=1}^{384} (e_{Q,k})^2}}
+\end{equation}
+
+Điểm số tương đồng ngữ nghĩa giữa câu hỏi của người dùng và từng sản phẩm được tính toán thông qua độ tương đồng Cosine:
+\begin{equation}
+\text{Score}(Q, P_i) = \frac{\mathbf{e}_Q \cdot \mathbf{e}_{P_i}}{\|\mathbf{e}_Q\|_2 \|\mathbf{e}_{P_i}\|_2} = \sum_{k=1}^{384} \hat{e}_{Q,k} \cdot \hat{e}_{P_i,k}
+\end{equation}
+
+Hệ thống tiến hành sắp xếp giảm dần theo điểm số $\text{Score}(Q, P_i)$ và trích xuất tập hợp $K$ sản phẩm có độ tương đồng cao nhất vượt qua ngưỡng dung sai $\theta = 0.65$ để ghép vào ngữ cảnh tăng cường cho mô hình ngôn ngữ lớn.
+
+\subsection{Mô hình Băm Chữ ký Số Bảo mật Cổng Thanh toán VNPAY}
+Tính toàn vẹn của dữ liệu giao dịch tài chính gửi sang cổng VNPAY được bảo vệ tuyệt đối bằng chữ ký số tạo bởi thuật toán HMAC-SHA512. Chuỗi dữ liệu ký băm được tạo thành bằng cách sắp xếp toàn bộ các tham số gửi đi theo thứ tự từ điển của khóa và nối chuỗi theo chuẩn định dạng URL:
+\begin{equation}
+\text{RawHashData} = k_{(1)}=v_{(1)} \ \& \ k_{(2)}=v_{(2)} \ \& \ \dots \ \& \ k_{(n)}=v_{(n)}
+\end{equation}
+
+Chữ ký số $\text{SecureHash}$ được tính toán bằng cách kết hợp chuỗi dữ liệu gốc với chuỗi khóa bí mật thương nhân $K_{\text{vnp\_secret}}$ do ngân hàng cung cấp:
+\begin{equation}
+\text{SecureHash} = \text{HMAC-SHA512}(K_{\text{vnp\_secret}}, \text{RawHashData})
+\end{equation}
+
+Khi cổng đối tác chuyển tiếp thông báo kết quả giao dịch về máy chủ bán hàng, hệ thống trích xuất toàn bộ các tham số phản hồi, loại bỏ trường chứa chữ ký số của đối tác, tính toán lại giá trị băm theo công thức trên và so sánh đối chiếu theo hàm so sánh chuỗi thời gian cố định nhằm ngăn chặn hoàn toàn tấn công kênh phụ đo thời gian.
+
+\subsection{Mô hình Tạo Chữ ký Số Cổng Ví điện tử MoMo}
+Tương tự như VNPAY, cổng thanh toán MoMo Sandbox bảo vệ các yêu cầu thanh toán trực tuyến thông qua thuật toán HMAC-SHA256. Chuỗi định dạng ký thô được chuẩn hóa nghiêm ngặt theo quy định của đối tác:
+\begin{equation}
+\begin{split}
+\text{RawSignature} = \text{accessKey}=K_{\text{acc}} \ \& \ \text{amount}=A \ \& \ \text{extraData}=E \ \& \ \text{ipnUrl}=U_{\text{ipn}} \ \& \\
+\text{orderId}=O_{\text{id}} \ \& \ \text{orderInfo}=I \ \& \ \text{partnerCode}=P_{\text{code}} \ \& \\
+\text{redirectUrl}=U_{\text{red}} \ \& \ \text{requestId}=R_{\text{id}} \ \& \ \text{requestType}=T
+\end{split}
+\end{equation}
+
+Giá trị chữ ký số truyền tải trong gói tin khởi tạo phiên được xác định bởi:
+\begin{equation}
+\text{Signature} = \text{HMAC-SHA256}(K_{\text{momo\_secret}}, \text{RawSignature})
+\end{equation}
+
+\subsection{Thuật toán Khấu trừ Khuyến mãi và Giảm giá Voucher}
+Khi khách hàng áp dụng mã voucher cho giỏ hàng có tổng giá trị tiền hàng $A$, hệ thống thực hiện tính toán giá trị chiết khấu thực tế $D(A, V)$ dựa trên điều kiện giá trị đơn hàng tối thiểu $V_{\text{minOrder}}$ và hình thức chiết khấu $V_{\text{type}}$:
+\begin{equation}
+D(A, V) = 
+\begin{cases} 
+0 & \text{khi } A < V_{\text{minOrder}} \\
+\min(A, V_{\text{value}}) & \text{khi } V_{\text{type}} = \text{fixed} \text{ và } A \ge V_{\text{minOrder}} \\
+\min\left(A, \frac{A \cdot V_{\text{value}}}{100}\right) & \text{khi } V_{\text{type}} = \text{percent} \text{ và } A \ge V_{\text{minOrder}}
+\end{cases}
+\end{equation}
+
+Số tiền thanh toán cuối cùng của đơn hàng sau khi giảm trừ khuyến mãi được xác định theo công thức:
+\begin{equation}
+A_{\text{final}} = \max(0, A - D(A, V))
+\end{equation}
+
+\section{Thiết kế Máy Trạng thái Đơn hàng Hữu hạn}
+Quy trình quản lý đơn hàng được chuẩn hóa thông qua Máy Trạng thái Hữu hạn nhằm loại bỏ các trạng thái không hợp lệ trong chuỗi cung ứng. Quá trình chuyển đổi trạng thái được kiểm soát chặt chẽ tại dịch vụ cập nhật đơn hàng phía máy chủ.
+
+Ma trận chuyển đổi trạng thái hợp lệ được mô hình hóa theo công thức sau:
+\begin{equation}
+\mathcal{T}(S) = 
+\begin{cases} 
+\{\text{confirmed}, \text{cancelled}\} & \text{khi } S = \text{pending} \\
+\{\text{shipping}, \text{cancelled}\} & \text{khi } S = \text{confirmed} \\
+\{\text{completed}\} & \text{khi } S = \text{shipping} \\
+\emptyset & \text{khi } S \in \{\text{completed}, \text{cancelled}\}
+\end{cases}
+\end{equation}
+
+Hệ thống thiết lập hai chốt chặn bảo mật bắt buộc trong chu trình chuyển đổi. Thứ nhất, đối với các đơn hàng lựa chọn phương thức thanh toán VNPAY nhưng trạng thái thanh toán chưa chuyển sang đã thanh toán, hệ thống chặn đứng mọi yêu cầu chuyển trạng thái sang đã xác nhận, đang giao hàng hoặc hoàn tất, đồng thời phản hồi mã lỗi xung đột 409. Quy tắc này triệt tiêu hoàn toàn nguy cơ xuất kho nhầm đối với các đơn hàng chưa thu tiền. Thứ hai, khi đơn hàng chuyển sang trạng thái đã hủy, hệ thống tự động kích hoạt hàm hoàn trả số lượng hàng vào kho tồn của từng sản phẩm tương ứng, đảm bảo tính chính xác của số liệu quản trị kho.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\small,
+    state/.style={draw=black!85, fill=white, rounded corners=3pt, thick, minimum width=2.4cm, minimum height=0.85cm, align=center},
+    termstate/.style={draw=black!85, fill=black!6, rounded corners=3pt, thick, minimum width=2.4cm, minimum height=0.85cm, align=center},
+    arr/.style={-{Stealth[scale=0.9]}, thick, draw=black!80},
+    trans/.style={font=\scriptsize, align=center, fill=white, inner sep=1.5pt}
+]
+
+\node[circle, fill=black!85, inner sep=4pt] (init) {};
+\node[state, right=1.0cm of init] (pending) {\textbf{pending}\\(Chờ xử lý)};
+\node[state, right=1.8cm of pending] (confirmed) {\textbf{confirmed}\\(Đã xác nhận)};
+\node[state, right=1.8cm of confirmed] (shipping) {\textbf{shipping}\\(Đang giao)};
+\node[termstate, below=1.5cm of shipping] (completed) {\textbf{completed}\\(Hoàn tất)};
+\node[termstate, below=1.5cm of confirmed] (cancelled) {\textbf{cancelled}\\(Đã hủy / Hoàn kho)};
+
+\draw[arr] (init) -- node[trans, above] {Đặt hàng} (pending);
+\draw[arr] (pending) -- node[trans, above] {VNPAY IPN\\hoặc duyệt COD} (confirmed);
+\draw[arr] (confirmed) -- node[trans, above] {Xuất kho} (shipping);
+\draw[arr] (shipping) -- node[trans, right] {Khách nhận} (completed);
+
+\draw[arr] (pending) |- node[trans, near start, below] {Khách hủy / Quá hạn} (cancelled);
+\draw[arr] (confirmed) -- node[trans, left] {Hủy trước giao} (cancelled);
+
+\end{tikzpicture}
+\caption{Sơ đồ Chuyển trạng thái Máy Hữu hạn Đơn hàng (Order FSM) theo Chuẩn IEEE}
+\label{fig:order_fsm}
+\end{figure}
+
+Hình~\ref{fig:order_fsm} mô tả toàn diện chu trình chuyển dịch trạng thái đơn hàng theo mô hình máy trạng thái hữu hạn. Sơ đồ minh chứng hai trạng thái kết thúc là hoàn tất và đã hủy mang tính bất biến một chiều, ngăn ngừa hoàn toàn rủi ro thao túng trạng thái sau khi chuỗi cung ứng đã khép lại.
+
+\section{Thiết kế Kiến trúc Trợ lý Trí tuệ Nhân tạo RAG}
+Hệ thống trợ lý tư vấn được tổ chức theo kiến trúc đường ống ba giai đoạn tuần tự khép kín nhằm bảo đảm an toàn thông tin và tính chuẩn xác của nội dung phản hồi.
+
+Ở giai đoạn phòng vệ an ninh, mô-đun phòng vệ đóng vai trò là chốt chặn đầu vào. Lớp bảo vệ dữ liệu cá nhân quét và chặn đứng các truy vấn cố tình trích xuất số điện thoại, mật khẩu, căn cước công dân hoặc địa chỉ nhà riêng. Lớp bảo vệ bẻ khóa chỉ thị nhận diện các cấu trúc câu lệnh cố tình thay đổi danh tính trợ lý hoặc yêu cầu hiển thị câu lệnh gốc của hệ thống. Lớp sàng lọc chủ đề loại bỏ các câu hỏi không liên quan đến phạm vi phần cứng máy tính và hướng người dùng quay lại các sản phẩm của cửa hàng.
+
+Ở giai đoạn truy xuất thông tin, mô hình nhúng BGE-Small chuyển đổi câu hỏi hợp lệ thành vector đặc trưng 384 chiều. Hệ thống thực hiện việc quét dữ liệu danh mục sản phẩm, tính toán độ tương đồng Cosine và trích xuất danh sách các sản phẩm có điểm số tương đồng cao nhất.
+
+Ở giai đoạn tăng cường và tạo sinh, các thông số kỹ thuật thực tế về tên sản phẩm, cấu hình và giá niêm yết được chèn vào câu lệnh chỉ thị hệ thống. Mô hình Google Gemini Flash tiếp nhận câu lệnh tổng hợp và biên soạn phản hồi tự nhiên, chuẩn xác bằng tiếng Việt. Trong tình huống mất kết nối mạng ngoại vi hoặc hết hạn mức dịch vụ, cơ chế phản hồi dự phòng nội bộ tự động ghép nối thông tin sản phẩm tìm thấy theo khuôn mẫu định sẵn, duy trì tính ổn định của trải nghiệm người dùng.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\footnotesize,
+    layer/.style={draw=black!60, fill=black!2, rounded corners=3pt, dashed, inner sep=4pt},
+    layerlabel/.style={font=\bfseries\tiny, text=black!80},
+    comp/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum height=0.65cm, minimum width=2.4cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!80},
+    lbl/.style={font=\tiny\itshape, fill=white, inner sep=1pt}
+]
+
+% Hàng 1: User & Interface
+\node[comp] (user) {Người dùng\\(Khách hàng)};
+\node[comp, right=1.0cm of user] (ui) {ChatBot Widget\\(React 19 Frontend)};
+\node[comp, right=1.0cm of ui] (api) {FastAPI Router\\(:8000 /api/rag/chat)};
+
+% Hàng 2: Security Guardrails
+\node[comp, below=1.0cm of api] (guard) {Bộ 3 Lớp Phòng vệ An ninh\\(PII, Jailbreak, Domain Filter)};
+
+% Hàng 3: Embedding & Retrieval
+\node[comp, below=1.0cm of guard] (embed) {FastEmbed ONNX\\(BGE-Small-EN-v1.5 384d)};
+\node[comp, left=1.0cm of embed] (vector) {Tính tương đồng Cosine\\(Truy xuất Top-K Sản phẩm)};
+\node[comp, left=1.0cm of vector] (catalog) {MongoDB Atlas\\(Kho dữ liệu Products)};
+
+% Hàng 4: LLM Generation & Response
+\node[comp, below=1.0cm of embed] (prompt) {Ghép Nối Ngữ cảnh\\(Prompt Augmentation)};
+\node[comp, left=1.0cm of prompt] (llm) {Google Gemini 2.5 Flash\\(LLM Generation API)};
+\node[comp, left=1.0cm of llm] (resp) {Bộ Phản hồi Dự phòng\\(JSON Response / Fallback)};
+
+\draw[arr] (user) -- node[lbl, above] {Đặt câu hỏi} (ui);
+\draw[arr] (ui) -- node[lbl, above] {POST /chat} (api);
+\draw[arr] (api) -- node[lbl, right] {Kiểm duyệt} (guard);
+\draw[arr] (guard) -- node[lbl, right] {Truy vấn sạch} (embed);
+\draw[arr] (embed) -- node[lbl, above] {Vector 384d} (vector);
+\draw[arr] (catalog) -- node[lbl, above] {Lấy dữ liệu} (vector);
+\draw[arr] (vector) |- node[lbl, near end, above] {Top sản phẩm khớp} (prompt);
+\draw[arr] (prompt) -- node[lbl, above] {Kèm ngữ cảnh} (llm);
+\draw[arr] (llm) -- node[lbl, above] {Tạo phản hồi} (resp);
+\draw[arr] (resp) -| node[lbl, near end, left] {JSON về UI} (ui);
+
+\end{tikzpicture}
+\caption{Sơ đồ Kiến trúc Đường ống AI RAG (Retrieval-Augmented Generation) theo Chuẩn IEEE}
+\label{fig:rag_pipeline}
+\end{figure}
+
+Hình~\ref{fig:rag_pipeline} mô tả toàn diện kiến trúc đường ống của phân hệ trợ lý thông minh RAG. Quy trình vận hành khép kín bắt đầu từ tương tác tự nhiên của khách hàng trên giao diện React, đi qua ba tầng kiểm duyệt nghiêm ngặt tại FastAPI nhằm triệt tiêu hoàn toàn các nguy cơ tấn công câu lệnh chỉ thị hoặc thu thập thông tin nhạy cảm. Quá trình biểu diễn vector diễn ra cục bộ với độ trễ thấp thông qua mô hình ONNX, kết hợp với phép đo Cosine trên cơ sở dữ liệu sản phẩm để trích xuất ngữ cảnh chính xác nhất trước khi gửi tới mô hình Gemini Flash.
+
+\subsection{Sơ đồ Tuần tự Quá trình Tư vấn Đối thoại AI RAG}
+Luồng giao tiếp tuần tự theo thời gian giữa người dùng, tiện ích giao diện React, dịch vụ bảo vệ ngữ nghĩa FastAPI, mô hình tính toán vector ONNX, cơ sở dữ liệu MongoDB và mô hình ngôn ngữ lớn Google Gemini được mô hình hóa chi tiết trong Hình~\ref{fig:seq_rag}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    actor/.style={draw=black!85, fill=black!5, rounded corners=2pt, thick, minimum width=2.0cm, minimum height=0.6cm, align=center},
+    arr/.style={-{Stealth[scale=0.8]}, thick, draw=black!80},
+    dashedarr/.style={-{Stealth[scale=0.8]}, thick, dashed, draw=black!75},
+    msg/.style={font=\tiny, fill=white, inner sep=1pt, align=center}
+]
+
+% Định vị các thực thể (Lifelines)
+\node[actor] (act) {Khách hàng};
+\node[actor, right=0.9cm of act] (ui) {ChatBot UI};
+\node[actor, right=0.9cm of ui] (api) {FastAPI Router};
+\node[actor, right=0.9cm of api] (grd) {Guardrails};
+\node[actor, right=0.9cm of grd] (emb) {FastEmbed/DB};
+\node[actor, right=0.9cm of emb] (llm) {Gemini Flash};
+
+% Đường gióng
+\draw[dashed, black!50] (act) -- ++(0,-6.5) coordinate (act_end);
+\draw[dashed, black!50] (ui) -- ++(0,-6.5) coordinate (ui_end);
+\draw[dashed, black!50] (api) -- ++(0,-6.5) coordinate (api_end);
+\draw[dashed, black!50] (grd) -- ++(0,-6.5) coordinate (grd_end);
+\draw[dashed, black!50] (emb) -- ++(0,-6.5) coordinate (emb_end);
+\draw[dashed, black!50] (llm) -- ++(0,-6.5) coordinate (llm_end);
+
+% Các bước
+\draw[arr] ([yshift=-0.6cm]act.center) -- node[msg, above] {1. Nhập câu hỏi tư vấn} ([yshift=-0.6cm]ui.center);
+\draw[arr] ([yshift=-1.1cm]ui.center) -- node[msg, above] {2. POST /api/rag/chat} ([yshift=-1.1cm]api.center);
+\draw[arr] ([yshift=-1.6cm]api.center) -- node[msg, above] {3. Kiểm tra PII \& Injection} ([yshift=-1.6cm]grd.center);
+\draw[dashedarr] ([yshift=-2.1cm]grd.center) -- node[msg, above] {4. Xác thực truy vấn sạch} ([yshift=-2.1cm]api.center);
+
+\draw[arr] ([yshift=-2.6cm]api.center) -- node[msg, above] {5. Vector 384d \& Quét Cosine} ([yshift=-2.6cm]emb.center);
+\draw[dashedarr] ([yshift=-3.1cm]emb.center) -- node[msg, above] {6. Trả về Top-K sản phẩm} ([yshift=-3.1cm]api.center);
+
+\draw[arr] ([yshift=-3.8cm]api.center) -- node[msg, above] {7. Gửi Prompt + Ngữ cảnh SP} ([yshift=-3.8cm]llm.center);
+\draw[dashedarr] ([yshift=-4.5cm]llm.center) -- node[msg, above] {8. Phản hồi văn bản tư vấn} ([yshift=-4.5cm]api.center);
+
+\draw[dashedarr] ([yshift=-5.2cm]api.center) -- node[msg, above] {9. Phản hồi JSON (Text + Products)} ([yshift=-5.2cm]ui.center);
+\draw[dashedarr] ([yshift=-5.8cm]ui.center) -- node[msg, above] {10. Hiển thị tin nhắn và sản phẩm gợi ý} ([yshift=-5.8cm]act.center);
+
+\end{tikzpicture}
+\caption{Sơ đồ Tuần tự Quá trình Tư vấn Đối thoại AI RAG theo Chuẩn UML/IEEE}
+\label{fig:seq_rag}
+\end{figure}
+
+Hình~\ref{fig:seq_rag} mô tả chi tiết sơ đồ tuần tự xử lý yêu cầu tư vấn thông minh của hệ thống. Luồng thực thi diễn ra tuần tự từ lúc người dùng gửi câu hỏi, qua bước sàng lọc an ninh, trích xuất vector đặc trưng, đối chiếu sản phẩm phù hợp trong cơ sở dữ liệu và chuyển tiếp ngữ cảnh tăng cường tới mô hình ngôn ngữ lớn để tạo ra câu trả lời chuẩn xác.
+
+\section{Thiết kế Quy trình Nghiệp vụ và Tuần tự Thanh toán}
+Hệ thống kết hợp sơ đồ hoạt động mô tả luồng nghiệp vụ tổng quan và sơ đồ tuần tự chi tiết nhằm làm rõ cơ chế phối hợp giữa các phân hệ trong chu trình mua sắm.
+
+\subsection{Sơ đồ Hoạt động Quy trình Mua hàng và Thanh toán (Activity Diagram)}
+Quy trình nghiệp vụ từ thời điểm khách hàng lựa chọn hàng hóa, áp dụng mã ưu đãi cho đến khâu xử lý giao dịch được chuẩn hóa thông qua Sơ đồ Hoạt động tại Hình~\ref{fig:activity_checkout}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    activity/.style={draw=black!85, fill=white, rounded corners=5pt, thick, minimum width=3.2cm, minimum height=0.6cm, align=center},
+    decision/.style={draw=black!85, fill=black!5, diamond, aspect=2, thick, inner sep=2pt, font=\tiny\bfseries, align=center},
+    init/.style={circle, fill=black!85, inner sep=3.5pt},
+    term/.style={circle, draw=black!85, double, double distance=1pt, fill=black!85, inner sep=2.5pt},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    flow/.style={font=\tiny\itshape, fill=white, inner sep=1pt}
+]
+
+\node[init] (start) {};
+\node[activity, below=0.5cm of start] (browse) {Duyệt danh mục \& chọn sản phẩm};
+\node[activity, below=0.5cm of browse] (cart) {Thêm sản phẩm vào giỏ hàng (\texttt{cart})};
+\node[decision, below=0.5cm of cart] (dec_auth) {Đã đăng nhập?};
+\node[activity, right=1.0cm of dec_auth] (login) {Đăng nhập / Đăng ký};
+\node[activity, below=0.5cm of dec_auth] (voucher) {Áp dụng mã ưu đãi (\texttt{vouchers})};
+\node[decision, below=0.5cm of voucher] (dec_method) {Chọn phương thức};
+
+% 2 Nhánh thanh toán
+\node[activity, below left=0.7cm and 0.2cm of dec_method] (cod) {Xác nhận COD\\(Tạo đơn Pending)};
+\node[activity, below right=0.7cm and 0.2cm of dec_method] (online) {VNPAY / MoMo\\(Ký số \& IPN Webhook)};
+
+% Sync Bar / Join
+\node[fill=black!85, minimum width=5.0cm, minimum height=0.08cm, below=2.2cm of dec_method] (join) {};
+\node[activity, below=0.5cm of join] (complete) {Hiển thị hóa đơn xác nhận \& Làm rỗng giỏ};
+\node[term, below=0.5cm of complete] (finish) {};
+
+\draw[arr] (start) -- (browse);
+\draw[arr] (browse) -- (cart);
+\draw[arr] (cart) -- (dec_auth);
+\draw[arr] (dec_auth) -- node[flow, above] {Chưa} (login);
+\draw[arr] (login) |- (voucher);
+\draw[arr] (dec_auth) -- node[flow, right] {Đã có} (voucher);
+\draw[arr] (voucher) -- (dec_method);
+
+\draw[arr] (dec_method) -| node[flow, above, pos=0.2] {Tiền mặt COD} (cod);
+\draw[arr] (dec_method) -| node[flow, above, pos=0.2] {VNPAY / MoMo} (online);
+
+\draw[arr] (cod) |- (join);
+\draw[arr] (online) |- (join);
+\draw[arr] (join) -- (complete);
+\draw[arr] (complete) -- (finish);
+
+\end{tikzpicture}
+\caption{Sơ đồ Hoạt động Quy trình Nghiệp vụ Mua hàng và Thanh toán (Activity Diagram) theo Chuẩn UML/IEEE}
+\label{fig:activity_checkout}
+\end{figure}
+
+Hình~\ref{fig:activity_checkout} mô tả toàn diện luồng nghiệp vụ mua hàng và hoàn tất đơn hàng. Quy trình thể hiện rõ các điểm rẽ nhánh quyết định đối với trạng thái định danh của người dùng và phương thức thanh toán, bảo đảm các điều kiện biên luôn được thẩm định trước khi đơn hàng chuyển sang trạng thái chờ xử lý hoặc hoàn tất.
+
+\subsection{Sơ đồ Tuần tự Chi tiết Quy trình Thanh toán qua Cổng VNPAY (Sequence Diagram)}
+Quy trình thanh toán trực tuyến qua cổng VNPAY được mô hình hóa chi tiết thông qua sơ đồ tuần tự tại Hình~\ref{fig:seq_payment}. Sơ đồ thể hiện rõ nét sự phân tách giữa kênh chuyển hướng trình duyệt phía người dùng và kênh thông báo ngầm giữa hai máy chủ.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    actor/.style={draw=black!85, fill=black!5, rounded corners=2pt, thick, minimum width=2.0cm, minimum height=0.6cm, align=center},
+    arr/.style={-{Stealth[scale=0.8]}, thick, draw=black!80},
+    dashedarr/.style={-{Stealth[scale=0.8]}, thick, dashed, draw=black!75},
+    msg/.style={font=\tiny, fill=white, inner sep=1pt, align=center}
+]
+
+% Định vị các thực thể (Lifelines)
+\node[actor] (act) {Khách hàng};
+\node[actor, right=1.3cm of act] (fe) {React SPA};
+\node[actor, right=1.3cm of fe] (be) {Express API};
+\node[actor, right=1.3cm of be] (db) {MongoDB};
+\node[actor, right=1.3cm of db] (vnp) {Cổng VNPAY};
+
+% Các đường gióng (Lifeline stems)
+\draw[dashed, black!50] (act) -- ++(0,-7.8) coordinate (act_end);
+\draw[dashed, black!50] (fe) -- ++(0,-7.8) coordinate (fe_end);
+\draw[dashed, black!50] (be) -- ++(0,-7.8) coordinate (be_end);
+\draw[dashed, black!50] (db) -- ++(0,-7.8) coordinate (db_end);
+\draw[dashed, black!50] (vnp) -- ++(0,-7.8) coordinate (vnp_end);
+
+% Bước 1: Đặt hàng
+\draw[arr] ([yshift=-0.7cm]act.center) -- node[msg, above] {1. Nhấn nút Đặt hàng} ([yshift=-0.7cm]fe.center);
+\draw[arr] ([yshift=-1.2cm]fe.center) -- node[msg, above] {2. POST /api/orders (kèm IdempotencyKey)} ([yshift=-1.2cm]be.center);
+
+% Bước 2: Lưu đơn hàng
+\draw[arr] ([yshift=-1.7cm]be.center) -- node[msg, above] {3. Tạo orders (status: pending)} ([yshift=-1.7cm]db.center);
+\draw[dashedarr] ([yshift=-2.2cm]db.center) -- node[msg, above] {4. Bản ghi đã tạo (\_id)} ([yshift=-2.2cm]be.center);
+
+% Bước 3: Tạo URL VNPAY
+\draw[arr] ([yshift=-2.7cm]be.center) -- node[msg, above] {5. Ký HMAC-SHA512 \& sinh paymentUrl} ([yshift=-2.7cm]be.center);
+\draw[dashedarr] ([yshift=-3.2cm]be.center) -- node[msg, above] {6. Trả về paymentUrl} ([yshift=-3.2cm]fe.center);
+
+% Bước 4: Chuyển hướng trình duyệt
+\draw[arr] ([yshift=-3.7cm]fe.center) -- node[msg, above] {7. Chuyển hướng trình duyệt} ([yshift=-3.7cm]vnp.center);
+\draw[arr] ([yshift=-4.2cm]act.center) -- node[msg, above] {8. Nhập OTP và xác nhận thanh toán} ([yshift=-4.2cm]vnp.center);
+
+% Bước 5: Webhook IPN giữa 2 máy chủ
+\draw[arr] ([yshift=-4.8cm]vnp.center) -- node[msg, above] {9. Webhook IPN (Server-to-Server, HMAC-SHA512)} ([yshift=-4.8cm]be.center);
+\draw[arr] ([yshift=-5.3cm]be.center) -- node[msg, above] {10. Cập nhật orders (status: confirmed/paid)} ([yshift=-5.3cm]db.center);
+\draw[dashedarr] ([yshift=-5.8cm]be.center) -- node[msg, above] {11. Phản hồi IPN: RspCode 00} ([yshift=-5.8cm]vnp.center);
+
+% Bước 6: Điều hướng trang kết quả
+\draw[dashedarr] ([yshift=-6.4cm]vnp.center) -- node[msg, above] {12. Chuyển hướng vnp\_ReturnUrl} ([yshift=-6.4cm]fe.center);
+\draw[arr] ([yshift=-7.0cm]fe.center) -- node[msg, above] {13. GET /api/orders/:id xác nhận} ([yshift=-7.0cm]be.center);
+\draw[dashedarr] ([yshift=-7.5cm]fe.center) -- node[msg, above] {14. Hiển thị Màn hình Kết quả Đơn hàng} ([yshift=-7.5cm]act.center);
+
+\end{tikzpicture}
+\caption{Sơ đồ Tuần tự Chi tiết Quy trình Thanh toán qua Cổng VNPAY theo Chuẩn UML/IEEE}
+\label{fig:seq_payment}
+\end{figure}
+
+Khởi đầu quy trình, máy khách gửi yêu cầu đặt hàng kèm mã định danh chống gửi trùng. Máy chủ ứng dụng thực hiện xác thực, tạm giữ số lượng tồn kho sản phẩm, khởi tạo bản ghi đơn hàng ở trạng thái chờ và tạo bản ghi phiên giao dịch tương ứng. Máy chủ ứng dụng tính toán chữ ký điện tử HMAC-SHA512 với khóa bí mật nội bộ và phản hồi đường dẫn thanh toán để trình duyệt của khách hàng chuyển hướng sang cổng VNPAY.
+
+Sau khi khách hàng nhập thông tin thẻ thử nghiệm và hoàn tất xác thực mật khẩu dùng một lần, cổng VNPAY phát tín hiệu ngầm trực tiếp từ máy chủ tới máy chủ qua kênh thông báo thanh toán tức thời. Máy chủ ứng dụng giải mã gói tin, kiểm tra tính toàn vẹn của chữ ký số, đối soát số tiền và cập nhật trạng thái đơn hàng sang đã thanh toán, đồng thời làm rỗng giỏ hàng của người dùng. Song song với đó, cổng VNPAY chuyển hướng trình duyệt của khách hàng về địa chỉ phản hồi của ứng dụng để máy chủ điều hướng tiếp về giao diện kết quả, mang lại sự an tâm tuyệt đối cho khách hàng về tình trạng đơn hàng.
+
+\section{Thiết kế Kiến trúc Thành phần và Gói Phần mềm}
+Nhằm đảm bảo tính mở và khả năng tái sử dụng mã nguồn, toàn bộ hệ thống được phân rã thành các gói phần mềm độc lập tuân thủ chặt chẽ nguyên lý đơn nhiệm.
+
+\subsection{Cấu trúc Thành phần Phía Máy khách (Frontend Packages)}
+Phía máy khách được tổ chức thành năm phân tầng thành phần chính đặt trong thư mục nguồn `src/`. Bảng~\ref{tab:frontend_components} mô tả chức năng của từng gói thành phần.
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc Gói Thành phần Ứng dụng Phía Máy khách (React Frontend)}
+\label{tab:frontend_components}
+\begin{tabularx}{\textwidth}{p{3.2cm}p{3.5cm}X}
+\toprule
+\textbf{Tên Gói Thư mục} & \textbf{Thành phần Tiêu biểu} & \textbf{Trách nhiệm và Ranh giới Nghiệp vụ} \\
+\midrule
+\texttt{src/pages/} & \texttt{Home.jsx}, \texttt{Cart.jsx}, \texttt{Checkout.jsx} & Đóng vai trò là các trang điều hướng cấp cao nhất gắn liền với các tuyến đường URL trong React Router DOM. Chịu trách nhiệm nạp dữ liệu và kết hợp các thành phần con. \\
+\addlinespace
+\texttt{src/components/} & \texttt{Header/}, \texttt{Footer/}, \texttt{ProductList/} & Các thành phần hiển thị giao diện có thể tái sử dụng trên nhiều trang khác nhau, tiếp nhận dữ liệu qua thuộc tính và phát ra các sự kiện tương tác. \\
+\addlinespace
+\texttt{src/components/AdminDashboash/} & \texttt{AdminOrders.jsx}, \texttt{ProductManager.jsx} & Phân hệ bảng điều khiển dành riêng cho quản trị viên, được cô lập bởi lớp bảo vệ tuyến đường \texttt{AdminProtectedRoute}. \\
+\addlinespace
+\texttt{src/Chat\_bot/} & \texttt{ChatBot.jsx} & Mô-đun tiện ích đối thoại trợ lý ảo độc lập, quản lý vòng đời tin nhắn và giao tiếp với cổng dịch vụ trí tuệ nhân tạo. \\
+\addlinespace
+\texttt{src/apis/} & \texttt{mockApi.js}, \texttt{apiConfig.js} & Tầng dịch vụ giao tiếp mạng tập trung, trừu tượng hóa các yêu cầu HTTP fetch tới máy chủ Express và FastAPI. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    layer/.style={draw=black!60, fill=black!2, rounded corners=3pt, dashed, inner sep=5pt},
+    layerlabel/.style={font=\bfseries\tiny, text=black!80},
+    comp/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum height=0.65cm, minimum width=2.4cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75}
+]
+
+% App Root
+\node[comp] (app) {\textbf{App.jsx} \& Router\\(BrowserRouter)};
+
+% Pages Container
+\node[comp, below=0.8cm of app, xshift=-3.5cm] (page_user) {Tuyến Người dùng\\(Home, Cart, Checkout)};
+\node[comp, right=0.5cm of page_user] (page_prod) {Tuyến Danh mục\\(Laptop, Components)};
+\node[comp, right=0.5cm of page_prod] (page_admin) {Phân hệ Quản trị\\(AdminDashboard)};
+
+\begin{scope}[on background layer]
+    \node[layer, fit=(page_user)(page_prod)(page_admin), label={[layerlabel]above:src/pages/ (TRANG TUYẾN ĐƯỜNG CẤP CAO)}] (layer_pages) {};
+\end{scope}
+
+% Components Container
+\node[comp, below=1.0cm of page_user] (comp_ui) {Thành phần Chung\\(Header, Footer, Cards)};
+\node[comp, below=1.0cm of page_prod] (comp_chat) {Trợ lý Đối thoại\\(src/Chat\_bot/ChatBot.jsx)};
+\node[comp, below=1.0cm of page_admin] (comp_adm_mod) {Bảng Quản trị Con\\(ProductManager, Orders)};
+
+\begin{scope}[on background layer]
+    \node[layer, fit=(comp_ui)(comp_chat)(comp_adm_mod), label={[layerlabel]above:src/components/ (THÀNH PHẦN GIAO DIỆN TÁI SỬ DỤNG)}] (layer_comps) {};
+\end{scope}
+
+% API Service Layer
+\node[comp, below=1.0cm of comp_chat] (api_layer) {\textbf{src/apis/}\\(mockApi.js, apiConfig.js - Quản lý HTTP Axios/Fetch)};
+
+\draw[arr] (app.south) -- (page_user.north);
+\draw[arr] (app.south) -- (page_prod.north);
+\draw[arr] (app.south) -- (page_admin.north);
+
+\draw[arr] (page_user.south) -- (comp_ui.north);
+\draw[arr] (page_prod.south) -- (comp_ui.north);
+\draw[arr] (page_admin.south) -- (comp_adm_mod.north);
+\draw[arr] (page_user.south) -- (comp_chat.north);
+
+\draw[arr] (comp_ui.south) -- (api_layer.north);
+\draw[arr] (comp_chat.south) -- (api_layer.north);
+\draw[arr] (comp_adm_mod.south) -- (api_layer.north);
+
+\end{tikzpicture}
+\caption{Sơ đồ Tương tác Các Gói Thành phần Ứng dụng Phía Máy khách theo Chuẩn IEEE}
+\label{fig:component_frontend}
+\end{figure}
+
+Hình~\ref{fig:component_frontend} mô tả chi tiết sơ đồ tương tác giữa các gói thành phần trong ứng dụng máy khách React 19. Cấu trúc được thiết kế dạng cây điều hướng phân cấp rõ ràng từ tệp gốc điều phối đến các phân trang người dùng, giao diện quản trị độc lập và tiện ích trợ lý ảo, hội tụ về tầng dịch vụ mạng tập trung để thực hiện các yêu cầu truyền thông bất đồng bộ.
+
+\subsection{Cấu trúc Thành phần Phía Máy chủ (Backend Modules)}
+Máy chủ nghiệp vụ Express được thiết kế dưới dạng kiến trúc hướng điều phối, tập trung hóa các tuyến đường và hàm điều khiển tại tệp máy chủ trung tâm kết hợp với các mô-đun dịch vụ mở rộng.
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc Mô-đun Phía Máy chủ Nghiệp vụ (Express Backend)}
+\label{tab:backend_modules}
+\begin{tabularx}{\textwidth}{p{3.5cm}p{3.2cm}X}
+\toprule
+\textbf{Mô-đun Chức năng} & \textbf{Tập tin Nguồn} & \textbf{Trách nhiệm Kỹ thuật} \\
+\midrule
+Bộ định tuyến và Middleware & \texttt{server\_mongodb.mjs} & Thiết lập kiểm tra CORS, giới hạn kích thước gói tin JSON, giải mã tiêu đề xác thực và ghi vết truy cập hệ thống. \\
+\addlinespace
+Trình điều khiển CSDL & MongoDB Native Driver & Quản lý nhóm kết nối, điều phối truy vấn BSON và xử lý chỉ mục trên hai mươi bộ sưu tập dữ liệu. \\
+\addlinespace
+Dịch vụ Cổng Thanh toán & Khối mã VNPAY và MoMo & Tính toán chữ ký HMAC, phân tích URL chuyển hướng và xử lý thông báo tức thời giữa hai máy chủ. \\
+\addlinespace
+Máy trạng thái Đơn hàng & Logic điều phối FSM & Kiểm tra ma trận chuyển đổi trạng thái hợp lệ, chốt chặn thanh toán và hoàn trả tồn kho tự động. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    comp/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum height=0.6cm, minimum width=3.4cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    call/.style={font=\tiny\itshape, fill=white, inner sep=1pt}
+]
+
+% Luồng gọi tuần tự các tầng (Call Flow / Component Interaction)
+\node[comp] (req) {HTTP Client Request\\(Browser Fetch API / Axios)};
+\node[comp, below=0.65cm of req] (router) {Express Router Middleware\\\texttt{server\_mongodb.mjs}};
+\node[comp, below=0.65cm of router] (auth) {Authentication Guard\\\texttt{verifyToken(req, res, next)}};
+\node[comp, below=0.65cm of auth] (ctrl) {Order Controller\\\texttt{checkoutHandler()}};
+\node[comp, below=0.65cm of ctrl] (fsm) {State Machine Validator\\\texttt{validateTransition(status)}};
+\node[comp, below=0.65cm of fsm] (svc) {Payment Gateway Service\\\texttt{createVnpayUrl() / verifyIpn()}};
+\node[comp, below=0.65cm of svc] (repo) {MongoDB Native Driver\\\texttt{orders.insertOne() / products.updateOne()}};
+
+\draw[arr] (req) -- node[call, right] {POST /api/orders/checkout} (router);
+\draw[arr] (router) -- node[call, right] {Kiểm tra JWT Bearer Token} (auth);
+\draw[arr] (auth) -- node[call, right] {Chuyển tiếp context (req.user)} (ctrl);
+\draw[arr] (ctrl) -- node[call, right] {Kiểm tra FSM (pending $\to$ confirmed)} (fsm);
+\draw[arr] (fsm) -- node[call, right] {Ký số HMAC-SHA512} (svc);
+\draw[arr] (svc) -- node[call, right] {Thao tác BSON Collections} (repo);
+
+\end{tikzpicture}
+\caption{Sơ đồ Tương tác Phân tầng và Luồng Gọi Hàm Máy chủ (Backend Call Flow Diagram) theo Chuẩn IEEE}
+\label{fig:call_flow_backend}
+\end{figure}
+
+Hình~\ref{fig:call_flow_backend} mô tả chi tiết sơ đồ tương tác giữa các thành phần phân tầng và luồng gọi hàm nội bộ phía máy chủ nghiệp vụ Express. Mỗi yêu cầu từ máy khách được dẫn truyền tuần tự qua bộ lọc định tuyến, lớp bảo vệ xác thực định danh, hàm điều khiển nghiệp vụ, bộ xác thực trạng thái đơn hàng và dịch vụ ký số thanh toán trước khi tác động tới tầng điều khiển cơ sở dữ liệu MongoDB.
+
+\section{Thiết kế Mạng và Cơ chế Bảo mật Phân tán}
+Hệ thống HCore Store vận hành trên nền tảng mạng phân tán được điều phối bởi Docker Compose, kết nối ba vùng chứa độc lập thông qua mạng ảo cầu nối nội bộ.
+
+Mạng ảo cầu nối cách ly hoàn toàn các cổng dịch vụ nội bộ khỏi mạng Internet công cộng. Máy chủ nghiệp vụ và dịch vụ trí tuệ nhân tạo trao đổi thông tin thông qua tên dịch vụ nội bộ được phân giải bởi hệ thống máy chủ tên miền tích hợp của Docker. Chỉ có các cổng giao tiếp được công khai ra ngoài gồm cổng 5173 của giao diện người dùng, cổng 3000 của máy chủ nghiệp vụ và cổng 8000 của dịch vụ trí tuệ nhân tạo.
+
+Chính sách chia sẻ tài nguyên nguồn gốc chéo được cấu hình nghiêm ngặt tại máy chủ Express. Máy chủ chỉ chấp nhận các yêu cầu HTTP phát sinh từ địa chỉ nguồn của giao diện người dùng và từ các dải địa chỉ IP chính thức của các cổng thanh toán đối tác VNPAY và MoMo. Mọi yêu cầu từ các nguồn gốc không xác định đều bị từ chối ngay tại tầng trung gian nhằm phòng ngừa nguy cơ tấn công giả mạo yêu cầu từ trang chéo.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    network/.style={draw=black!60, fill=black!2, rounded corners=4pt, dashed, inner sep=6pt},
+    netlabel/.style={font=\bfseries\scriptsize, text=black!80},
+    container/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum height=0.75cm, minimum width=3.0cm, align=center},
+    cloud/.style={draw=black!85, fill=black!6, rounded corners=2pt, thick, minimum height=0.75cm, minimum width=2.6cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    port/.style={font=\tiny\bfseries, fill=white, inner sep=1pt}
+]
+
+% Internet Client
+\node[container] (browser) {Trình duyệt Khách hàng \& Quản trị\\(Mạng Internet Công cộng)};
+
+% Docker Bridge Network
+\node[container, below=1.2cm of browser, xshift=-3.5cm] (c_front) {Vùng chứa Frontend\\(React 19 Vite - Port :5173)};
+\node[container, right=0.8cm of c_front] (c_back) {Vùng chứa Backend\\(Express 5 - Port :3000)};
+\node[container, right=0.8cm of c_back] (c_rag) {Vùng chứa RAG AI\\(FastAPI - Port :8000)};
+
+\begin{scope}[on background layer]
+    \node[network, fit=(c_front)(c_back)(c_rag), label={[netlabel]above:MẠNG CẦU NỐI CÁCH LY NỘI BỘ DOCKER (bridge: hcore-network)}] (net_docker) {};
+\end{scope}
+
+% External Cloud Services
+\node[cloud, below=1.2cm of c_front] (ext_mongo) {MongoDB Atlas\\(TLS/SSL Cloud DB)};
+\node[cloud, below=1.2cm of c_back] (ext_pay) {Cổng VNPAY / MoMo\\(HMAC-SHA512/256)};
+\node[cloud, below=1.2cm of c_rag] (ext_gemini) {Google Gemini API\\(gemini-2.5-flash)};
+
+\begin{scope}[on background layer]
+    \node[network, fit=(ext_mongo)(ext_pay)(ext_gemini), label={[netlabel]above:DỊCH VỤ ĐỐI TÁC NGOẠI VI (TLS ENCRYPTED)}] (net_cloud) {};
+\end{scope}
+
+% Connections
+\draw[arr] (browser.south) -- node[port, left] {HTTP :5173} (c_front.north);
+\draw[arr] (browser.south) -- node[port, right] {REST :3000} (c_back.north);
+
+\draw[arr] (c_front.east) -- node[port, above] {Nội bộ} (c_back.west);
+\draw[arr] (c_back.east) -- node[port, above] {Gọi RAG} (c_rag.west);
+
+\draw[arr] (c_back.south) -- node[port, left] {BSON} (ext_mongo.north);
+\draw[arr] (c_back.south) -- node[port, right] {IPN Webhook} (ext_pay.north);
+\draw[arr] (c_rag.south) -- node[port, right] {HTTPS API} (ext_gemini.north);
+
+\end{tikzpicture}
+\caption{Sơ đồ Kiến trúc Mạng Phân tán và Vùng Bảo mật Vùng chứa Docker theo Chuẩn IEEE}
+\label{fig:network_security}
+\end{figure}
+
+Hình~\ref{fig:network_security} mô tả sơ đồ kiến trúc mạng phân tán và các vành đai bảo mật vùng chứa Docker. Toàn bộ các dịch vụ nội bộ được cách ly bên trong mạng cầu nối ảo độc lập, chỉ mở các cổng tiếp nhận cần thiết ra bên ngoài và mã hóa toàn bộ dữ liệu trao đổi với các dịch vụ đám mây ngoại vi bằng giao thức TLS bảo mật.
+
+\section{Thiết kế Cấu trúc Snapshot Đơn hàng và Cơ chế Đồng bộ}
+Trong các hệ thống thương mại điện tử quy mô lớn, một trong những thách thức kỹ thuật lớn nhất là hiện tượng sai lệch dữ liệu lịch sử khi thông tin sản phẩm gốc thay đổi. Nhằm giải quyết triệt để vấn đề này, HCore Store áp dụng thiết kế lưu trữ bản chụp dữ liệu (Order Data Snapshot).
+
+Tại thời điểm người dùng nhấn nút xác nhận đặt hàng, hệ thống không chỉ lưu mã định danh sản phẩm mà thực hiện sao chép toàn bộ thông tin về tên thương mại, đơn giá niêm yết tại mốc thời gian đó, đường dẫn hình ảnh đại diện và bảng nguồn gốc dữ liệu vào mảng tài liệu con `products` của đơn hàng. Thiết kế này mang lại ba ưu thế kỹ thuật vượt trội. Thứ nhất, lịch sử đơn hàng mang tính bất biến tuyệt đối; ngay cả khi quản trị viên cập nhật tăng giá bán hoặc xóa sản phẩm khỏi kho hàng trong tương lai, hóa đơn giao dịch của khách hàng vẫn bảo toàn chính xác số tiền và mặt hàng đã mua. Thứ hai, quá trình truy xuất chi tiết đơn hàng đạt hiệu năng tối ưu do toàn bộ dữ liệu cần thiết đã được nhúng sẵn trong một tài liệu duy nhất, loại bỏ hoàn toàn các câu truy vấn kết nối bảng phức tạp. Thứ ba, việc tính toán tổng tiền thanh toán và đối soát số tiền với cổng VNPAY/MoMo được thực thi trực tiếp trên bản chụp, triệt tiêu nguy cơ bất đồng bộ giá trị giao dịch.
+

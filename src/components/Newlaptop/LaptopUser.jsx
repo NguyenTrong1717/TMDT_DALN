@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import "./LaptopUser.css";
 import LaptopCard from "../ProductCard/LaptopCard";
 import { useNavigate } from "react-router-dom";
+import CategoryPromo from "../Banners/CategoryPromo";
 
 const DEMAND_TILES = [
   { label: "Văn phòng", category: "laptop-cu", image: "/images/LT1.png" },
@@ -61,7 +62,10 @@ const LaptopUser = ({ laptopData }) => {
         </div>
       </div>
 
-      {/* 6-Layer Cards Grid */}
+      {/* Banner Khuyến Mãi Ngang Danh Mục Laptop */}
+      <CategoryPromo category="laptop" titleFallback="Laptop AI & Gaming" />
+
+      {/* 4-Column Cards Grid Trải Rộng Cân Đối */}
       <div className="laptop-grid-layouts">
         {filteredLaptops && filteredLaptops.length > 0 ? (
           filteredLaptops.map((item) => <LaptopCard key={item.id} product={item} />)

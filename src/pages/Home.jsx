@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
@@ -9,19 +9,29 @@ import LaptopUser from "../components/Newlaptop/LaptopUser";
 import Sevicer from "../components/Sevicer/Sevicer";
 import FooterUser from "../components/Footer/FooterUser";
 import ShowroomSystem from "./ShowroomSystem";
-import IntroVideoModal from "../components/IntroVideo/IntroVideoModal";
 import ProductCard from "../components/ProductCard/ProductCard";
 import SeoArticleSection from "../components/SeoContent/SeoArticleSection";
+import BannerCarousel from "../components/Banners/BannerCarousel";
+import BannerGrid from "../components/Banners/BannerGrid";
+import PromoTiles from "../components/Banners/PromoTiles";
+import StripBanner from "../components/Banners/StripBanner";
+import CategoryPromo from "../components/Banners/CategoryPromo";
+import SkyscraperBanner from "../components/Banners/SkyscraperBanner";
+import { getImageUrl } from "../utils/imageUtils";
+import { toast } from "sonner";
 import "./Home.css";
 
 import {
-  FaShieldAlt,
-  FaShippingFast,
-  FaUndo,
-  FaStore,
   FaFire,
+  FaCrown,
+  FaChevronLeft,
+  FaChevronRight,
+  FaMedal,
+  FaCheckCircle,
+  FaStar,
+  FaTicketAlt,
 } from "react-icons/fa";
-import { BsCreditCard2Front, BsFillLightningChargeFill } from "react-icons/bs";
+import { BsCreditCard2Front, BsArrowRightShort } from "react-icons/bs";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -35,33 +45,6 @@ const Home = () => {
 
   // Filter state for PC Gaming section
   const [priceFilter, setPriceFilter] = useState("all");
-
-  // State for ad banners & live toast
-  const [showLeftAd, setShowLeftAd] = useState(true);
-  const [showRightAd, setShowRightAd] = useState(true);
-  const [liveToast, setLiveToast] = useState({
-    show: true,
-    user: "Anh Hoàng (Cầu Giấy, HN)",
-    product: "PC Gaming Core i5-13400F RTX 4060 8GB",
-    time: "2 phút trước",
-  });
-
-  // Cycle real-time customer purchases
-  useEffect(() => {
-    const orderPool = [
-      { user: "Anh Hoàng (Cầu Giấy, HN)", product: "PC Gaming Core i5-13400F RTX 4060 8GB", time: "Vừa xong" },
-      { user: "Chị Mai (Quận 1, TP.HCM)", product: "Laptop Gaming Acer Nitro V 16 RTX 4050", time: "3 phút trước" },
-      { user: "Anh Tuấn (Hải Châu, Đà Nẵng)", product: "Màn hình Asus TUF Gaming 27 inch 240Hz", time: "5 phút trước" },
-      { user: "Bạn Linh (Ninh Kiều, Cần Thơ)", product: "Card Đồ Họa VGA RTX 4070 Super 12GB", time: "7 phút trước" },
-      { user: "Anh Minh (Thanh Xuân, HN)", product: "PC Đồ Họa Intel Core i7-14700K 32GB RTX 4070", time: "8 phút trước" },
-    ];
-    let idx = 0;
-    const interval = setInterval(() => {
-      idx = (idx + 1) % orderPool.length;
-      setLiveToast({ show: true, ...orderPool[idx] });
-    }, 7500);
-    return () => clearInterval(interval);
-  }, []);
 
   // Flash sale countdown timer state
   const [timeLeft, setTimeLeft] = useState({
@@ -116,207 +99,428 @@ const Home = () => {
     return products;
   }, [products, priceFilter]);
 
-  // Flash sale products (take 4 featured items)
+  // Flash sale products (take 8 featured items for horizontal slider)
   const flashSaleItems = useMemo(() => {
-    if (catenogies && catenogies.length >= 4) {
-      return catenogies.slice(0, 4).map((item) => ({ ...item, fromTable: "catenogies" }));
+    const list = [];
+    if (catenogies && catenogies.length > 0) {
+      list.push(...catenogies.map((i) => ({ ...i, fromTable: "catenogies" })));
     }
-    if (products && products.length >= 4) {
-      return products.slice(0, 4).map((item) => ({ ...item, fromTable: "products" }));
+    if (products && products.length > 0) {
+      list.push(...products.map((i) => ({ ...i, fromTable: "products" })));
+    }
+    return list.slice(0, 8);
+  }, [catenogies, products]);
+
+  // Spotlight Deal (Cột trái nổi bật của ngày)
+  const spotlightItem = useMemo(() => {
+    if (products && products.length > 0) {
+      return (
+        products.find((p) => p.price > 20000000) || products[0]
+      );
+    }
+    return null;
+  }, [products]);
+
+  // 4 items bên phải của khối Spotlight
+  const sideDeals = useMemo(() => {
+    if (products && products.length > 1) {
+      return products.slice(1, 5);
     }
     return [];
-  }, [catenogies, products]);
+  }, [products]);
+
+  // Leaderboard Top 3 (Bục vinh quang 3 sản phẩm bán chạy nhất)
+  const topLeaderboard = useMemo(() => {
+    if (!products || products.length < 3) return [];
+    return [
+      { ...products[1], rank: 2, sold: "1,248 đã bán", badge: "🥈 Top 2 Bán Chạy" },
+      { ...products[0], rank: 1, sold: "2,510 đã bán", badge: "👑 Quán Quân Tuần", king: true },
+      { ...products[2], rank: 3, sold: "986 đã bán", badge: "🥉 Top 3 Bán Chạy" },
+    ];
+  }, [products]);
+
+  // Horizontal scroll controller for Flash Sale
+  const flashSliderRef = useRef(null);
+  const scrollFlash = (direction) => {
+    if (flashSliderRef.current) {
+      const scrollAmount = direction === "left" ? -320 : 320;
+      flashSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  // Quick claim voucher handler
+  const [claimedVouchers, setClaimedVouchers] = useState({});
+  const handleClaimVoucher = (code, value) => {
+    setClaimedVouchers((prev) => ({ ...prev, [code]: true }));
+    toast.success(`Đã lưu mã giảm ${value} [${code}] vào ví thành công!`);
+  };
 
   return (
     <div className="home-page">
-      <IntroVideoModal />
+      <SkyscraperBanner />
       <Header />
-
-      {/* 1. TOP COMMITMENT & BENEFIT BAR (CellphoneS / Hoàng Hà Style) */}
-      <div className="home-trust-bar">
-        <div className="home-trust-container">
-          <div className="trust-item">
-            <FaShieldAlt className="trust-icon" />
-            <div className="trust-text">
-              <strong>100% Chính Hãng</strong>
-              <span>Cam kết bảo hành chính hãng</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <FaUndo className="trust-icon" />
-            <div className="trust-text">
-              <strong>1 Đổi 1 Trong 30 Ngày</strong>
-              <span>Lỗi phần cứng đổi mới ngay</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <FaShippingFast className="trust-icon" />
-            <div className="trust-text">
-              <strong>Giao Nhanh 2 Giờ</strong>
-              <span>Miễn phí giao hàng toàn quốc</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <BsCreditCard2Front className="trust-icon" />
-            <div className="trust-text">
-              <strong>Trả Góp 0% Lãi Suất</strong>
-              <span>Duyệt 5 phút qua CCCD / Thẻ</span>
-            </div>
-          </div>
-          <div className="trust-item">
-            <FaStore className="trust-icon" />
-            <div className="trust-text">
-              <strong>15 Showroom Toàn Quốc</strong>
-              <span>Trải nghiệm máy trên tay</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {/* 1.2 HAI CÁNH GÀ BANNER QUẢNG CÁO DỌC 2 BÊN MÀN HÌNH (SKYSCRAPER WINGS) */}
-      {showLeftAd && (
-        <div
-          className="home-skyscraper-ad left-wing"
-          onClick={() => navigate("/category/top-ban-chay")}
-          title="Xem ưu đãi siêu đại tiệc"
-        >
-          <button
-            className="skyscraper-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowLeftAd(false);
-            }}
-            title="Đóng banner"
-          >
-            ✕
-          </button>
-          <div className="skyscraper-inner">
-            <span className="skyscraper-badge">🔥 SIÊU ĐẠI TIỆC</span>
-            <div className="skyscraper-title">PC GAMING & LAPTOP</div>
-            <div className="skyscraper-discount">GIẢM 50%</div>
-            <div className="skyscraper-perk">
-              ✓ Trả góp 0% duyệt 5p<br />
-              ✓ Tặng Gear 1.2Tr
-            </div>
-            <button className="skyscraper-btn">SĂN DEAL ▶</button>
-          </div>
-        </div>
-      )}
-
-      {showRightAd && (
-        <div
-          className="home-skyscraper-ad right-wing"
-          onClick={() => navigate("/laptop/laptop-gaming")}
-          title="Thu cũ đổi mới trợ giá khủng"
-        >
-          <button
-            className="skyscraper-close"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowRightAd(false);
-            }}
-            title="Đóng banner"
-          >
-            ✕
-          </button>
-          <div className="skyscraper-inner">
-            <span className="skyscraper-badge">🔥 THU CŨ ĐỔI MỚI</span>
-            <div className="skyscraper-title">LÊN ĐỜI RTX 40</div>
-            <div className="skyscraper-discount">TRỢ GIÁ 3TR</div>
-            <div className="skyscraper-perk">
-              ✓ Không lo bù tiền<br />
-              ✓ Tặng quà 800k
-            </div>
-            <button className="skyscraper-btn">ĐỔI NGAY ▶</button>
-          </div>
-        </div>
-      )}
 
       {/* 2. TOP HERO & SIDEBAR CATEGORIES */}
       <div className="layout">
         <Sidebar />
         
-        {/* Hero Banner Promotion Grid */}
-        <div className="home-hero-promos">
-          <div className="hero-main-banner">
-            <div className="hero-badge">ĐẠI TIỆC CÔNG NGHỆ 2026</div>
-            <h2>MÁY TÍNH & LAPTOP GAMING THẾ HỆ MỚI</h2>
-            <p>Trang bị RTX 40 Series & Core i7/i9 — Trợ giá học sinh sinh viên đến 3.000.000đ</p>
-            <div className="hero-cta-row">
-              <button
-                className="hero-btn-primary"
-                onClick={() => navigate("/category/top-ban-chay")}
-              >
-                <BsFillLightningChargeFill /> KHÁM PHÁ NGAY
-              </button>
-              <button
-                className="hero-btn-secondary"
-                onClick={() => navigate("/laptop/laptop-gaming")}
-              >
-                LAPTOP GAMING 0% LÃI SUẤT
-              </button>
-            </div>
+        {/* Banner Hero Section chuẩn CellphoneS: Cột trái Banner Carousel lớn + Cột phải 3 Banner Grid */}
+        <div className="home-hero-banners-grid">
+          <div className="hero-main-carousel-col">
+            <BannerCarousel />
           </div>
-
-          <div className="hero-sub-banners">
-            <div className="sub-banner sub-banner-1" onClick={() => navigate("/component/vga")}>
-              <span className="sub-tag">CARD ĐỒ HỌA</span>
-              <h4>RTX 4060 / 4070 Ti</h4>
-              <p>Giảm sốc tới 2.500.000đ</p>
-            </div>
-            <div className="sub-banner sub-banner-2" onClick={() => navigate("/category/man-hinh")}>
-              <span className="sub-tag">MÀN HÌNH GAMING</span>
-              <h4>144Hz - 240Hz IPS 2K</h4>
-              <p>Chỉ từ 2.890.000đ</p>
-            </div>
+          <div className="hero-side-banners-col">
+            <BannerGrid />
           </div>
         </div>
+
+        {/* 2.1 HÀNG 6 Ô LỐI TẮT KHUYẾN MÃI (PROMO TILES) */}
+        <PromoTiles />
       </div>
 
-      {/* 3. FLASH SALE COUNTDOWN SECTION */}
+      {/* 3. FLASH SALE COUNTDOWN SECTION (LAYOUT BĂNG CHUYỀN SLIDER NGANG ĐỘC ĐÁO) */}
       <div className="flash-sale-section">
         <div className="flash-sale-container">
           <div className="flash-sale-header">
             <div className="flash-sale-title-group">
-              <FaFire className="flash-flame-icon" />
-              <h2 className="flash-sale-title">GIỜ VÀNG FLASH SALE</h2>
+              <div className="flash-flame-wrapper">
+                <FaFire className="flash-flame-icon animated-flame" />
+              </div>
+              <div className="flash-title-texts">
+                <h2 className="flash-sale-title">GIỜ VÀNG FLASH SALE</h2>
+                <span className="flash-sub-title">Săn deal giá sốc — Số lượng có hạn</span>
+              </div>
               <div className="flash-countdown-box">
-                <span className="timer-unit">
-                  {String(timeLeft.hours).padStart(2, "0")}
-                </span>
+                <span className="timer-badge">KẾT THÚC TRONG</span>
+                <span className="timer-unit">{String(timeLeft.hours).padStart(2, "0")}</span>
                 <span className="timer-colon">:</span>
-                <span className="timer-unit">
-                  {String(timeLeft.minutes).padStart(2, "0")}
-                </span>
+                <span className="timer-unit">{String(timeLeft.minutes).padStart(2, "0")}</span>
                 <span className="timer-colon">:</span>
-                <span className="timer-unit">
-                  {String(timeLeft.seconds).padStart(2, "0")}
-                </span>
+                <span className="timer-unit">{String(timeLeft.seconds).padStart(2, "0")}</span>
               </div>
             </div>
-            <button
-              className="flash-sale-view-all"
-              onClick={() => navigate("/category/top-ban-chay")}
-            >
-              Xem tất cả Flash Sale &rsaquo;
-            </button>
+
+            <div className="flash-header-actions">
+              <div className="flash-nav-arrows">
+                <button
+                  className="flash-arrow-btn"
+                  onClick={() => scrollFlash("left")}
+                  title="Xem trước"
+                >
+                  <FaChevronLeft />
+                </button>
+                <button
+                  className="flash-arrow-btn"
+                  onClick={() => scrollFlash("right")}
+                  title="Xem tiếp"
+                >
+                  <FaChevronRight />
+                </button>
+              </div>
+              <button
+                className="flash-sale-view-all"
+                onClick={() => navigate("/san-sale")}
+              >
+                Xem tất cả ({flashSaleItems.length}+) &rsaquo;
+              </button>
+            </div>
           </div>
 
-          <div className="flash-sale-grid">
-            {flashSaleItems.map((item) => (
-              <div key={item.id} className="flash-sale-card-wrapper">
-                <ProductCard
-                  product={item}
-                  targetUrl={item.fromTable === "catenogies" ? `/product/${item.id}` : `/page/${item.id}`}
-                  fromTable={item.fromTable || "catenogies"}
-                />
-                <div className="flash-deal-progress">
-                  <div className="progress-bar-fill" style={{ width: "78%" }}></div>
-                  <span className="progress-label">🔥 Đã bán 78%</span>
+          {/* Slider cuộn ngang mượt mà */}
+          <div className="flash-sale-slider" ref={flashSliderRef}>
+            {flashSaleItems.map((item, index) => (
+              <div key={item.id || index} className="flash-sale-slider-card">
+                <div className="flash-sale-card-wrapper">
+                  <ProductCard
+                    product={item}
+                    targetUrl={item.fromTable === "catenogies" ? `/product/${item.id}` : `/page/${item.id}`}
+                    fromTable={item.fromTable || "catenogies"}
+                  />
+                  <div className="flash-deal-progress">
+                    <div
+                      className="progress-bar-fill"
+                      style={{ width: `${Math.min(95, 65 + (index * 7) % 30)}%` }}
+                    ></div>
+                    <span className="progress-label">
+                      🔥 Đã bán {65 + ((index * 7) % 30)}%
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 3.1 BỐ CỤC BẤT ĐỐI XỨNG: TÂM ĐIỂM DEAL CÔNG NGHỆ (1 Thẻ Lớn Hero + 4 Thẻ Phụ Bên Phải) */}
+      {spotlightItem && (
+        <div className="home-spotlight-section">
+          <div className="home-spotlight-container">
+            <div className="spotlight-header-row">
+              <div className="spotlight-header-left">
+                <span className="spotlight-kicker">✨ DEAL ĐỘC QUYỀN HÔM NAY</span>
+                <h2 className="spotlight-main-heading">TÂM ĐIỂM CÔNG NGHỆ — TRỢ GIÁ ĐẾN 35%</h2>
+              </div>
+              <span className="spotlight-deadline">⚡ Áp dụng độc quyền trực tuyến cho 50 khách hàng đầu tiên</span>
+            </div>
+
+            <div className="spotlight-asymmetric-layout">
+              {/* Thẻ Cột Trái: Spotlight Hero Card khổng lồ (38% width) */}
+              <div
+                className="spotlight-hero-card"
+                onClick={() => navigate(`/page/${spotlightItem.id}`)}
+              >
+                <div className="spotlight-glass-badge">
+                  <FaStar className="star-icon" /> BEST DEAL TRONG NGÀY
+                </div>
+                <div className="spotlight-img-box">
+                  <img
+                    src={getImageUrl(spotlightItem.image || spotlightItem.img)}
+                    alt={spotlightItem.name}
+                    className="spotlight-hero-img"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/images/pc3.png";
+                    }}
+                  />
+                  <span className="spotlight-discount-ribbon">TIẾT KIỆM 4.5TR</span>
+                </div>
+
+                <div className="spotlight-hero-info">
+                  <div className="spotlight-specs-chips">
+                    <span>Core i7 / i9</span>
+                    <span>RTX 40-Series</span>
+                    <span>Ram 32GB RGB</span>
+                  </div>
+                  <h3 className="spotlight-hero-title">{spotlightItem.name}</h3>
+                  <p className="spotlight-hero-desc">
+                    Cấu hình tối ưu đồ họa dựng phim 4K, Render 3D và chiến max-setting mọi tựa game AAA.
+                  </p>
+                  
+                  <div className="spotlight-price-row">
+                    <div className="price-stack">
+                      <span className="current-price">
+                        {Number(spotlightItem.price || 0).toLocaleString("vi-VN")}đ
+                      </span>
+                      <span className="old-price">
+                        {Number((spotlightItem.price || 0) * 1.25).toLocaleString("vi-VN")}đ
+                      </span>
+                    </div>
+                    <button className="spotlight-action-btn">
+                      SỞ HỮU NGAY <BsArrowRightShort />
+                    </button>
+                  </div>
+
+                  <div className="spotlight-perks-list">
+                    <div className="perk-item"><FaCheckCircle /> Tặng bàn phím cơ + Chuột Gaming RGB trị giá 1.450.000đ</div>
+                    <div className="perk-item"><FaCheckCircle /> Bảo hành chính hãng tận nơi 36 tháng</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lưới 4 Card Bên Phải (62% width) */}
+              <div className="spotlight-side-grid">
+                {sideDeals.map((item) => (
+                  <div key={item.id} className="spotlight-mini-card">
+                    <ProductCard
+                      product={item}
+                      targetUrl={`/page/${item.id}`}
+                      fromTable="products"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3.2 BẢNG XẾP HẠNG DOANH SỐ (Leaderboard Podium Top 1-2-3 Tuần Này) */}
+      {topLeaderboard.length === 3 && (
+        <div className="home-leaderboard-section">
+          <div className="home-leaderboard-container">
+            <div className="leaderboard-header">
+              <div className="leaderboard-title-group">
+                <FaCrown className="crown-header-icon" />
+                <h2>BẢNG VÀNG DOANH SỐ — TOP SẢN PHẨM BÁN CHẠY NHẤT</h2>
+              </div>
+              <span className="leaderboard-sub">Thống kê tự động từ hơn 10.000+ đơn hàng đã giao thành công tuần qua</span>
+            </div>
+
+            <div className="leaderboard-podium">
+              {/* Top 2 Bạc (Bên trái) */}
+              <div
+                className="podium-card rank-2"
+                onClick={() => navigate(`/page/${topLeaderboard[0].id}`)}
+              >
+                <div className="podium-badge silver">
+                  <FaMedal /> {topLeaderboard[0].badge}
+                </div>
+                <div className="podium-img-box">
+                  <img
+                    src={getImageUrl(topLeaderboard[0].image || topLeaderboard[0].img)}
+                    alt={topLeaderboard[0].name}
+                    onError={(e) => { e.target.src = "/images/pc.jpg"; }}
+                  />
+                </div>
+                <h4 className="podium-name">{topLeaderboard[0].name}</h4>
+                <div className="podium-price">
+                  {Number(topLeaderboard[0].price || 0).toLocaleString("vi-VN")}đ
+                </div>
+                <span className="podium-sold-count">🔥 {topLeaderboard[0].sold}</span>
+              </div>
+
+              {/* Top 1 Vàng (Ở giữa cao nhất) */}
+              <div
+                className="podium-card rank-1-king"
+                onClick={() => navigate(`/page/${topLeaderboard[1].id}`)}
+              >
+                <div className="king-crown-halo">👑</div>
+                <div className="podium-badge gold">
+                  <FaCrown /> {topLeaderboard[1].badge}
+                </div>
+                <div className="podium-img-box king-img">
+                  <img
+                    src={getImageUrl(topLeaderboard[1].image || topLeaderboard[1].img)}
+                    alt={topLeaderboard[1].name}
+                    onError={(e) => { e.target.src = "/images/pc3.png"; }}
+                  />
+                  <span className="king-tag">ĐƯỢC YÊU THÍCH NHẤT</span>
+                </div>
+                <h4 className="podium-name">{topLeaderboard[1].name}</h4>
+                <div className="podium-price king-price">
+                  {Number(topLeaderboard[1].price || 0).toLocaleString("vi-VN")}đ
+                </div>
+                <span className="podium-sold-count king-sold">🔥 {topLeaderboard[1].sold}</span>
+                <button className="podium-king-btn">XEM NGAY QUÁN QUÂN</button>
+              </div>
+
+              {/* Top 3 Đồng (Bên phải) */}
+              <div
+                className="podium-card rank-3"
+                onClick={() => navigate(`/page/${topLeaderboard[2].id}`)}
+              >
+                <div className="podium-badge bronze">
+                  <FaMedal /> {topLeaderboard[2].badge}
+                </div>
+                <div className="podium-img-box">
+                  <img
+                    src={getImageUrl(topLeaderboard[2].image || topLeaderboard[2].img)}
+                    alt={topLeaderboard[2].name}
+                    onError={(e) => { e.target.src = "/images/MT.jpg"; }}
+                  />
+                </div>
+                <h4 className="podium-name">{topLeaderboard[2].name}</h4>
+                <div className="podium-price">
+                  {Number(topLeaderboard[2].price || 0).toLocaleString("vi-VN")}đ
+                </div>
+                <span className="podium-sold-count">🔥 {topLeaderboard[2].sold}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3.3 SĂN VOUCHER TIỀN MẶT (Layout vé cào răng cưa nhận ngay) */}
+      <div className="home-voucher-strip-section">
+        <div className="home-voucher-strip-container">
+          <div className="voucher-strip-header">
+            <div className="voucher-title-left">
+              <FaTicketAlt className="voucher-icon" />
+              <h3>VÍ VOUCHER SIÊU TIẾT KIỆM — BẤM LƯU DÙNG NGAY KHI CHECKOUT</h3>
+            </div>
+            <button
+              className="voucher-view-all-btn"
+              onClick={() => navigate("/tri-an-khach-hang")}
+            >
+              Xem kho 20+ Voucher &rsaquo;
+            </button>
+          </div>
+
+          <div className="voucher-tickets-grid">
+            <div className="voucher-ticket-card">
+              <div className="ticket-left">
+                <span className="ticket-amount">500K</span>
+                <span className="ticket-label">GIẢM NGAY</span>
+              </div>
+              <div className="ticket-divider"></div>
+              <div className="ticket-right">
+                <div className="ticket-info">
+                  <strong>Đơn từ 10.000.000đ</strong>
+                  <span>Áp dụng cho PC Gaming & Laptop</span>
+                </div>
+                <button
+                  className={`ticket-claim-btn ${claimedVouchers["TECH500"] ? "claimed" : ""}`}
+                  onClick={() => handleClaimVoucher("TECH500", "500.000đ")}
+                  disabled={claimedVouchers["TECH500"]}
+                >
+                  {claimedVouchers["TECH500"] ? "Đã Lưu" : "LƯU MÃ"}
+                </button>
+              </div>
+            </div>
+
+            <div className="voucher-ticket-card">
+              <div className="ticket-left color-cyan">
+                <span className="ticket-amount">300K</span>
+                <span className="ticket-label">GIẢM NGAY</span>
+              </div>
+              <div className="ticket-divider"></div>
+              <div className="ticket-right">
+                <div className="ticket-info">
+                  <strong>Đơn từ 5.000.000đ</strong>
+                  <span>Áp dụng toàn bộ Màn hình & VGA</span>
+                </div>
+                <button
+                  className={`ticket-claim-btn ${claimedVouchers["SCREEN300"] ? "claimed" : ""}`}
+                  onClick={() => handleClaimVoucher("SCREEN300", "300.000đ")}
+                  disabled={claimedVouchers["SCREEN300"]}
+                >
+                  {claimedVouchers["SCREEN300"] ? "Đã Lưu" : "LƯU MÃ"}
+                </button>
+              </div>
+            </div>
+
+            <div className="voucher-ticket-card">
+              <div className="ticket-left color-purple">
+                <span className="ticket-amount">200K</span>
+                <span className="ticket-label">VNPAY / MOMO</span>
+              </div>
+              <div className="ticket-divider"></div>
+              <div className="ticket-right">
+                <div className="ticket-info">
+                  <strong>Thanh toán Online</strong>
+                  <span>Quét mã QR qua cổng VNPAY/MoMo</span>
+                </div>
+                <button
+                  className={`ticket-claim-btn ${claimedVouchers["ONLINE200"] ? "claimed" : ""}`}
+                  onClick={() => handleClaimVoucher("ONLINE200", "200.000đ")}
+                  disabled={claimedVouchers["ONLINE200"]}
+                >
+                  {claimedVouchers["ONLINE200"] ? "Đã Lưu" : "LƯU MÃ"}
+                </button>
+              </div>
+            </div>
+
+            <div className="voucher-ticket-card">
+              <div className="ticket-left color-green">
+                <span className="ticket-amount">FREESHIP</span>
+                <span className="ticket-label">TOÀN QUỐC</span>
+              </div>
+              <div className="ticket-divider"></div>
+              <div className="ticket-right">
+                <div className="ticket-info">
+                  <strong>Giao hỏa tốc 2H</strong>
+                  <span>Miễn phí 100% chi phí vận chuyển</span>
+                </div>
+                <button
+                  className={`ticket-claim-btn ${claimedVouchers["SHIP0D"] ? "claimed" : ""}`}
+                  onClick={() => handleClaimVoucher("SHIP0D", "FreeShip")}
+                  disabled={claimedVouchers["SHIP0D"]}
+                >
+                  {claimedVouchers["SHIP0D"] ? "Đã Lưu" : "LƯU MÃ"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -361,6 +565,9 @@ const Home = () => {
             </div>
           </div>
 
+          {/* Banner Khuyến Mãi Ngang Danh Mục PC */}
+          <CategoryPromo category="pc" titleFallback="Dàn PC Gaming" />
+
           <main className="main-content">
             <div id="pc-gaming">
               <ProductGrid products={filteredProducts} />
@@ -369,40 +576,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 4.1 DẢI BANNER ĐÔI BÁN LẺ SIÊU RỰC RỠ GIỮA TRANG */}
-      <div className="home-mid-dual-banners">
-        <div
-          className="mid-banner-card banner-gaming"
-          onClick={() => navigate("/component/vga")}
-        >
-          <div className="mid-banner-header">
-            <span className="mid-banner-tag">🔥 ĐẠI CHIẾN ĐỒ HỌA</span>
-            <span className="mid-banner-flame">🔥 CHỈ CÒN 12 SUẤT</span>
-          </div>
-          <h3>RTX 4060 / 4070 SUPER SERIES</h3>
-          <p>Tặng kèm nguồn 750W 80 Plus Gold + Tản nhiệt nước AIO 240mm RGB</p>
-          <div className="mid-banner-footer">
-            <span className="mid-banner-price">Chỉ từ 7.890.000đ</span>
-            <button className="mid-banner-cta">CHỐT DEAL NGAY &rsaquo;</button>
-          </div>
-        </div>
-
-        <div
-          className="mid-banner-card banner-monitor"
-          onClick={() => navigate("/category/man-hinh")}
-        >
-          <div className="mid-banner-header">
-            <span className="mid-banner-tag">🔥 XẢ KHO KHÔNG LỢI NHUẬN</span>
-            <span className="mid-banner-flame">🔥 SỐ LƯỢNG CÓ HẠN</span>
-          </div>
-          <h3>MÀN HÌNH GAMING 240Hz 2K FAST-IPS</h3>
-          <p>Tần số quét siêu tốc 240Hz 0.5ms — 1 Đổi 1 trong suốt 24 tháng</p>
-          <div className="mid-banner-footer">
-            <span className="mid-banner-price">Chỉ từ 2.990.000đ</span>
-            <button className="mid-banner-cta">XEM NGAY &rsaquo;</button>
-          </div>
-        </div>
-      </div>
+      {/* 4.1 DẢI BANNER NGANG DÀI QUẢNG CÁO CHUẨN SÀN (~6:1) */}
+      <StripBanner index={0} />
 
       {/* 5. CATENOGY SECTION (TOP PC BÁN CHẠY / MÀN HÌNH) */}
       <div id="PC-van-phong">{""}</div>
@@ -417,26 +592,6 @@ const Home = () => {
       <div id="LapTop-gia-uu-dai">{""}</div>
       <div>
         <LaptopUser laptopData={laptopUser} />
-      </div>
-
-      {/* 6.1 DẢI BANNER NGANG DÀI TUẦN LỄ XẢ KHO LAPTOP AI */}
-      <div className="home-mid-strip-banner">
-        <div
-          className="strip-banner-box"
-          onClick={() => navigate("/category/top-ban-chay")}
-        >
-          <div className="strip-content-left">
-            <FaFire className="strip-fire-icon" />
-            <div className="strip-texts">
-              <h3>TUẦN LỄ XẢ KHO LAPTOP AI & LINH KIỆN MÁY TÍNH CHÍNH HÃNG</h3>
-              <p>
-                Giảm sốc tới 50% + Trợ giá Học Sinh - Sinh Viên đến 2.500.000đ +
-                Tặng trọn bộ phụ kiện Gear 1.500.000đ
-              </p>
-            </div>
-          </div>
-          <button className="strip-btn-right">SĂN DEAL HỎA TỐC &rsaquo;</button>
-        </div>
       </div>
 
       {/* 7. EVENT LIST SECTION (LINH KIỆN MÁY TÍNH) */}
@@ -491,25 +646,6 @@ const Home = () => {
       <div id="dich-vu">{""}</div>
       <div id="chi-tiet">{""}</div>
       <FooterUser footer={footer} />
-
-      {/* 11. FLOATING LIVE ORDER TOAST (GÓC TRÁI DƯỚI) */}
-      {liveToast.show && (
-        <div className="home-live-order-toast">
-          <FaFire className="toast-flame-icon" />
-          <div className="toast-body">
-            <span className="toast-user">🔥 {liveToast.user}</span>
-            <span className="toast-product">Đã mua: {liveToast.product}</span>
-            <span className="toast-time">{liveToast.time}</span>
-          </div>
-          <button
-            className="toast-close-btn"
-            onClick={() => setLiveToast({ ...liveToast, show: false })}
-            title="Đóng thông báo"
-          >
-            ✕
-          </button>
-        </div>
-      )}
     </div>
   );
 };

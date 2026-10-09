@@ -1,0 +1,170 @@
+/* ==========================================================================
+   BannerGrid.css — Layout 3 Thẻ Bên Phải (Ảnh Toàn Khung + Hover Hiện Chữ)
+   - Ảnh phủ trọn 100% khung thẻ (Full Frame Cover), không viền trống.
+   - Khi rê chuột vào (Hover) -> Lớp phủ thông tin hiện lên mượt mà.
+   ========================================================================== */
+
+.hero-side-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.hero-side-card {
+  position: relative;
+  flex: 1 1 0;
+  height: calc((100% - 20px) / 3);
+  border-radius: var(--radius-md, 10px);
+  overflow: hidden;
+  background-color: #18181B;
+  border: 1px solid var(--border, #E6E6E9);
+  box-shadow: var(--shadow-card, 0 1px 2px rgba(22, 22, 26, 0.06));
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+}
+
+.hero-side-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  border-color: var(--brand-600, #D70018);
+}
+
+/* 1. Ảnh phủ trọn 100% khung thẻ */
+.hero-side-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-side-card:hover .hero-side-img {
+  transform: scale(1.06);
+}
+
+/* 2. Lớp phủ thông tin: Mặc định ẩn, khi rê chuột vào (hover) thì hiện chữ */
+.hero-side-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(22, 22, 26, 0.1) 0%, rgba(22, 22, 26, 0.88) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 3px;
+  color: #FFFFFF;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* Hover hoặc Focus -> Hiện chữ mượt mà trồi lên */
+.hero-side-card:hover .hero-side-overlay,
+.hero-side-card:focus-visible .hero-side-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-side-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--brand-600, #D70018);
+  color: #FFFFFF;
+  font-size: 8.5px;
+  font-weight: 800;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-side-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: #FFFFFF;
+  margin: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-side-sub {
+  font-size: 0.74rem;
+  color: #FEF08A;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Skeleton Loading */
+.hero-side-grid-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.side-banner-skeleton {
+  flex: 1;
+  min-height: 90px;
+  border-radius: var(--radius-md, 10px);
+  background-color: #EAEAEF;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 992px) {
+  .hero-side-grid {
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 4px;
+  }
+  .hero-side-card {
+    min-width: 240px;
+    height: 95px;
+    scroll-snap-align: start;
+  }
+  .hero-side-grid-skeleton {
+    flex-direction: row;
+  }
+  .side-banner-skeleton {
+    min-width: 240px;
+    height: 95px;
+  }
+  /* Trên màn hình cảm ứng: Hiện chữ nhẹ nhàng luôn */
+  .hero-side-overlay {
+    opacity: 0.95;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-side-card {
+    min-width: 200px;
+    height: 85px;
+  }
+  .side-banner-skeleton {
+    min-width: 200px;
+    height: 85px;
+  }
+  .hero-side-title {
+    font-size: 0.8rem;
+  }
+  .hero-side-sub {
+    font-size: 0.68rem;
+  }
+}

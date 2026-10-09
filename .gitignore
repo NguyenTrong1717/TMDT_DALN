@@ -41,3 +41,27 @@ __pycache__/
 venv/
 **/__pycache__/
 **/.venv/
+
+# AI Agent Configs & Secrets (Anti-Leak)
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+.agents/
+.gemini/
+.claude/
+brain/
+*.pem
+*.key
+
+# LaTeX Auxiliary Files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk

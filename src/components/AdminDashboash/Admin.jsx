@@ -3,16 +3,15 @@ import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { BiSolidDiscount } from "react-icons/bi";
 import "./Admin.css";
 import {
-  FaTachometerAlt,
   FaBoxOpen,
   FaUsers,
   FaShoppingCart,
   FaChartBar,
-  FaSignOutAlt,
   FaStar,
   FaBolt,
   FaSearch,
   FaHistory,
+  FaImage,
 } from "react-icons/fa";
 import { MdSupportAgent } from "react-icons/md";
 
@@ -22,6 +21,12 @@ const ADMIN_MENU = [
     key: "products",
     label: "Sản Phẩm",
     icon: FaBoxOpen,
+  },
+  {
+    path: "/admin/banners",
+    key: "banners",
+    label: "Banner Quảng Cáo",
+    icon: FaImage,
   },
   {
     path: "/admin/orders",
@@ -139,6 +144,10 @@ const Admin = () => {
           <Link to="/admin/products" className={isActive("products")}>
             <FaBoxOpen />
             <span>Sản Phẩm</span>
+          </Link>
+          <Link to="/admin/banners" className={isActive("banners")}>
+            <FaImage />
+            <span>Banner Quảng Cáo</span>
           </Link>
 
           <Link to="/admin/orders" className={isActive("orders")}>

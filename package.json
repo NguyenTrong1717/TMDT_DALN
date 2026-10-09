@@ -17,7 +17,7 @@
     "test:vnpay": "node --test --experimental-test-isolation=none tests/vnpay.test.mjs tests/checkout-api.test.mjs",
     "test:momo": "node --test tests/momo.test.mjs",
     "test:payments": "node --test tests/vnpay.test.mjs tests/momo.test.mjs",
-    "rag": "rag_service\\.venv\\Scripts\\python -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service",
+    "rag": "rag_service\\.venv\\Scripts\\python -X utf8 -m uvicorn rag_service.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir rag_service",
     "clean:ports": "node scripts/clean_ports.mjs",
     "check:health": "node scripts/check_health.mjs",
     "dev:tabs": "node scripts/dev_tabs.mjs",

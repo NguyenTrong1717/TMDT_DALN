@@ -1,0 +1,685 @@
+\chapter{Đặc tả Yêu cầu Hệ thống}
+
+\section{Tổng quan Hệ thống và Bối cảnh Nghiệp vụ}
+Hệ thống Thương mại Điện tử HCore Store được thiết kế nhằm đáp ứng đầy đủ chu trình mua sắm thiết bị công nghệ và linh kiện phần cứng trên môi trường mạng. Hệ thống vận hành đồng thời hai trục nghiệp vụ cốt lõi bao gồm trục giao dịch thương mại điện tử truyền thống và trục hỗ trợ tư vấn tự động hóa ứng dụng trí tuệ nhân tạo.
+
+Ở trục thương mại điện tử, hệ thống xử lý các bài toán nghiệp vụ từ khâu hiển thị danh mục, quản lý giỏ hàng, áp dụng các chính sách chiết khấu khuyến mãi cho đến khâu hoàn tất thanh toán trực tuyến qua cổng thanh toán bảo mật. Ở trục hỗ trợ thông minh, hệ thống ứng dụng mô hình tìm kiếm tăng cường tạo sinh nhằm giải đáp thắc mắc của khách hàng về thông số kỹ thuật, khả năng tương thích giữa các linh kiện và gợi ý cấu hình máy tính phù hợp với ngân sách tài chính. Toàn bộ các yêu cầu được phân tích dưới đây dựa trên mã nguồn thực tế của dự án, phản ánh chính xác ranh giới nghiệp vụ của hệ thống đang vận hành.
+
+\section{Danh mục Tác nhân và Ranh giới Trách nhiệm}
+Hệ thống xác định năm tác nhân tham gia tương tác, bao gồm cả tác nhân con người và tác nhân hệ thống phần mềm. Bảng~\ref{tab:actors} mô tả chi tiết quyền hạn và ranh giới trách nhiệm của từng tác nhân trong toàn bộ chu trình vận hành.
+
+\begin{table}[H]
+\centering
+\caption{Danh mục Tác nhân và Ranh giới Trách nhiệm trong Hệ thống}
+\label{tab:actors}
+\begin{tabularx}{\textwidth}{p{3.5cm}p{3cm}X}
+\toprule
+\textbf{Tác nhân} & \textbf{Định danh Mã nguồn} & \textbf{Quyền hạn và Trách nhiệm Nghiệp vụ} \\
+\midrule
+Khách vãng lai & Chưa xác thực & Người dùng truy cập hệ thống khi chưa đăng nhập tài khoản. Có quyền duyệt danh mục sản phẩm, tìm kiếm, đọc tin tức công nghệ và gửi câu hỏi tư vấn tới trợ lý trí tuệ nhân tạo. \\
+\addlinespace
+Khách hàng & Tài khoản người dùng & Người dùng đã xác thực vào hệ thống. Được cấp quyền quản lý giỏ hàng cá nhân, lưu trữ mã giảm giá, thực hiện quy trình đặt hàng, lựa chọn phương thức thanh toán, tra cứu lịch sử giao dịch và gửi yêu cầu hỗ trợ kỹ thuật. \\
+\addlinespace
+Quản trị viên & Tài khoản quản trị & Nhân sự quản trị được bảo vệ bởi bộ lọc định tuyến phía máy khách và máy chủ. Có toàn quyền quản lý kho hàng, cập nhật trạng thái đơn hàng theo máy trạng thái hữu hạn, quản lý tài khoản người dùng, cấu hình khuyến mãi và theo dõi báo cáo doanh thu. \\
+\addlinespace
+Cổng thanh toán & Đối tác ngoại vi & Các hệ thống tài chính bên ngoài bao gồm VNPAY và MoMo. Tương tác với máy chủ thông qua kênh thông báo thanh toán tức thời nhằm xác nhận kết quả xử lý giao dịch. \\
+\addlinespace
+Trợ lý trí tuệ nhân tạo & Dịch vụ nội bộ & Hệ thống phần mềm tự động tiếp nhận câu hỏi của người dùng, thực thi việc tìm kiếm vector đặc trưng và tổng hợp câu trả lời tư vấn dựa trên dữ liệu thực tế của cửa hàng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    actor/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum width=2.2cm, minimum height=0.9cm, align=center},
+    uc/.style={draw=black!85, fill=white, ellipse, thick, minimum width=3.6cm, minimum height=0.7cm, align=center},
+    sysbox/.style={draw=black!60, dashed, fill=black!2, rounded corners=4pt, inner sep=10pt},
+    syslabel/.style={font=\bfseries\footnotesize, text=black!80},
+    arr/.style={draw=black!75, thick}
+]
+
+% 2 Tác nhân con người chính
+\node[actor] (cust) {\textbf{Khách hàng}\\(Customer)};
+\node[actor, right=8.0cm of cust] (admin) {\textbf{Quản trị viên}\\(Administrator)};
+
+% Use Cases bên trong hệ thống
+\node[uc, below right=0.2cm and 2.2cm of cust] (uc_browse) {Duyệt \& Tìm kiếm Sản phẩm};
+\node[uc, below=0.6cm of uc_browse] (uc_cart) {Quản lý Giỏ hàng \& Ví Voucher};
+\node[uc, below=0.6cm of uc_cart] (uc_pay) {Đặt hàng \& Thanh toán VNPAY/MoMo};
+\node[uc, below=0.6cm of uc_pay] (uc_rag) {Tư vấn Trợ lý Ảo AI RAG};
+\node[uc, below=0.6cm of uc_rag] (uc_order_mgt) {Quản trị Đơn hàng \& Cập nhật FSM};
+\node[uc, below=0.6cm of uc_order_mgt] (uc_prod_mgt) {Quản lý Danh mục \& Tồn kho};
+\node[uc, below=0.6cm of uc_prod_mgt] (uc_vouch_mgt) {Cấu hình Khuyến mãi \& Báo cáo};
+
+\begin{scope}[on background layer]
+    \node[sysbox, fit=(uc_browse)(uc_cart)(uc_pay)(uc_rag)(uc_order_mgt)(uc_prod_mgt)(uc_vouch_mgt), label={[syslabel]above:HỆ THỐNG THƯƠNG MẠI ĐIỆN TỬ HCORE STORE}] (sys) {};
+\end{scope}
+
+% Liên kết Khách hàng
+\draw[arr] (cust.east) -- (uc_browse.west);
+\draw[arr] (cust.east) -- (uc_cart.west);
+\draw[arr] (cust.east) -- (uc_pay.west);
+\draw[arr] (cust.east) -- (uc_rag.west);
+
+% Liên kết Quản trị viên
+\draw[arr] (admin.west) -- (uc_order_mgt.east);
+\draw[arr] (admin.west) -- (uc_prod_mgt.east);
+\draw[arr] (admin.west) -- (uc_vouch_mgt.east);
+\draw[arr] (admin.west) -- (uc_browse.east);
+
+\end{tikzpicture}
+\caption{Sơ đồ Ca Sử dụng Tổng thể (Use Case Diagram) của Hệ thống HCore Store theo Chuẩn UML/IEEE}
+\label{fig:usecase_overall}
+\end{figure}
+
+Hình~\ref{fig:usecase_overall} mô tả sơ đồ ca sử dụng tổng thể của hệ thống thương mại điện tử HCore Store. Ranh giới hệ thống phân định rõ hai nhóm tác nhân chính bao gồm khách hàng tương tác với các ca sử dụng khám phá hàng hóa, thanh toán và trợ lý đối thoại thông minh; và quản trị viên thực thi các quyền hạn kiểm soát vòng đời đơn hàng, điều chỉnh danh mục và theo dõi các chỉ số tài chính.
+
+\section{Yêu cầu Chức năng Chi tiết}
+Các yêu cầu chức năng được phân loại thành sáu nhóm nghiệp vụ chính, bao trọn toàn bộ quy trình vận hành từ phía người dùng đến quản trị viên.
+
+\subsection{Nhóm Chức năng Quản lý Tài khoản (FR-ACC)}
+Yêu cầu FR-ACC-01 quy định chức năng đăng ký tài khoản mới cho người dùng thông qua việc thu thập tên đăng nhập, địa chỉ thư điện tử, mật khẩu và họ tên. Mật khẩu người dùng được băm bảo mật trước khi lưu trữ vào cơ sở dữ liệu. Hệ thống xác thực tính duy nhất của tên đăng nhập và định dạng thư điện tử hợp lệ trước khi cấp quyền truy cập.
+
+Yêu cầu FR-ACC-02 quy định chức năng đăng nhập và quản lý phiên làm việc. Khi thông tin xác thực chính xác, hệ thống khởi tạo phiên làm việc tại máy khách và cấp quyền tương ứng với vai trò của tài khoản. Dữ liệu phiên được lưu trữ cục bộ và gắn kèm vào tiêu đề của mọi yêu cầu mạng kế tiếp.
+
+Yêu cầu FR-ACC-03 quy định chức năng quản lý hồ sơ cá nhân. Người dùng có quyền truy cập trang quản lý hồ sơ để cập nhật số điện thoại liên lạc và địa chỉ nhận hàng mặc định. Dữ liệu này được tự động điền vào biểu mẫu đặt hàng nhằm rút ngắn thời gian thao tác của khách hàng.
+
+\subsection{Nhóm Chức năng Danh mục và Tìm kiếm Sản phẩm (FR-CAT)}
+Yêu cầu FR-CAT-01 quy định việc tổ chức hiển thị sản phẩm theo cấu trúc phân tầng đa chiều. Danh mục sản phẩm được phân loại theo nhóm thiết bị phần cứng, phân khúc người dùng đối với dòng sản phẩm máy tính xách tay và các sự kiện xả kho linh kiện. Dữ liệu hiển thị bao gồm hình ảnh đại diện, giá niêm yết, giá khuyến mãi và trạng thái còn hàng.
+
+Yêu cầu FR-CAT-02 quy định tính năng tìm kiếm và lọc đa thuộc tính. Hệ thống hỗ trợ tra cứu theo biểu thức chính quy không phân biệt hoa thường trên các trường tên sản phẩm và mã sản phẩm. Kết hợp với thanh tìm kiếm là bộ lọc đa tiêu chí cho phép người dùng sàng lọc danh sách theo khoảng giá tiền, thương hiệu sản xuất và tình trạng tồn kho khả dụng.
+
+Yêu cầu FR-CAT-03 quy định chức năng hiển thị chi tiết sản phẩm và tiếp nhận đánh giá phản hồi. Tại trang chi tiết, hệ thống kết xuất đầy đủ thông số phần cứng dạng bảng đối thoại, số lượng hàng trong kho, số lượng đã tiêu thụ, điểm đánh giá trung bình và các bình luận phản hồi từ người mua trước đó. Khách hàng đã mua hàng có quyền gửi nhận xét và chấm điểm sao cho sản phẩm.
+
+\subsection{Nhóm Chức năng Giỏ hàng và Khuyến mãi (FR-CRT)}
+Yêu cầu FR-CRT-01 quy định chức năng quản lý giỏ hàng trực tuyến. Giỏ hàng của người dùng được đồng bộ theo thời gian thực với cơ sở dữ liệu. Khách hàng có thể tùy chỉnh tăng giảm số lượng mua, loại bỏ từng mặt hàng hoặc làm rỗng toàn bộ giỏ hàng. Hệ thống tự động kiểm tra số lượng tồn kho khả dụng để ngăn chặn việc đặt hàng vượt quá năng lực cung ứng của kho.
+
+Yêu cầu FR-CRT-02 quy định tính năng ví khuyến mãi cá nhân. Hệ thống cho phép khách hàng thu thập các mã giảm giá có sẵn vào ví tài khoản. Trước khi áp dụng chiết khấu vào đơn hàng, hệ thống thực hiện kiểm tra tự động các ràng buộc về giá trị đơn hàng tối thiểu và thời hạn hiệu lực của mã, ngăn chặn việc sử dụng mã quá hạn hoặc không đủ điều kiện.
+
+Yêu cầu FR-CRT-03 quy định tính năng danh sách sản phẩm yêu thích. Người dùng có thể đánh dấu các sản phẩm quan tâm để lưu trữ vào danh sách riêng và truy cập nhanh thông qua tiện ích nổi hiển thị ở góc màn hình giao diện.
+
+\subsection{Nhóm Chức năng Đặt hàng và Thanh toán (FR-ORD)}
+Yêu cầu FR-ORD-01 quy định quy trình đặt hàng an toàn. Quy trình đặt hàng tiếp nhận thông tin người nhận, địa chỉ giao hàng và phương thức thanh toán do khách hàng lựa chọn bao gồm thanh toán khi nhận hàng, thanh toán qua cổng VNPAY hoặc ví điện tử MoMo. Hệ thống tính toán tổng tiền thanh toán sau khi trừ chiết khấu khuyến mãi một cách chính xác.
+
+Yêu cầu FR-ORD-02 quy định cơ chế khóa chống gửi trùng lặp yêu cầu thanh toán. Mỗi phiên giao dịch bắt buộc đi kèm một mã định danh yêu cầu duy nhất dạng chuỗi ngẫu nhiên. Nếu người dùng vô tình nhấn nút xác nhận nhiều lần liên tiếp, hệ thống nhận diện mã yêu cầu trùng lặp và trả về cùng một đơn hàng đã tạo thay vì sinh ra nhiều đơn hàng giống nhau.
+
+Yêu cầu FR-ORD-03 quy định việc tích hợp cổng thanh toán trực tuyến VNPAY và MoMo trên môi trường thử nghiệm. Hệ thống chịu trách nhiệm sinh đường dẫn thanh toán có chữ ký số bảo mật, chuyển hướng người dùng sang cổng đối tác và tiếp nhận thông báo xác nhận giao dịch thông qua kênh mạng ngầm trực tiếp giữa hai máy chủ.
+
+Yêu cầu FR-ORD-04 quy định tính năng thanh toán lại đối với các đơn hàng bị gián đoạn. Khi phiên giao dịch trước đó bị quá hạn hoặc khách hàng hủy thanh toán tại cổng đối tác, hệ thống cung cấp giao diện cho phép thực hiện lại quy trình thanh toán mà không cần tạo mới đơn hàng từ đầu.
+
+\subsection{Nhóm Chức năng Trợ lý Trí tuệ Nhân tạo (FR-AIR)}
+Yêu cầu FR-AIR-01 quy định cơ chế phòng vệ an ninh ba lớp đối với câu hỏi đầu vào. Toàn bộ nội dung nhập liệu của người dùng được kiểm duyệt nhằm sàng lọc thông tin cá nhân nhạy cảm, ngăn chặn các câu lệnh tấn công chiếm quyền chỉ thị và từ chối các chủ đề nằm ngoài phạm vi kinh doanh phần cứng máy tính.
+
+Yêu cầu FR-AIR-02 quy định tính năng tìm kiếm ngữ nghĩa và truy xuất thông tin sản phẩm. Câu hỏi hợp lệ được chuyển thành vector đặc trưng trong không gian 384 chiều nhờ mô hình FastEmbed. Hệ thống tính toán chỉ số tương đồng Cosine để chọn lọc các sản phẩm phù hợp nhất trong kho dữ liệu.
+
+Yêu cầu FR-AIR-03 quy định việc tạo sinh phản hồi tự nhiên dựa trên ngữ cảnh thực tế. Dữ liệu sản phẩm trích xuất được chèn vào câu lệnh chỉ thị hệ thống trước khi gửi tới mô hình Google Gemini Flash để biên soạn câu trả lời tư vấn chuẩn xác. Hệ thống kích hoạt cơ chế phản hồi dự phòng nội bộ nếu phát sinh sự cố mất kết nối mạng ngoại vi.
+
+\subsection{Nhóm Chức năng Quản trị Cửa hàng (FR-ADM)}
+Yêu cầu FR-ADM-01 quy định chức năng quản trị kho hàng và danh mục. Giao diện quản trị cung cấp công cụ kiểm soát kho hàng toàn diện, cho phép thêm mới, chỉnh sửa thông tin thông số, cập nhật giá bán, điều chỉnh tồn kho và thu hồi sản phẩm khỏi danh mục hiển thị.
+
+Yêu cầu FR-ADM-02 quy định quy trình quản lý đơn hàng theo máy trạng thái hữu hạn. Quản trị viên duyệt đơn qua các trạng thái tuần tự gồm chờ duyệt, đã xác nhận, đang giao hàng và hoàn tất. Hệ thống tự động khóa thao tác xuất kho đối với các đơn hàng thanh toán trực tuyến chưa hoàn tất nghĩa vụ tài chính và tự động hoàn trả tồn kho nếu đơn hàng bị hủy bỏ.
+
+Yêu cầu FR-ADM-03 quy định chức năng quản lý tài khoản người dùng và phân quyền. Quản trị viên có thẩm quyền tra cứu danh sách khách hàng, khóa tài khoản vi phạm chính sách và điều chỉnh quyền truy cập giữa người dùng thông thường và quản trị viên.
+
+Yêu cầu FR-ADM-04 quy định chức năng báo cáo và thống kê doanh thu. Hệ thống trực quan hóa số liệu kinh doanh thông qua các biểu đồ doanh thu theo chu kỳ thời gian, biểu đồ cơ cấu phương thức thanh toán và các chỉ số tổng hợp về số lượng đơn hàng và người dùng mới.
+
+\section{Yêu cầu Phi Chức năng}
+Bảng~\ref{tab:nfr} tổng hợp các yêu cầu phi chức năng của hệ thống trên các khía cạnh hiệu năng, an toàn bảo mật và tính khả dụng tương thích.
+
+\begin{table}[H]
+\centering
+\caption{Danh mục Yêu cầu Phi Chức năng của Hệ thống HCore Store}
+\label{tab:nfr}
+\begin{tabularx}{\textwidth}{p{3cm}p{4cm}X}
+\toprule
+\textbf{Nhóm Yêu cầu} & \textbf{Chỉ số Tiêu chuẩn} & \textbf{Giải pháp Triển khai Kỹ thuật} \\
+\midrule
+Hiệu năng truy vấn & Thời gian phản hồi API dưới 200 mili-giây & Tối ưu hóa truy vấn MongoDB với chỉ mục đơn, tận dụng mô hình vào ra không chặn của Node.js. \\
+\addlinespace
+Hiệu năng nhúng & Thời gian xử lý vector dưới 50 mili-giây & Ứng dụng FastEmbed ONNX Runtime chạy trực tiếp trên bộ vi xử lý máy chủ. \\
+\addlinespace
+Độ trễ phản hồi AI & Toàn bộ chu trình tư vấn dưới 2.5 giây & Kết hợp truy xuất tương đồng vector cục bộ với mô hình ngôn ngữ tốc độ cao Google Gemini Flash. \\
+\addlinespace
+Toàn vẹn giao dịch & Xác thực chữ ký số tuyệt đối & Kiểm tra mã băm mật mã HMAC-SHA512 đối với VNPAY và HMAC-SHA256 đối với MoMo trên kênh thông báo tức thời. \\
+\addlinespace
+Bảo vệ tài nguyên & Ngăn chặn truy cập trái phép & Áp dụng bộ lọc phần mềm trung gian chặn truy cập trực tiếp tới bảng lịch sử thanh toán; kiểm soát phân quyền quản trị đa tầng. \\
+\addlinespace
+An toàn thông tin & Bộ ba lớp phòng vệ nội dung & Sử dụng các mẫu biểu thức chính quy sàng lọc thông tin cá nhân nhạy cảm và phát hiện câu lệnh tấn công bẻ khóa. \\
+\addlinespace
+Tính khả dụng & Tương thích đa kích thước màn hình & Áp dụng thiết kế web thích ứng với Bootstrap 5, đảm bảo hiển thị chuẩn xác từ màn hình 375 pixel đến 1920 pixel. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Đặc tả Chi tiết Toàn bộ Tám Trường hợp Sử dụng Cốt lõi}
+Các trường hợp sử dụng cốt lõi của hệ thống từ UC-01 đến UC-08 được mô tả chi tiết và chuẩn hóa thông qua các bảng đặc tả kỹ thuật dưới đây.
+
+\subsection{Trường hợp Sử dụng UC-01: Thanh toán Đơn hàng qua Cổng VNPAY}
+Bảng~\ref{tab:uc01} mô tả chi tiết quy trình thanh toán trực tuyến qua cổng VNPAY trên môi trường thử nghiệm, thể hiện sự phối hợp giữa máy khách, máy chủ ứng dụng và đối tác tài chính ngoại vi.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-01: Thanh toán qua Cổng VNPAY}
+\label{tab:uc01}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-01 \\
+Tên trường hợp sử dụng & Thanh toán Đơn hàng qua Cổng VNPAY Sandbox \\
+Tác nhân tham gia & Khách hàng, Cổng thanh toán VNPAY \\
+Tiền điều kiện & Khách hàng đã đăng nhập tài khoản hợp lệ, giỏ hàng có sản phẩm tồn kho khả dụng và đã điền đầy đủ thông tin giao hàng tại trang đặt hàng. \\
+Sự kiện kích hoạt & Khách hàng chọn phương thức thanh toán VNPAY và nhấn nút xác nhận đặt hàng. \\
+Luồng sự kiện chính & 
+Máy khách tạo mã định danh yêu cầu chống gửi trùng và phát yêu cầu tạo phiên thanh toán đến máy chủ.
+Máy chủ kiểm tra tính hợp lệ của mã yêu cầu, tạm giữ tồn kho sản phẩm, tạo bản ghi đơn hàng ở trạng thái chờ và khởi tạo bản ghi phiên giao dịch tương ứng.
+Máy chủ sinh chữ ký băm HMAC-SHA512 với khóa bí mật nội bộ và phản hồi đường dẫn thanh toán cho máy khách.
+Trình duyệt khách hàng chuyển hướng sang cổng thanh toán VNPAY. Khách hàng nhập thông tin thẻ thử nghiệm và mã xác thực mật khẩu dùng một lần.
+Cổng VNPAY gửi tín hiệu ngầm trực tiếp từ máy chủ tới máy chủ qua kênh thông báo thanh toán tức thời.
+Máy chủ ứng dụng xác thực chữ ký số của gói tin thông báo, đối chiếu số tiền và cập nhật trạng thái đơn hàng sang đã thanh toán, đồng thời làm rỗng giỏ hàng của người dùng.
+Cổng VNPAY chuyển hướng trình duyệt của khách hàng quay trở về giao diện ứng dụng để hiển thị thông báo kết quả giao dịch thành công. \\
+Luồng sự kiện phụ & Khách hàng chủ động hủy bỏ phiên thanh toán tại cổng đối tác; cổng thanh toán phản hồi mã trạng thái không thành công về địa chỉ điều hướng; hệ thống hiển thị thông báo thất bại và cung cấp tùy chọn thanh toán lại. \\
+Luồng ngoại lệ & Sai lệch chữ ký kiểm tra hoặc mất kết nối mạng; hệ thống từ chối cập nhật trạng thái đơn hàng nhằm bảo vệ an toàn tài chính. \\
+Hậu điều kiện & Đơn hàng chuyển sang trạng thái đã thanh toán, số lượng tồn kho được cập nhật chính xác và giỏ hàng được làm sạch. \\
+Giao diện liên quan & Trang Đặt hàng, Trang Kết quả Thanh toán. \\
+Dịch vụ liên quan & POST /api/payments/vnpay/create, GET /api/payments/vnpay/ipn, GET /api/payments/vnpay/return. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập đơn hàng, bộ sưu tập phiên thanh toán, bộ sưu tập giỏ hàng, bộ sưu tập sản phẩm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-02: Tư vấn Sản phẩm qua Trợ lý Trí tuệ Nhân tạo}
+Bảng~\ref{tab:uc02} mô tả chu trình tiếp nhận câu hỏi, kiểm duyệt an toàn, tìm kiếm tương đồng ngữ nghĩa và sinh phản hồi của trợ lý ảo RAG.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-02: Tư vấn qua Trợ lý RAG}
+\label{tab:uc02}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-02 \\
+Tên trường hợp sử dụng & Tư vấn Mua sắm bằng Trợ lý Ảo RAG \\
+Tác nhân tham gia & Khách hàng hoặc Khách vãng lai, Dịch vụ Trí tuệ Nhân tạo \\
+Tiền điều kiện & Khung trò chuyện của trợ lý đang hiển thị trên giao diện người dùng. \\
+Sự kiện kích hoạt & Người dùng nhập nội dung câu hỏi và nhấn nút gửi. \\
+Luồng sự kiện chính & 
+Máy khách gửi nội dung câu hỏi và thông tin người dùng tới cổng dịch vụ trí tuệ nhân tạo.
+Hệ thống kiểm tra câu hỏi qua bộ ba lớp phòng vệ nhằm sàng lọc thông tin cá nhân nhạy cảm, nhận diện câu lệnh bẻ khóa chỉ thị và loại trừ các chủ đề ngoài lề.
+Câu hỏi hợp lệ được chuyển thành vector đặc trưng trong không gian 384 chiều nhờ mô hình FastEmbed.
+Hệ thống tính toán chỉ số tương đồng Cosine để trích xuất các sản phẩm phù hợp nhất trong cơ sở dữ liệu.
+Thông tin kỹ thuật và giá bán của các sản phẩm được ghép nối vào câu lệnh chỉ thị hệ thống.
+Hệ thống gửi câu lệnh chỉ thị tổng hợp tới mô hình Google Gemini Flash để sinh câu trả lời bằng ngôn ngữ tự nhiên.
+Nội dung phản hồi được truyền về máy khách và kết xuất lên khung trò chuyện. \\
+Luồng sự kiện phụ & Câu hỏi vi phạm các quy tắc phòng vệ an toàn; hệ thống phản hồi ngay thông điệp từ chối chuẩn mực mà không kích hoạt mô hình ngôn ngữ bên ngoài. Trong trường hợp gián đoạn kết nối ngoại vi, hệ thống tự động ghép nối thông tin sản phẩm tìm thấy theo khuôn mẫu nội bộ để phản hồi cho người dùng. \\
+Hậu điều kiện & Lịch sử đối thoại được lưu vết và hiển thị trực quan trên giao diện trò chuyện. \\
+Dịch vụ liên quan & POST /api/chat, GET /api/health. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập sản phẩm, bộ sưu tập tin nhắn trò chuyện. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-03: Quản trị Vòng đời Đơn hàng theo Máy Trạng thái}
+Bảng~\ref{tab:uc03} mô tả quy trình tiếp nhận, phê duyệt và điều chuyển trạng thái đơn hàng của quản trị viên tuân thủ các quy tắc của máy trạng thái hữu hạn.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-03: Quản trị Đơn hàng FSM}
+\label{tab:uc03}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-03 \\
+Tên trường hợp sử dụng & Quản trị và Chuyển trạng thái Đơn hàng FSM \\
+Tác nhân tham gia & Quản trị viên \\
+Tiền điều kiện & Người dùng đã đăng nhập với tài khoản có quyền quản trị viên. \\
+Sự kiện kích hoạt & Quản trị viên truy cập màn hình quản lý đơn hàng và chọn thao tác thay đổi trạng thái của một đơn hàng cụ thể. \\
+Luồng sự kiện chính & 
+Quản trị viên lựa chọn trạng thái mục tiêu kế tiếp cho đơn hàng.
+Máy khách phát yêu cầu cập nhật trạng thái kèm định danh quản trị viên tới máy chủ.
+Máy chủ xác minh quyền quản trị và đối chiếu bước chuyển trạng thái với ma trận chuyển đổi trạng thái hợp lệ.
+Nếu trạng thái mục tiêu là hủy đơn hàng, máy chủ tự động thực thi hàm hoàn trả số lượng hàng vào kho tồn.
+Máy chủ cập nhật trạng thái mới và dấu thời gian chỉnh sửa vào cơ sở dữ liệu.
+Phản hồi thông tin đơn hàng đã cập nhật thành công về giao diện quản trị. \\
+Luồng ngoại lệ & Quản trị viên cố gắng chuyển trạng thái sang giao hàng đối với đơn hàng thanh toán trực tuyến nhưng chưa hoàn tất nghĩa vụ tài chính; máy chủ chặn yêu cầu và phản hồi mã lỗi xung đột 409. Trong trường hợp bước chuyển không nằm trong ma trận chuyển đổi hợp lệ, máy chủ từ chối cập nhật và trả về thông báo lỗi tương ứng. \\
+Hậu điều kiện & Trạng thái đơn hàng được cập nhật đồng bộ, số lượng tồn kho được điều chỉnh tương ứng nếu phát sinh thao tác hủy đơn. \\
+Dịch vụ liên quan & GET /api/admin/orders, PATCH /api/admin/orders/:orderId/status. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập đơn hàng, bộ sưu tập sản phẩm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-04: Thanh toán Đơn hàng qua Ví Điện tử MoMo}
+Bảng~\ref{tab:uc04} mô tả chi tiết quy trình khởi tạo giao dịch, thanh toán qua mã phản hồi nhanh và xác nhận kết quả với ví điện tử MoMo trên môi trường thử nghiệm.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-04: Thanh toán qua Ví MoMo}
+\label{tab:uc04}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-04 \\
+Tên trường hợp sử dụng & Thanh toán Đơn hàng qua Ví MoMo Sandbox \\
+Tác nhân tham gia & Khách hàng, Cổng thanh toán MoMo \\
+Tiền điều kiện & Khách hàng đã đăng nhập tài khoản hợp lệ, giỏ hàng có sản phẩm tồn kho khả dụng và đã điền đầy đủ thông tin giao hàng tại trang đặt hàng. \\
+Sự kiện kích hoạt & Khách hàng chọn phương thức thanh toán MoMo và nhấn nút xác nhận thanh toán. \\
+Luồng sự kiện chính & 
+Máy khách gửi yêu cầu đặt hàng kèm mã định danh chống gửi trùng tới máy chủ ứng dụng.
+Máy chủ kiểm tra tính hợp lệ của yêu cầu, tạo bản ghi đơn hàng ở trạng thái chờ và khởi tạo bản ghi phiên giao dịch MoMo.
+Máy chủ sinh chữ ký băm HMAC-SHA256 với khóa bí mật MoMo và gửi yêu cầu khởi tạo phiên tới cổng MoMo.
+Cổng MoMo phản hồi đường dẫn thanh toán, mã phản hồi nhanh và liên kết mở ứng dụng di động.
+Máy chủ chuyển tiếp thông tin thanh toán về máy khách để hiển thị mã phản hồi nhanh hoặc chuyển hướng trình duyệt.
+Khách hàng quét mã phản hồi nhanh bằng ứng dụng MoMo thử nghiệm và xác nhận thanh toán.
+Máy chủ MoMo phát tín hiệu ngầm tới địa chỉ thông báo tức thời của ứng dụng.
+Máy chủ ứng dụng kiểm tra tính hợp lệ của chữ ký số, đối chiếu số tiền và cập nhật trạng thái đơn hàng sang đã thanh toán, đồng thời làm rỗng giỏ hàng của người dùng.
+Khách hàng được điều hướng về trang kết quả thanh toán hiển thị trạng thái hoàn tất thành công. \\
+Luồng sự kiện phụ & Khách hàng từ chối giao dịch trên ứng dụng MoMo; cổng MoMo phản hồi mã lỗi tương ứng; hệ thống chuyển trạng thái phiên sang thất bại và cung cấp tùy chọn thanh toán lại. \\
+Luồng ngoại lệ & Sai lệch chữ ký kiểm tra hoặc mất kết nối mạng; hệ thống giữ nguyên trạng thái chưa thanh toán của đơn hàng. \\
+Hậu điều kiện & Đơn hàng chuyển sang trạng thái đã thanh toán, tồn kho được khấu trừ chính xác và giỏ hàng được làm sạch. \\
+Giao diện liên quan & Trang Đặt hàng, Trang Kết quả Thanh toán. \\
+Dịch vụ liên quan & POST /api/payments/momo/create, POST /api/payments/momo/ipn, GET /api/payments/momo/return. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập đơn hàng, bộ sưu tập phiên thanh toán, bộ sưu tập giỏ hàng, bộ sưu tập sản phẩm. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-05: Thu thập và Áp dụng Mã Giảm giá}
+Bảng~\ref{tab:uc05} mô tả quy trình người dùng thu thập mã khuyến mãi vào ví cá nhân và áp dụng khấu trừ chiết khấu trong chu trình đặt hàng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-05: Quản lý và Áp dụng Khuyến mãi}
+\label{tab:uc05}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-05 \\
+Tên trường hợp sử dụng & Thu thập và Áp dụng Mã Khuyến mãi \\
+Tác nhân tham gia & Khách hàng \\
+Tiền điều kiện & Người dùng đã đăng nhập tài khoản vào hệ thống. \\
+Sự kiện kích hoạt & Người dùng nhấn nút thu thập mã tại trang ví khuyến mãi hoặc nhập mã tại trang đặt hàng. \\
+Luồng sự kiện chính & 
+Khách hàng truy cập trang tri ân và nhấn nút thu thập voucher mong muốn.
+Hệ thống kiểm tra số lượng mã đã phát hành và ghi nhận bản ghi mới vào bộ sưu tập ví khuyến mãi của người dùng với trạng thái chưa sử dụng.
+Khi thực hiện đặt hàng tại trang checkout, khách hàng lựa chọn mã giảm giá từ danh sách mã cá nhân khả dụng.
+Hệ thống đối chiếu giá trị tạm tính của đơn hàng với điều kiện giá trị đơn tối thiểu của mã.
+Nếu thỏa mãn điều kiện, hệ thống tự động tính toán số tiền giảm trừ tương ứng theo tỷ lệ phần trăm hoặc số tiền cố định và cập nhật lại tổng tiền thanh toán cuối cùng.
+Khi đơn hàng được xác nhận tạo thành công, mã giảm giá được chuyển đổi trạng thái sang đã sử dụng để ngăn ngừa việc tái sử dụng trái phép. \\
+Luồng ngoại lệ & Giá trị đơn hàng chưa đạt mức tối thiểu quy định hoặc mã giảm giá đã hết hạn; hệ thống từ chối áp dụng và hiển thị thông báo nhắc nhở rõ ràng cho người dùng. \\
+Hậu điều kiện & Đơn hàng được ghi nhận số tiền chiết khấu chuẩn xác, trạng thái mã giảm giá được cập nhật. \\
+Giao diện liên quan & Trang Ví Khuyến mãi, Trang Đặt hàng. \\
+Dịch vụ liên quan & GET /vouchers, GET /userVouchers, POST /userVouchers. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập khuyến mãi, bộ sưu tập ví khuyến mãi người dùng, bộ sưu tập đơn hàng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-06: Đăng ký và Xác thực Tài khoản}
+Bảng~\ref{tab:uc06} mô tả quy trình tạo tài khoản mới và đăng nhập xác thực quyền hạn của người dùng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-06: Đăng ký và Xác thực Người dùng}
+\label{tab:uc06}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-06 \\
+Tên trường hợp sử dụng & Đăng ký và Xác thực Tài khoản Người dùng \\
+Tác nhân tham gia & Khách vãng lai, Khách hàng \\
+Tiền điều kiện & Người dùng truy cập trang đăng ký hoặc đăng nhập của ứng dụng. \\
+Sự kiện kích hoạt & Người dùng điền thông tin biểu mẫu và nhấn nút xác nhận đăng ký hoặc đăng nhập. \\
+Luồng sự kiện chính & 
+Khách hàng nhập tên đăng nhập, địa chỉ thư điện tử, mật khẩu và họ tên tại trang đăng ký.
+Máy khách kiểm tra tính hợp lệ của định dạng dữ liệu đầu vào trước khi phát yêu cầu tạo mới tài khoản.
+Máy chủ kiểm tra tính duy nhất của tên đăng nhập và thư điện tử trong cơ sở dữ liệu.
+Nếu dữ liệu hợp lệ, mật khẩu được băm bảo mật và bản ghi tài khoản mới được lưu trữ với vai trò người dùng thông thường và trạng thái kích hoạt.
+Người dùng chuyển sang giao diện đăng nhập và cung cấp tên đăng nhập cùng mật khẩu.
+Máy chủ đối chiếu thông tin xác thực, nếu khớp hoàn toàn sẽ phản hồi thông tin định danh và vai trò của tài khoản.
+Máy khách lưu trữ thông tin phiên làm việc an toàn tại bộ nhớ cục bộ và chuyển hướng người dùng về trang chủ. \\
+Luồng ngoại lệ & Tên đăng nhập đã tồn tại trong hệ thống hoặc mật khẩu xác thực không chính xác; hệ thống từ chối yêu cầu và hiển thị cảnh báo lỗi tương ứng. \\
+Hậu điều kiện & Tài khoản được tạo mới trong cơ sở dữ liệu, phiên làm việc được thiết lập tại máy khách. \\
+Giao diện liên quan & Trang Đăng ký, Trang Đăng nhập. \\
+Dịch vụ liên quan & POST /users, GET /users. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập người dùng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-07: Quản trị Kho Hàng và Danh mục Sản phẩm}
+Bảng~\ref{tab:uc07} mô tả nghiệp vụ kiểm soát kho hàng, cập nhật thông số và điều chỉnh giá bán của quản trị viên.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-07: Quản trị Kho và Sản phẩm}
+\label{tab:uc07}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-07 \\
+Tên trường hợp sử dụng & Quản trị Kho Hàng và Danh mục Sản phẩm \\
+Tác nhân tham gia & Quản trị viên \\
+Tiền điều kiện & Người dùng đã đăng nhập với tài khoản có quyền quản trị viên. \\
+Sự kiện kích hoạt & Quản trị viên truy cập màn hình quản lý sản phẩm và thực hiện thao tác thêm mới, chỉnh sửa hoặc xóa sản phẩm. \\
+Luồng sự kiện chính & 
+Quản trị viên truy cập giao diện quản lý kho hàng và chọn thao tác thêm mới hoặc chỉnh sửa một sản phẩm cụ thể.
+Quản trị viên điền các trường thông tin bao gồm tên sản phẩm, danh mục cha, giá bán niêm yết, số lượng tồn kho và đường dẫn ảnh đại diện.
+Máy khách kiểm tra tính đầy đủ của dữ liệu biểu mẫu trước khi gửi yêu cầu cập nhật tới máy chủ.
+Máy chủ xác minh quyền quản trị viên thông qua tiêu đề định danh người dùng.
+Máy chủ thực hiện việc tạo mới hoặc cập nhật các trường thông tin tương ứng vào cơ sở dữ liệu và lưu vết thời điểm cập nhật.
+Máy chủ phản hồi dữ liệu sản phẩm đã lưu thành công về giao diện quản trị viên để cập nhật danh sách hiển thị. \\
+Luồng ngoại lệ & Người dùng không có quyền quản trị viên thực hiện thao tác; hệ thống từ chối với mã lỗi 403 Forbidden. \\
+Hậu điều kiện & Thông tin sản phẩm và số lượng tồn kho được cập nhật chính xác trong cơ sở dữ liệu. \\
+Giao diện liên quan & Trang Quản trị Sản phẩm. \\
+Dịch vụ liên quan & GET /products, POST /products, PATCH /products/:id, DELETE /products/:id. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập sản phẩm, bộ sưu tập danh mục cha. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Trường hợp Sử dụng UC-08: Báo cáo Thống kê Doanh thu và Đơn hàng}
+Bảng~\ref{tab:uc08} mô tả chu trình truy xuất, tổng hợp và trực quan hóa số liệu kinh doanh trên bảng điều khiển quản trị.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chi tiết Trường hợp Sử dụng UC-08: Thống kê Doanh thu}
+\label{tab:uc08}
+\begin{tabularx}{\textwidth}{p{3.5cm}X}
+\toprule
+\textbf{Thuộc tính} & \textbf{Nội dung Đặc tả Kỹ thuật} \\
+\midrule
+Mã định danh & UC-08 \\
+Tên trường hợp sử dụng & Báo cáo Thống kê Doanh thu và Đơn hàng \\
+Tác nhân tham gia & Quản trị viên \\
+Tiền điều kiện & Người dùng đã đăng nhập với tài khoản có quyền quản trị viên. \\
+Sự kiện kích hoạt & Quản trị viên truy cập màn hình thống kê báo cáo tại bảng điều khiển. \\
+Luồng sự kiện chính & 
+Quản trị viên truy cập màn hình thống kê doanh thu.
+Máy khách gửi yêu cầu truy xuất dữ liệu đơn hàng, sản phẩm và người dùng tới máy chủ.
+Máy chủ xác minh quyền quản trị và thực hiện các phép truy vấn tổng hợp trên cơ sở dữ liệu.
+Máy chủ tính toán tổng doanh thu lũy kế từ các đơn hàng có trạng thái thanh toán thành công, phân loại doanh thu theo các mốc thời gian ngày và tháng, đồng thời thống kê tỷ trọng phân bổ theo từng phương thức thanh toán.
+Máy chủ phản hồi các tập dữ liệu tổng hợp về máy khách.
+Máy khách sử dụng thư viện đồ họa Recharts để trực quan hóa số liệu thành các biểu đồ cột và biểu đồ tròn sinh động. \\
+Luồng ngoại lệ & Lỗi kết nối mạng trong quá trình truy xuất dữ liệu tổng hợp; hệ thống hiển thị thông báo lỗi và cung cấp nút tải lại dữ liệu. \\
+Hậu điều kiện & Số liệu thống kê kinh doanh được trực quan hóa đầy đủ phục vụ công tác ra quyết định của ban quản lý. \\
+Giao diện liên quan & Trang Thống kê Doanh thu Quản trị. \\
+Dịch vụ liên quan & GET /api/admin/orders, GET /products, GET /users. \\
+Cơ sở dữ liệu liên quan & Bộ sưu tập đơn hàng, bộ sưu tập sản phẩm, bộ sưu tập người dùng. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Đặc tả Các Quy tắc Nghiệp vụ Hệ thống}
+Nhằm đảm bảo tính nhất quán của dữ liệu và tuân thủ các nguyên tắc kinh doanh của một sàn thương mại điện tử hiện đại, hệ thống HCore Store thiết lập tập hợp hai mươi quy tắc nghiệp vụ ràng buộc bắt buộc. Mọi thao tác xử lý dữ liệu tại tầng giao diện và tầng máy chủ đều phải thỏa mãn tuyệt đối các quy tắc được định nghĩa trong Bảng~\ref{tab:business_rules}.
+
+\begin{table}[H]
+\centering
+\caption{Danh mục Các Quy tắc Nghiệp vụ Bắt buộc của Hệ thống (Business Rules)}
+\label{tab:business_rules}
+\begin{tabularx}{\textwidth}{p{2cm}p{3.8cm}X}
+\toprule
+\textbf{Mã Quy tắc} & \textbf{Tên Quy tắc Nghiệp vụ} & \textbf{Nội dung Định nghĩa và Ràng buộc Kỹ thuật} \\
+\midrule
+BR-01 & Tính duy nhất tài khoản & Tên đăng nhập và địa chỉ thư điện tử của mỗi người dùng phải là duy nhất trên toàn hệ thống cơ sở dữ liệu. Hệ thống từ chối mọi yêu cầu đăng ký nếu thông tin đã tồn tại. \\
+\addlinespace
+BR-02 & Bảo mật mật khẩu & Mật khẩu người dùng khi tạo mới hoặc cập nhật bắt buộc phải có độ dài tối thiểu sáu ký tự và phải được băm bảo mật trước khi lưu trữ vào cơ sở dữ liệu. \\
+\addlinespace
+BR-03 & Kiểm soát tồn kho khả dụng & Khách hàng không được phép thêm vào giỏ hàng hoặc đặt mua số lượng sản phẩm vượt quá số lượng hàng hóa khả dụng thực tế trong kho tồn. \\
+\addlinespace
+BR-04 & Khấu trừ kho tức thời & Khi đơn hàng được khởi tạo thành công theo bất kỳ phương thức thanh toán nào, số lượng tồn kho khả dụng của các sản phẩm tương ứng lập tức bị giảm trừ. \\
+\addlinespace
+BR-05 & Hoàn trả tồn kho khi hủy & Khi đơn hàng chuyển sang trạng thái đã hủy theo yêu cầu của khách hàng hoặc quản trị viên, toàn bộ số lượng sản phẩm trong đơn phải được tự động hoàn trả lại kho. \\
+\addlinespace
+BR-06 & Khóa chống gửi trùng & Mọi yêu cầu tạo đơn hàng và thanh toán trực tuyến phải đính kèm mã định danh duy nhất `requestId`. Hệ thống từ chối xử lý nếu mã này đã được ghi nhận trong cơ sở dữ liệu. \\
+\addlinespace
+BR-07 & Thời hạn phiên thanh toán & Phiên thanh toán trực tuyến qua VNPAY hoặc MoMo có thời hạn tối đa mười lăm phút. Quá thời hạn trên, giao dịch tự động chuyển sang trạng thái hết hạn và bị từ chối. \\
+\addlinespace
+BR-08 & Xác thực chữ ký số bắt buộc & Mọi gói tin thông báo kết quả giao dịch gửi từ cổng thanh toán qua kênh Return URL hoặc IPN Webhook bắt buộc phải được xác minh chữ ký số trước khi cập nhật đơn hàng. \\
+\addlinespace
+BR-09 & Chốt chặn duyệt đơn VNPAY & Quản trị viên bị nghiêm cấm duyệt đơn hàng sang trạng thái đã xác nhận, đang giao hoặc hoàn tất nếu đơn hàng thanh toán qua VNPAY nhưng trạng thái thanh toán chưa là đã thanh toán. \\
+\addlinespace
+BR-10 & Bất biến đơn hàng đã kết thúc & Đơn hàng đã bước vào trạng thái hoàn tất hoặc đã hủy là trạng thái kết thúc của máy trạng thái, không được phép chuyển đổi sang bất kỳ trạng thái nào khác. \\
+\addlinespace
+BR-11 & Điều kiện áp dụng voucher & Mã voucher chỉ được kích hoạt khi tổng giá trị tiền hàng của giỏ hàng đạt hoặc vượt quá mức giá trị đơn hàng tối thiểu `minOrder` quy định trong chương trình. \\
+\addlinespace
+BR-12 & Không cộng dồn mã giảm giá & Trong mỗi đơn hàng, khách hàng chỉ được phép áp dụng tối đa một mã giảm giá voucher duy nhất. \\
+\addlinespace
+BR-13 & Đánh dấu sử dụng voucher & Khi đơn hàng được tạo thành công với mã voucher đã lưu trong ví người dùng, bản ghi liên kết tương ứng trong `userVouchers` phải lập tức chuyển sang trạng thái đã dùng. \\
+\addlinespace
+BR-14 & Giới hạn thu thập voucher & Một người dùng chỉ được phép lưu mỗi mã voucher vào ví cá nhân một lần duy nhất và tổng số lượt lưu trên toàn hệ thống không vượt quá chỉ tiêu `maxCollect`. \\
+\addlinespace
+BR-15 & Xóa mềm dữ liệu sản phẩm & Thao tác xóa sản phẩm trong giao diện quản trị chỉ thực hiện đánh dấu cờ xóa mềm `deleted = true`, tuyệt đối không xóa bản ghi vật lý để bảo toàn lịch sử các đơn hàng cũ. \\
+\addlinespace
+BR-16 & Nghiêm cấm xóa đơn thanh toán & Các đơn hàng có phương thức thanh toán trực tuyến VNPAY hoặc MoMo bị cấm xóa vật lý khỏi cơ sở dữ liệu dưới mọi hình thức nhằm phục vụ công tác đối soát thuế và kế toán. \\
+\addlinespace
+BR-17 & Phân quyền bảo vệ định tuyến & Toàn bộ các tuyến đường và giao diện quản trị viên phải được bảo vệ bởi lớp kiểm tra quyền hạn. Người dùng thông thường hoặc khách vãng lai bị chuyển hướng lập tức về trang đăng nhập. \\
+\addlinespace
+BR-18 & Ghi vết kiểm toán bảo mật & Mọi thao tác can thiệp thay đổi dữ liệu của tài khoản quản trị viên phải được ghi vết tự động vào bộ sưu tập `auditLogs` kèm thời điểm, hành vi, mục tiêu và địa chỉ IP nguồn. \\
+\addlinespace
+BR-19 & Bảo vệ dữ liệu cá nhân AI & Trợ lý ảo RAG bị nghiêm cấm trích xuất và hiển thị các thông tin định danh cá nhân nhạy cảm gồm số điện thoại, mật khẩu, địa chỉ nhà riêng và số thẻ ngân hàng của người dùng. \\
+\addlinespace
+BR-20 & Dự phòng cục bộ cho trợ lý ảo & Khi dịch vụ trí tuệ nhân tạo mất kết nối Internet tới máy chủ Google Gemini, hệ thống bắt buộc phải tự động kích hoạt cơ chế phản hồi mẫu nội bộ, duy trì trải nghiệm không gián đoạn. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Đặc tả Chi tiết Các Yêu cầu Phi Chức năng}
+Bên cạnh các yêu cầu chức năng, hệ thống HCore Store phải đáp ứng nghiêm ngặt các tiêu chuẩn chất lượng công nghệ phần mềm được phân nhóm thành năm nhóm yêu cầu phi chức năng chính.
+
+\subsection{Yêu cầu về Hiệu năng và Độ trễ (NFR-PERF)}
+Hệ thống phải đảm bảo tốc độ phản hồi nhanh chóng nhằm tối ưu hóa trải nghiệm mua sắm của người dùng. Bảng~\ref{tab:nfr_perf} quy định các chỉ tiêu định lượng cụ thể cho từng thành phần trong hệ thống.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Chỉ tiêu Hiệu năng và Độ trễ Hệ thống (NFR-PERF)}
+\label{tab:nfr_perf}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4cm}p{2.5cm}X}
+\toprule
+\textbf{Mã Chỉ tiêu} & \textbf{Tác vụ Hệ thống} & \textbf{Ngưỡng Tối đa} & \textbf{Mục tiêu Nghiệp vụ} \\
+\midrule
+NFR-P01 & Tải trang ứng dụng web đơn trang ban đầu & Dưới 1.8 giây & Tối ưu hóa gói dựng Vite và nạp tài nguyên bất đồng bộ. \\
+NFR-P02 & Phản hồi các truy vấn đọc dữ liệu API & Dưới 80 mili-giây & Khai thác chỉ mục đơn và chỉ mục kép trên cụm MongoDB Atlas. \\
+NFR-P03 & Phản hồi tác vụ ghi đơn hàng và đặt hàng & Dưới 200 mili-giây & Bảo đảm thời gian thực thi nhanh chóng trong quy trình thanh toán. \\
+NFR-P04 & Sinh chữ ký băm và tạo URL thanh toán & Dưới 100 mili-giây & Tối ưu thuật toán mã hóa Crypto trên bộ nhớ RAM máy chủ. \\
+NFR-P05 & Nhúng vector câu hỏi với FastEmbed & Dưới 35 mili-giây & Thực thi mô hình ONNX trực tiếp trên bộ vi xử lý máy chủ. \\
+NFR-P06 & Truy xuất độ tương đồng Cosine danh mục & Dưới 30 mili-giây & Tính toán ma trận vector với thư viện tối ưu hóa NumPy. \\
+NFR-P07 & Sinh phản hồi hoàn chỉnh từ Gemini Flash & Dưới 2.0 giây & Đảm bảo luồng trò chuyện với trợ lý ảo mượt mà, tự nhiên. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Yêu cầu về An toàn và Bảo mật Thông tin (NFR-SEC)}
+An toàn thông tin là nền tảng sống còn của một hệ thống thương mại điện tử giao dịch trực tuyến. Bảng~\ref{tab:nfr_sec} quy định các tiêu chuẩn bảo mật bắt buộc đối với dữ liệu người dùng và kênh truyền thông tin.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Tiêu chuẩn An toàn và Bảo mật Thông tin (NFR-SEC)}
+\label{tab:nfr_sec}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4.5cm}X}
+\toprule
+\textbf{Mã Tiêu chuẩn} & \textbf{Phạm vi Bảo mật} & \textbf{Quy cách Triển khai Kỹ thuật} \\
+\midrule
+NFR-S01 & Bảo vệ mật khẩu tài khoản & Băm một chiều toàn bộ mật khẩu người dùng trước khi lưu trữ vào cơ sở dữ liệu, ngăn ngừa lộ lọt dữ liệu khi bị rò rỉ cơ sở dữ liệu. \\
+\addlinespace
+NFR-S02 & Chữ ký số giao dịch tài chính & Ứng dụng chuẩn băm HMAC-SHA512 đối với cổng VNPAY và HMAC-SHA256 đối với ví MoMo kèm chuỗi khóa bí mật nội bộ độc lập. \\
+\addlinespace
+NFR-S03 & Kênh truyền thông tin mã hóa & Toàn bộ giao tiếp giữa máy khách, máy chủ nghiệp vụ và cổng đối tác bắt buộc sử dụng giao thức truyền siêu văn bản an toàn HTTPS với chứng chỉ SSL/TLS. \\
+\addlinespace
+NFR-S04 & Bảo vệ chống tấn công NoSQL & Sử dụng các hàm truy vấn có tham số hóa của trình điều khiển MongoDB Native Driver, loại bỏ hoàn toàn nguy cơ tiêm lệnh mã độc. \\
+\addlinespace
+NFR-S05 & Phòng vệ bẻ khóa chỉ thị AI & Triển khai lớp phòng vệ kiểm tra câu lệnh trước khi nạp vào mô hình ngôn ngữ lớn, ngăn chặn các nỗ lực chiếm quyền điều khiển danh tính trợ lý. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Yêu cầu về Tính sẵn sàng và Khả năng Phục hồi (NFR-AVAIL)}
+Hệ thống phải có khả năng hoạt động liên tục với mức độ sẵn sàng cao, đảm bảo hoạt động bán hàng không bị gián đoạn ngay cả khi xảy ra sự cố mạng ngoại vi. Bảng~\ref{tab:nfr_avail} quy định các chỉ số về tính sẵn sàng và phương án phục hồi.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Tính sẵn sàng và Phục hồi Hệ thống (NFR-AVAIL)}
+\label{tab:nfr_avail}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4.5cm}X}
+\toprule
+\textbf{Mã Chỉ tiêu} & \textbf{Đặc tính Kỹ thuật} & \textbf{Cơ chế Đảm bảo Hoạt động} \\
+\midrule
+NFR-A01 & Mức độ sẵn sàng tổng thể & Đạt tỷ lệ tối thiểu 99.9\% thời gian hoạt động trong năm đối với máy chủ bán hàng và dịch vụ cổng thanh toán. \\
+\addlinespace
+NFR-A02 & Tự phục hồi kết nối CSDL & Trình điều khiển kết nối MongoDB tự động kích hoạt tiến trình thiết lập lại kết nối khi đường truyền mạng đám mây gặp sự cố ngắn hạn. \\
+\addlinespace
+NFR-A03 & Khả năng chịu lỗi dịch vụ AI & Khi dịch vụ Gemini API hết hạn mức hoặc mất kết nối, dịch vụ FastAPI tự động chuyển sang chế độ khuôn mẫu nội bộ, không làm sập giao diện người dùng. \\
+\addlinespace
+NFR-A04 & Sao lưu dữ liệu định kỳ & Cơ sở dữ liệu MongoDB Atlas được thiết lập cơ chế sao lưu tự động chụp ảnh dữ liệu hàng ngày phục vụ công tác khôi phục sau thảm họa. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Yêu cầu về Khả năng Sử dụng và Trải nghiệm Người dùng (NFR-USAB)}
+Giao diện ứng dụng phải được thiết kế khoa học, thân thiện và dễ dàng thao tác đối với mọi nhóm đối tượng khách hàng trên nhiều loại thiết bị phần cứng khác nhau. Bảng~\ref{tab:nfr_usab} mô tả các yêu cầu về trải nghiệm người dùng.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Khả năng Sử dụng và Trải nghiệm Người dùng (NFR-USAB)}
+\label{tab:nfr_usab}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4.5cm}X}
+\toprule
+\textbf{Mã Yêu cầu} & \textbf{Khía cạnh Trải nghiệm} & \textbf{Tiêu chuẩn Đạt được} \\
+\midrule
+NFR-U01 & Tương thích đa thiết bị & Bố cục giao diện co giãn linh hoạt theo công nghệ Responsive trên màn hình máy tính để bàn, máy tính bảng và điện thoại thông minh. \\
+\addlinespace
+NFR-U02 & Thời gian làm quen hệ thống & Người dùng mới có thể hoàn tất quy trình tìm kiếm sản phẩm và thanh toán đơn hàng thành công trong vòng dưới ba phút mà không cần hướng dẫn. \\
+\addlinespace
+NFR-U03 & Thông báo trạng thái rõ ràng & Mọi hành vi tương tác gồm thêm giỏ hàng, áp mã giảm giá, lưu thông tin đều có thông báo phản hồi trạng thái tức thời dưới dạng Toast popup. \\
+\addlinespace
+NFR-U04 & Tính tương phản và dễ đọc & Màu sắc văn bản và phông chữ tuân thủ tiêu chuẩn tương phản hiển thị Web Content Accessibility Guidelines mức độ AA. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Yêu cầu về Khả năng Bảo trì và Khả năng Mở rộng (NFR-MAINT)}
+Mã nguồn và kiến trúc hệ thống phải được tổ chức khoa học để tạo điều kiện thuận lợi cho việc phát triển thêm các tính năng mới và mở rộng quy mô kinh doanh. Bảng~\ref{tab:nfr_maint} quy định các tiêu chuẩn về bảo trì và kiến trúc.
+
+\begin{table}[H]
+\centering
+\caption{Đặc tả Khả năng Bảo trì và Khả năng Mở rộng (NFR-MAINT)}
+\label{tab:nfr_maint}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4.5cm}X}
+\toprule
+\textbf{Mã Tiêu chuẩn} & \textbf{Đặc điểm Kiến trúc} & \textbf{Yêu cầu Kỹ thuật} \\
+\midrule
+NFR-M01 & Phân tách độc lập các dịch vụ & Ba thành phần Giao diện người dùng, Máy chủ nghiệp vụ và Dịch vụ trí tuệ nhân tạo được đóng gói thành các vùng chứa Docker độc lập. \\
+\addlinespace
+NFR-M02 & Khả năng co giãn dịch vụ & Thiết kế kiến trúc dịch vụ không lưu trạng thái phiên trên bộ nhớ tiến trình, sẵn sàng cho việc nhân bản số lượng vùng chứa khi tải tăng cao. \\
+\addlinespace
+NFR-M03 & Tính nhất quán mã nguồn & Tuân thủ nghiêm ngặt các quy ước đặt tên biến, cấu trúc thư mục phân tách theo mô hình kiến trúc thành phần và tiêu chuẩn mã hóa quốc tế. \\
+\addlinespace
+NFR-M04 & Tài liệu hóa kỹ thuật đầy đủ & Toàn bộ các giao diện lập trình ứng dụng RESTful và cấu trúc bộ sưu tập cơ sở dữ liệu đều được lập hồ sơ đặc tả chi tiết hỗ trợ bàn giao. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Phân tích Dòng Dữ liệu và Luồng Nghiệp vụ Hệ thống}
+Nhằm cung cấp góc nhìn toàn diện về sự chuyển dịch và biến đổi của các luồng thông tin trong HCore Store, hệ thống được mô hình hóa thông qua các sơ đồ dòng dữ liệu phân cấp từ mức ngữ cảnh tới mức chi tiết.
+
+\subsection{Sơ đồ Dòng Dữ liệu Mức Ngữ cảnh (DFD Mức 0)}
+Sơ đồ mức ngữ cảnh biểu diễn tương tác giữa hệ thống HCore Store như một khối chức năng trung tâm duy nhất với bốn thực thể ngoài bao gồm Khách hàng, Quản trị viên, Cổng thanh toán trực tuyến và Dịch vụ ngôn ngữ lớn Google Gemini.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    entity/.style={draw=black!85, fill=white, rounded corners=2pt, thick, minimum width=2.4cm, minimum height=0.9cm, align=center},
+    process/.style={draw=black!85, fill=black!5, rounded corners=12pt, thick, minimum width=3.8cm, minimum height=1.3cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    flow/.style={font=\tiny\itshape, fill=white, inner sep=1pt, align=center}
+]
+
+% Tiến trình trung tâm
+\node[process] (sys) {\textbf{0.0}\\Hệ thống Thương mại Điện tử\\HCore Store};
+
+% Thực thể ngoài
+\node[entity, left=2.8cm of sys] (cust) {\textbf{Khách hàng}\\(Customer)};
+\node[entity, right=2.8cm of sys] (admin) {\textbf{Quản trị viên}\\(Administrator)};
+\node[entity, below=2.0cm of sys, xshift=-2.5cm] (pay) {\textbf{Cổng Thanh toán}\\(VNPAY / MoMo)};
+\node[entity, below=2.0cm of sys, xshift=2.5cm] (ai) {\textbf{Google Gemini API}\\(LLM Cloud Service)};
+
+% Luồng dữ liệu Khách hàng
+\draw[arr] ([yshift=0.25cm]cust.east) -- node[flow, above] {Tìm kiếm, Đặt hàng, Hỏi đáp} ([yshift=0.25cm]sys.west);
+\draw[arr] ([yshift=-0.25cm]sys.west) -- node[flow, below] {Sản phẩm, Hóa đơn, Tư vấn} ([yshift=-0.25cm]cust.east);
+
+% Luồng dữ liệu Quản trị viên
+\draw[arr] ([yshift=0.25cm]admin.west) -- node[flow, above] {Thiết lập kho, Duyệt đơn} ([yshift=0.25cm]sys.east);
+\draw[arr] ([yshift=-0.25cm]sys.east) -- node[flow, below] {Báo cáo doanh thu, Tồn kho} ([yshift=-0.25cm]admin.west);
+
+% Luồng dữ liệu Cổng thanh toán
+\draw[arr] (sys.south -| pay.north) -- node[flow, left] {Khởi tạo GD (Số tiền, Mã đơn)} (pay.north);
+\draw[arr] ([xshift=0.5cm]pay.north) -- node[flow, right] {IPN Webhook (Ký số HMAC)} ([xshift=0.5cm]sys.south -| pay.north);
+
+% Luồng dữ liệu Gemini
+\draw[arr] (sys.south -| ai.north) -- node[flow, left] {Ngữ cảnh sản phẩm + Câu hỏi} (ai.north);
+\draw[arr] ([xshift=0.5cm]ai.north) -- node[flow, right] {Phản hồi tư vấn tự nhiên} ([xshift=0.5cm]sys.south -| ai.north);
+
+\end{tikzpicture}
+\caption{Sơ đồ Dòng Dữ liệu Mức Ngữ cảnh (DFD Mức 0) của Hệ thống HCore Store theo Chuẩn IEEE}
+\label{fig:dfd_level_0}
+\end{figure}
+
+Khách hàng gửi vào hệ thống các yêu cầu tìm kiếm, thông tin giỏ hàng, thông tin thanh toán đơn hàng và các câu hỏi đối thoại tự nhiên, đồng thời nhận về danh mục sản phẩm, trạng thái xử lý đơn hàng và phản hồi tư vấn của trợ lý thông minh. Quản trị viên cung cấp các chỉ thị quản lý kho hàng, thiết lập chương trình khuyến mãi, cập nhật trạng thái đơn hàng và nhận về các báo cáo thống kê doanh thu đa chiều. Cổng thanh toán tiếp nhận yêu cầu khởi tạo giao dịch tài chính và gửi trả các gói tin thông báo thanh toán tức thời đã được ký số bảo mật. Dịch vụ Gemini tiếp nhận câu hỏi tăng cường kèm thông tin thông số phần cứng thực tế và trả về các đoạn văn bản tư vấn được tạo sinh tự nhiên.
+
+\subsection{Sơ đồ Dòng Dữ liệu Phân rã Mức 1 (DFD Mức 1)}
+Tại mức phân rã cấp 1, khối xử lý trung tâm của hệ thống được chia tách thành năm tiến trình chức năng độc lập gồm: Tiến trình xác thực và quản lý tài khoản người dùng, Tiến trình quản lý danh mục và tìm kiếm sản phẩm, Tiến trình xử lý giỏ hàng và đặt hàng thanh toán, Tiến trình trợ lý ảo tìm kiếm tăng cường tạo sinh và Tiến trình quản trị vận hành báo cáo.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    font=\scriptsize,
+    proc/.style={draw=black!85, fill=white, rounded corners=6pt, thick, minimum width=2.8cm, minimum height=0.8cm, align=center},
+    store/.style={draw=black!85, fill=black!5, thick, minimum width=2.8cm, minimum height=0.6cm, align=center},
+    arr/.style={-{Stealth[scale=0.85]}, thick, draw=black!75},
+    flow/.style={font=\tiny\itshape, fill=white, inner sep=1pt}
+]
+
+% Hàng 1: Các tiến trình chính
+\node[proc] (p1) {\textbf{1.0}\\Xác thực \& User};
+\node[proc, right=1.2cm of p1] (p2) {\textbf{2.0}\\Danh mục \& Tìm kiếm};
+\node[proc, right=1.2cm of p2] (p3) {\textbf{3.0}\\Giỏ hàng \& Đặt hàng};
+
+% Hàng 2: Các kho dữ liệu
+\node[store, below=1.2cm of p1] (d1) {\textbf{D1: users \& auth}};
+\node[store, below=1.2cm of p2] (d2) {\textbf{D2: products \& cat}};
+\node[store, below=1.2cm of p3] (d3) {\textbf{D3: orders \& pay}};
+
+% Hàng 3: Phân hệ mở rộng
+\node[proc, below=1.2cm of d1] (p4) {\textbf{4.0}\\Thanh toán VNPAY/MoMo};
+\node[proc, below=1.2cm of d2] (p5) {\textbf{5.0}\\Trợ lý Trí tuệ RAG};
+\node[proc, below=1.2cm of d3] (p6) {\textbf{6.0}\\Quản trị Báo cáo};
+
+% Kết nối dữ liệu
+\draw[arr] (p1.south) -- (d1.north);
+\draw[arr] (p2.south) -- (d2.north);
+\draw[arr] (p3.south) -- (d3.north);
+
+\draw[arr] (d1.south) -- (p4.north);
+\draw[arr] (d2.south) -- (p5.north);
+\draw[arr] (d3.south) -- (p6.north);
+
+\draw[arr] (p3.west) -- node[flow, above] {Đơn hàng} (p2.east);
+\draw[arr] (p4.east) -- node[flow, above] {Xác nhận trả} (p5.west);
+\draw[arr] (p5.east) -- node[flow, above] {Đồng bộ} (p6.west);
+
+\end{tikzpicture}
+\caption{Sơ đồ Dòng Dữ liệu Phân rã Mức 1 (DFD Mức 1) của Hệ thống HCore Store theo Chuẩn IEEE}
+\label{fig:dfd_level_1}
+\end{figure}
+
+Các tiến trình chức năng này tương tác tuần tự và liên tục với ba nhóm kho lưu trữ dữ liệu chính trong cơ sở dữ liệu MongoDB Atlas bao gồm: Kho lưu trữ người dùng và phân quyền, Kho lưu trữ danh mục sản phẩm và linh kiện, và Kho lưu trữ đơn hàng cùng lịch sử giao dịch tài chính. Nhờ kiến trúc phân rã mạch lạc, các dòng dữ liệu không bị chồng chéo, bảo đảm tính toàn vẹn và hiệu năng xử lý của toàn bộ hệ sinh thái phần mềm.
+

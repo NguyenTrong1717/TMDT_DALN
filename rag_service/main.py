@@ -10,6 +10,16 @@ import os
 import sys
 from pathlib import Path
 
+# Force UTF-8 encoding on Windows console to avoid UnicodeEncodeError
+if sys.platform == "win32":
+    try:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 # Đảm bảo thư mục rag_service luôn nằm trong sys.path
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
