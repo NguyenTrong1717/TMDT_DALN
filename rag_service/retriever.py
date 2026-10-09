@@ -77,7 +77,11 @@ async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: i
     return scored[:top_k]
 
 
-async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+async def retrieve_contexts(
+    user_query: str,
+    catalog: List[Dict[str, Any]],
+    include_products: bool = True,
+) -> List[Dict[str, Any]]:
     """
     Quy trình Hybrid Retrieval & Reranking:
     1. So khớp chính sách (Policy Matching) theo keyword trọng yếu.
@@ -96,6 +100,10 @@ async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> L
                 "text": policy["content"],
                 "score": 1.0,
             })
+
+    # Câu hỏi chính sách/kiến thức không được tự động kéo sản phẩm vào câu trả lời.
+    if not include_products:
+        return policy_hits
 
     # 2. Tìm kiếm Vector sản phẩm
     all_chunks = create_semantic_chunks(catalog)

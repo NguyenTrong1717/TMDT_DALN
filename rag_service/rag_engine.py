@@ -9,7 +9,7 @@ from retriever import retrieve_contexts, search_vector_store, parse_budget_and_c
 from embeddings import get_embed_model
 from chunker import create_semantic_chunks
 from knowledge import fetch_store_catalog, STORE_POLICIES
-from guards import check_pii_security, check_jailbreak, check_off_topic
+from guards import check_pii_security, check_jailbreak, check_off_topic, classify_query_intent
 
 __all__ = [
     "execute_rag",
@@ -26,4 +26,5 @@ __all__ = [
     "check_pii_security",
     "check_jailbreak",
     "check_off_topic",
+    "classify_query_intent",
 ]

@@ -12,8 +12,9 @@ const CANDIDATE_ENDPOINTS = [
   configuredEndpoint,
   "http://127.0.0.1:8000/api/chat",
   "http://localhost:8000/api/chat",
-].filter((endpoint, index, endpoints) =>
-  endpoint && endpoints.indexOf(endpoint) === index,
+].filter(
+  (endpoint, index, endpoints) =>
+    endpoint && endpoints.indexOf(endpoint) === index,
 );
 
 export const executeRAG = async ({
@@ -43,7 +44,9 @@ export const executeRAG = async ({
       }
       if (!data?.reply) throw new Error("RAG service did not return a reply");
 
-      const products = (data.sources || [])
+      const products = (
+        data.intent === "product_search" ? data.sources || [] : []
+      )
         .filter((source) => source?.type === "product" && source?.metadata?.id)
         .map((source) => source.metadata)
         .filter(
@@ -65,7 +68,8 @@ export const executeRAG = async ({
 
   // Fallback an toàn khi chưa khởi động Python service (:8000)
   return {
-    reply: "HCore AI Bot hiện đang kết nối với hệ thống. Nếu bạn chưa khởi động máy chủ AI, vui lòng chạy lệnh `npm run rag`. Trong lúc này bạn có thể gọi hotline 1900 8888 để được hỗ trợ ngay nhé!",
+    reply:
+      "HCore AI Bot hiện đang kết nối với hệ thống. Nếu bạn chưa khởi động máy chủ AI, vui lòng chạy lệnh `npm run rag`. Trong lúc này bạn có thể gọi hotline 1900 8888 để được hỗ trợ ngay nhé!",
     products: [],
   };
 };

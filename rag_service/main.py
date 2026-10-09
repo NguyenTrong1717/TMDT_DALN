@@ -69,6 +69,7 @@ class ChatResponse(BaseModel):
     reply: str
     sources: List[Dict[str, Any]] = []
     engine: str
+    intent: str
 
 
 @app.get("/")
@@ -102,6 +103,7 @@ async def chat_endpoint(payload: ChatRequest):
             reply=result.get("reply", ""),
             sources=result.get("sources", []),
             engine=result.get("engine", "python-rag"),
+            intent=result.get("intent", "off_topic"),
         )
     except Exception as exc:
         print(f"[ERROR] /api/chat error: {exc}")
