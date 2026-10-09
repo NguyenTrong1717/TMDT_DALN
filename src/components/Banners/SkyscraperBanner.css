@@ -8,9 +8,9 @@
 
 .skyscraper-wing {
   position: fixed;
-  top: 110px;
+  top: 145px;
   width: 125px;
-  height: 520px;
+  height: 650px;
   border-radius: 0 !important;
   overflow: hidden;
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
@@ -30,14 +30,14 @@
   border-color: rgba(59, 130, 246, 0.6);
 }
 
-/* Neo dạt ra thêm 2 bên mép màn hình, giữ khoảng cách thoáng đãng với khung nội dung */
+/* Neo dạt hẳn ra sát 2 bên mép ngoài màn hình */
 .skyscraper-wing.wing-left {
-  left: max(10px, calc(50vw - 600px - 125px - 45px));
+  left: max(6px, calc(50vw - 600px - 125px - 75px));
   right: auto;
 }
 
 .skyscraper-wing.wing-right {
-  right: max(10px, calc(50vw - 600px - 125px - 45px));
+  right: max(6px, calc(50vw - 600px - 125px - 75px));
   left: auto;
 }
 
@@ -81,16 +81,17 @@
 @media (min-width: 1920px) {
   .skyscraper-wing {
     width: 140px;
-    height: 560px;
+    height: 650px;
+    top: 145px;
   }
 
   .skyscraper-wing.wing-left {
-    left: max(20px, calc(50vw - 600px - 140px - 50px));
+    left: max(16px, calc(50vw - 600px - 140px - 85px));
     right: auto;
   }
 
   .skyscraper-wing.wing-right {
-    right: max(20px, calc(50vw - 600px - 140px - 50px));
+    right: max(16px, calc(50vw - 600px - 140px - 85px));
     left: auto;
   }
 }
@@ -99,17 +100,17 @@
 @media (max-width: 1600px) and (min-width: 1440px) {
   .skyscraper-wing {
     width: 105px;
-    height: 460px;
-    top: 105px;
+    height: 520px;
+    top: 135px;
   }
 
   .skyscraper-wing.wing-left {
-    left: max(8px, calc(50vw - 600px - 105px - 30px));
+    left: max(6px, calc(50vw - 600px - 105px - 50px));
     right: auto;
   }
 
   .skyscraper-wing.wing-right {
-    right: max(8px, calc(50vw - 600px - 105px - 30px));
+    right: max(6px, calc(50vw - 600px - 105px - 50px));
     left: auto;
   }
 }
