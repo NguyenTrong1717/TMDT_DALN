@@ -53,8 +53,54 @@ STORE_POLICIES = [
 ]
 
 
+import os
+import json
+
+def load_local_fallback_catalog() -> List[Dict[str, Any]]:
+    """Tải danh mục dự phòng từ database/seed_data.json hoặc db.json nếu backend chưa mở."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    candidates = [
+        os.path.join(base_dir, "database", "seed_data.json"),
+        os.path.join(base_dir, "db.json"),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                catalog: List[Dict[str, Any]] = []
+                specs = [
+                    ("catenogies", "PC Gaming / Đồ họa", "pc"),
+                    ("LaptopUser", "Laptop", "laptop"),
+                    ("eventList", "Linh kiện", "component"),
+                    ("products", "Thiết bị", "general"),
+                    ("ProductPagies", "Laptop", "laptop"),
+                    ("ProductMenus", "PC Gaming / Đồ họa", "pc"),
+                ]
+                for tbl, item_type, cat in specs:
+                    for item in data.get(tbl, []):
+                        if not item.get("name"):
+                            continue
+                        catalog.append({
+                            "id": item.get("id"),
+                            "name": item.get("name"),
+                            "price": float(item.get("price") or 0),
+                            "type": item_type,
+                            "category": cat,
+                            "discount": item.get("discount"),
+                            "oldPrice": float(item.get("oldPrice") or 0),
+                            "image": item.get("image") or item.get("thumbnail") or "",
+                            "source": tbl,
+                        })
+                if catalog:
+                    return catalog
+            except Exception as e:
+                print(f"[RAG] Lỗi đọc fallback catalog từ {p}: {e}")
+    return []
+
+
 async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, Any]]:
-    """Tải danh mục sản phẩm realtime từ json-server (bất đồng bộ song song)."""
+    """Tải danh mục sản phẩm realtime từ json-server / backend (bất đồng bộ song song)."""
     catalog: List[Dict[str, Any]] = []
     try:
         async with httpx.AsyncClient(timeout=4.0) as client:
@@ -63,6 +109,8 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
                 client.get(f"{api_url}/LaptopUser"),
                 client.get(f"{api_url}/eventList"),
                 client.get(f"{api_url}/products"),
+                client.get(f"{api_url}/ProductPagies"),
+                client.get(f"{api_url}/ProductMenus"),
                 return_exceptions=True,
             )
             specs = [
@@ -70,8 +118,10 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
                 ("Laptop", "laptop"),
                 ("Linh kiện", "component"),
                 ("Thiết bị", "general"),
+                ("Laptop", "laptop"),
+                ("PC Gaming / Đồ họa", "pc"),
             ]
-            source_tables = ["catenogies", "LaptopUser", "eventList", "products"]
+            source_tables = ["catenogies", "LaptopUser", "eventList", "products", "ProductPagies", "ProductMenus"]
             for res, (item_type, cat), source in zip(responses, specs, source_tables):
                 if isinstance(res, httpx.Response) and res.status_code == 200:
                     for item in res.json():
@@ -88,4 +138,9 @@ async def fetch_store_catalog(api_url: str = JSON_SERVER_URL) -> List[Dict[str, 
                         })
     except Exception as err:
         print(f"[RAG] Cảnh báo: Không thể tải catalog từ json-server: {err}")
+
+    # Nếu backend chưa sẵn sàng hoặc rỗng, dùng dữ liệu dự phòng cục bộ
+    if not catalog:
+        catalog = load_local_fallback_catalog()
+
     return catalog

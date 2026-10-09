@@ -57,7 +57,23 @@ def parse_budget_and_category(query: str) -> Dict[str, Any]:
     return {"max_price": max_price, "target_price": target_price, "category": category}
 
 
-async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 12) -> List[Dict[str, Any]]:
+def extract_hardware_keywords(norm_query: str) -> List[str]:
+    """Trích xuất từ khóa phần cứng cụ thể (card đồ họa, chip CPU, thương hiệu...)."""
+    patterns = [
+        r"\b(?:rtx\s*|gtx\s*|rx\s*)?(?:40[5-9]0|30[5-9]0|20[5-8]0|16[5-6]0|6800|7[7-9]00)\b",
+        r"\b(?:core\s*)?(?:i[3579](?:-\w+)?|ryzen\s*[3579](?:\s*\w+)?)\b",
+        r"\b(?:lenovo|asus|acer|msi|dell|hp|apple|macbook|gigabyte)\b",
+    ]
+    matches = []
+    for pat in patterns:
+        for found in re.findall(pat, norm_query):
+            cleaned = found.strip()
+            if cleaned:
+                matches.append(cleaned)
+    return list(set(matches))
+
+
+async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 15) -> List[Dict[str, Any]]:
     """Tìm kiếm tương đồng ngữ nghĩa bằng Local AI FastEmbed ONNX."""
     if not chunks or not query.strip():
         return []
@@ -81,8 +97,8 @@ async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> L
     """
     Quy trình Hybrid Retrieval & Reranking:
     1. So khớp chính sách (Policy Matching) theo keyword trọng yếu.
-    2. Truy xuất Top-12 Semantic Vector Chunks bằng FastEmbed.
-    3. Reranking điểm số thông minh dựa trên Metadata (Category Match & Budget Match).
+    2. Hybrid Lexical + Vector Recall: Ưu tiên chunks chứa đúng từ khóa phần cứng (RTX 4060, i7...).
+    3. Reranking điểm số thông minh dựa trên Metadata (Category, Hardware Specs & Budget).
     4. Trả về Top 3 sản phẩm sát nhất + Chính sách liên quan.
     """
     norm_query = normalize_text(user_query)
@@ -97,24 +113,43 @@ async def retrieve_contexts(user_query: str, catalog: List[Dict[str, Any]]) -> L
                 "score": 1.0,
             })
 
-    # 2. Tìm kiếm Vector sản phẩm
+    # 2. Tìm kiếm Vector sản phẩm + Lexical Recall
     all_chunks = create_semantic_chunks(catalog)
     filters = parse_budget_and_category(user_query)
     max_price = filters["max_price"]
     target_price = filters["target_price"]
     category = filters["category"]
+    hw_keywords = extract_hardware_keywords(norm_query)
 
-    vector_hits = await search_vector_store(user_query, all_chunks, top_k=12)
+    vector_hits = await search_vector_store(user_query, all_chunks, top_k=15)
+    seen_ids = {h["id"] for h in vector_hits}
 
-    # 3. Metadata Reranking (Ngân sách & Danh mục)
+    # Lexical Recall: Nếu user hỏi đúng linh kiện (vd: "4060"), đảm bảo mọi sản phẩm chứa từ khóa được gom vào candidate
+    if hw_keywords:
+        for c in all_chunks:
+            if c["id"] not in seen_ids and c.get("type") == "product":
+                c_norm = normalize_text(f"{c.get('metadata', {}).get('name', '')} {c.get('text', '')}")
+                if any(kw in c_norm for kw in hw_keywords):
+                    vector_hits.append({**c, "score": 0.65})
+                    seen_ids.add(c["id"])
+
+    # 3. Metadata Reranking (Phần cứng, Ngân sách & Danh mục)
     reranked = []
     for hit in vector_hits:
         score = hit["score"]
         meta = hit.get("metadata", {})
+        hit_norm_name = normalize_text(meta.get("name", ""))
+        hit_norm_text = normalize_text(hit.get("text", ""))
 
         # Thưởng điểm nếu đúng danh mục khách tìm (PC, Laptop, Linh kiện)
         if category and meta.get("category") == category:
             score += 0.35
+
+        # Thưởng điểm rất cao nếu sản phẩm chứa ĐÚNG cấu hình / linh kiện khách hỏi (vd: 4060, rtx 4060)
+        if hw_keywords:
+            for kw in hw_keywords:
+                if kw in hit_norm_name or kw in hit_norm_text:
+                    score += 0.65
 
         # Tối ưu theo mức giá và ngân sách
         price = meta.get("price")
