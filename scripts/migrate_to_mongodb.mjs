@@ -5,11 +5,16 @@ process.loadEnvFile?.();
 
 const uri = process.env.MONGO_URI || "mongodb://localhost:27017";
 const dbName = process.env.DB_NAME || "tmdt_daln";
-const dbFile = [new URL("../db.json", import.meta.url), new URL("../db.json.bak", import.meta.url)].find((f) => fs.existsSync(f));
+const dbFile = [
+  new URL("../database/seed_data.json", import.meta.url),
+  new URL("../db.json", import.meta.url),
+  new URL("../database/backups/db.json.bak", import.meta.url),
+  new URL("../db.json.bak", import.meta.url),
+].find((f) => fs.existsSync(f));
 
 async function migrate() {
   if (!dbFile) {
-    console.error("❌ Không tìm thấy file dữ liệu gốc (db.json hoặc db.json.bak)");
+    console.error("❌ Không tìm thấy file dữ liệu gốc (database/seed_data.json, db.json hoặc db.json.bak)");
     process.exit(1);
   }
 

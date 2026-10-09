@@ -10,7 +10,7 @@ import {
   FaTags,
   FaGift,
 } from "react-icons/fa";
-import { useBanners } from "../../hooks/useBanners";
+import { useBanners, FALLBACK_BANNERS } from "../../hooks/useBanners";
 import "./PromoTiles.css";
 
 const ICON_MAP = {
@@ -37,7 +37,12 @@ const FALLBACK_TILE_LINKS = {
 export default function PromoTiles({ customBanners = null }) {
   const navigate = useNavigate();
   const { banners: fetchedBanners, loading } = useBanners("promo_tiles");
-  const banners = customBanners || fetchedBanners;
+  const banners =
+    customBanners && customBanners.length > 0
+      ? customBanners
+      : fetchedBanners && fetchedBanners.length > 0
+      ? fetchedBanners
+      : FALLBACK_BANNERS.promo_tiles;
 
   const handleTileClick = (tile) => {
     if (!tile) return;

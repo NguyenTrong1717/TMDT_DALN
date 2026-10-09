@@ -4,7 +4,7 @@ import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import ProductGrid from "../components/ProductGrid/ProductGrid";
 import Catenogy from "../components/Catenogy/Catenogy";
-import EventList from "../components/Events/EventList";
+import EventList, { FALLBACK_COMPONENTS } from "../components/Events/EventList";
 import LaptopUser from "../components/Newlaptop/LaptopUser";
 import Sevicer from "../components/Sevicer/Sevicer";
 import FooterUser from "../components/Footer/FooterUser";
@@ -18,6 +18,7 @@ import StripBanner from "../components/Banners/StripBanner";
 import CategoryPromo from "../components/Banners/CategoryPromo";
 import SkyscraperBanner from "../components/Banners/SkyscraperBanner";
 import { getImageUrl } from "../utils/imageUtils";
+import { API_URL } from "../utils/api";
 import { toast } from "sonner";
 import "./Home.css";
 
@@ -68,20 +69,37 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, catenogiesRes, eventListRes, laptopRes] =
-          await Promise.all([
-            fetch("http://localhost:3000/products"),
-            fetch("http://localhost:3000/catenogies"),
-            fetch("http://localhost:3000/eventList"),
-            fetch("http://localhost:3000/LaptopUser"),
-          ]);
+        const fetchEndpoint = async (endpoint, fallback = []) => {
+          try {
+            const base = API_URL || "http://127.0.0.1:3000";
+            let res = await fetch(`${base}${endpoint}`).catch(() => null);
+            if (!res || !res.ok) {
+              res = await fetch(`http://localhost:3000${endpoint}`).catch(() => null);
+            }
+            if (res && res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) return data;
+            }
+          } catch (e) {
+            console.warn(`[Home] Lỗi fetch ${endpoint}:`, e.message);
+          }
+          return fallback;
+        };
 
-        setProducts(await productsRes.json());
-        setCatenogies(await catenogiesRes.json());
-        setEventList(await eventListRes.json());
-        setLaptopUser(await laptopRes.json());
+        const [pData, cData, eData, lData] = await Promise.all([
+          fetchEndpoint("/products", []),
+          fetchEndpoint("/catenogies", []),
+          fetchEndpoint("/eventList", FALLBACK_COMPONENTS),
+          fetchEndpoint("/LaptopUser", []),
+        ]);
+
+        if (pData.length) setProducts(pData);
+        if (cData.length) setCatenogies(cData);
+        setEventList(eData.length ? eData : FALLBACK_COMPONENTS);
+        if (lData.length) setLaptopUser(lData);
       } catch (err) {
         console.error(err);
+        setEventList(FALLBACK_COMPONENTS);
       } finally {
         setLoading(false);
       }

@@ -5,6 +5,7 @@
  */
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 import { MongoClient, ObjectId } from "mongodb";
 import {
   PRODUCT_TABLES,
@@ -44,6 +45,45 @@ const db = client.db(DB_NAME);
 
 const safeUri = MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@");
 console.log(`✅ [MongoDB Backend] Kết nối thành công: ${safeUri}/${DB_NAME}`);
+
+// Tự động kiểm tra và nạp seed data nếu cơ sở dữ liệu trống (giúp chạy mượt mà ngay cả khi mới clone repo)
+const autoSeedIfEmpty = async () => {
+  try {
+    const [productCount, bannerCount, eventCount] = await Promise.all([
+      db.collection("products").countDocuments(),
+      db.collection("banners").countDocuments(),
+      db.collection("eventList").countDocuments(),
+    ]);
+
+    if (productCount === 0 || bannerCount === 0 || eventCount === 0) {
+      console.log("🌱 [MongoDB Backend] Phát hiện dữ liệu thiếu hoặc trống, đang tự động nạp seed data...");
+      const candidatePaths = [
+        new URL("database/seed_data.json", import.meta.url),
+        new URL("db.json", import.meta.url),
+        new URL("database/backups/db.json.bak", import.meta.url),
+      ];
+      const validPath = candidatePaths.find((p) => fs.existsSync(p));
+      if (validPath) {
+        const seedData = JSON.parse(fs.readFileSync(validPath, "utf8"));
+        for (const [key, items] of Object.entries(seedData)) {
+          if (!Array.isArray(items) || key.startsWith("$")) continue;
+          const col = db.collection(key);
+          const count = await col.countDocuments();
+          if (count === 0 && items.length > 0) {
+            await col.insertMany(items.map((item) => ({ ...item })));
+            await col.createIndex({ id: 1 }).catch(() => {});
+            console.log(`  + Tự động nạp [${key}]: ${items.length} bản ghi`);
+          }
+        }
+        await db.collection("banners").createIndex({ placement: 1, active: 1, deleted: 1, order: 1 }).catch(() => {});
+        console.log("🎉 [MongoDB Backend] Tự động nạp seed data hoàn tất!");
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ [MongoDB Backend] Tự động nạp seed data gặp lỗi:", err.message);
+  }
+};
+await autoSeedIfEmpty();
 
 // ==========================================
 // HELPERS

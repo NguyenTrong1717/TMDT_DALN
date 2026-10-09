@@ -1,11 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useBanners } from "../../hooks/useBanners";
+import { useBanners, FALLBACK_BANNERS } from "../../hooks/useBanners";
 import "./BannerGrid.css";
 
 export default function BannerGrid({ customBanners = null }) {
   const navigate = useNavigate();
   const { banners: fetchedBanners, loading } = useBanners("hero_side");
-  const banners = customBanners || fetchedBanners;
+  const banners =
+    customBanners && customBanners.length > 0
+      ? customBanners
+      : fetchedBanners && fetchedBanners.length > 0
+      ? fetchedBanners
+      : FALLBACK_BANNERS.hero_side;
 
   const handleBannerClick = (banner) => {
     if (!banner?.link) return;
