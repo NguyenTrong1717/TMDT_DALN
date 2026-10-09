@@ -1,6 +1,7 @@
 .category-promo-banner {
   position: relative;
   width: 100%;
+  box-sizing: border-box;
   height: 125px;
   border-radius: var(--radius-md, 10px);
   overflow: hidden;
