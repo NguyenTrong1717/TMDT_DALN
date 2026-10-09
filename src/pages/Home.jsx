@@ -374,18 +374,20 @@ const Home = () => {
                 <div className="podium-badge silver">
                   <FaMedal /> {topLeaderboard[0].badge}
                 </div>
-                <div className="podium-img-box">
-                  <img
-                    src={getImageUrl(topLeaderboard[0].image || topLeaderboard[0].img)}
-                    alt={topLeaderboard[0].name}
-                    onError={(e) => { e.target.src = "/images/pc.jpg"; }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[0].image || topLeaderboard[0].img)}
+                  alt={topLeaderboard[0].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/pc.jpg"; }}
+                />
+                <div className="podium-info-overlay">
+                  <h4 className="podium-name">{topLeaderboard[0].name}</h4>
+                  <div className="podium-price">
+                    {Number(topLeaderboard[0].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count">🔥 {topLeaderboard[0].sold}</span>
+                  <button className="podium-action-btn">XEM CHI TIẾT &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[0].name}</h4>
-                <div className="podium-price">
-                  {Number(topLeaderboard[0].price || 0).toLocaleString("vi-VN")}đ
-                </div>
-                <span className="podium-sold-count">🔥 {topLeaderboard[0].sold}</span>
               </div>
 
               {/* Top 1 Vàng (Ở giữa cao nhất) */}
@@ -397,20 +399,21 @@ const Home = () => {
                 <div className="podium-badge gold">
                   <FaCrown /> {topLeaderboard[1].badge}
                 </div>
-                <div className="podium-img-box king-img">
-                  <img
-                    src={getImageUrl(topLeaderboard[1].image || topLeaderboard[1].img)}
-                    alt={topLeaderboard[1].name}
-                    onError={(e) => { e.target.src = "/images/pc3.png"; }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[1].image || topLeaderboard[1].img)}
+                  alt={topLeaderboard[1].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/pc3.png"; }}
+                />
+                <div className="podium-info-overlay">
                   <span className="king-tag">ĐƯỢC YÊU THÍCH NHẤT</span>
+                  <h4 className="podium-name">{topLeaderboard[1].name}</h4>
+                  <div className="podium-price king-price">
+                    {Number(topLeaderboard[1].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count king-sold">🔥 {topLeaderboard[1].sold}</span>
+                  <button className="podium-action-btn king-btn">XEM NGAY QUÁN QUÂN &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[1].name}</h4>
-                <div className="podium-price king-price">
-                  {Number(topLeaderboard[1].price || 0).toLocaleString("vi-VN")}đ
-                </div>
-                <span className="podium-sold-count king-sold">🔥 {topLeaderboard[1].sold}</span>
-                <button className="podium-king-btn">XEM NGAY QUÁN QUÂN</button>
               </div>
 
               {/* Top 3 Đồng (Bên phải) */}
@@ -421,18 +424,20 @@ const Home = () => {
                 <div className="podium-badge bronze">
                   <FaMedal /> {topLeaderboard[2].badge}
                 </div>
-                <div className="podium-img-box">
-                  <img
-                    src={getImageUrl(topLeaderboard[2].image || topLeaderboard[2].img)}
-                    alt={topLeaderboard[2].name}
-                    onError={(e) => { e.target.src = "/images/MT.jpg"; }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[2].image || topLeaderboard[2].img)}
+                  alt={topLeaderboard[2].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/MT.jpg"; }}
+                />
+                <div className="podium-info-overlay">
+                  <h4 className="podium-name">{topLeaderboard[2].name}</h4>
+                  <div className="podium-price">
+                    {Number(topLeaderboard[2].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count">🔥 {topLeaderboard[2].sold}</span>
+                  <button className="podium-action-btn">XEM CHI TIẾT &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[2].name}</h4>
-                <div className="podium-price">
-                  {Number(topLeaderboard[2].price || 0).toLocaleString("vi-VN")}đ
-                </div>
-                <span className="podium-sold-count">🔥 {topLeaderboard[2].sold}</span>
               </div>
             </div>
           </div>
