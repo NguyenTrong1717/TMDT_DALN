@@ -4,11 +4,14 @@
  * Nhiệm vụ: Gọi microservice Python FastAPI (:8000) xử lý RAG.
  */
 
-// Ưu tiên 127.0.0.1 để tránh lỗi phân giải IPv6 ::1 trên Windows
 const CANDIDATE_ENDPOINTS = [
-  "http://127.0.0.1:8000/api/chat",
+  import.meta.env.VITE_RAG_API_URL || "http://127.0.0.1:8000/api/chat",
   "http://localhost:8000/api/chat",
 ];
+
+const RAG_REQUEST_TIMEOUT_MS = Number(
+  import.meta.env.VITE_RAG_TIMEOUT_MS || 60000
+);
 
 export const executeRAG = async ({
   userQuery = "",
@@ -16,9 +19,10 @@ export const executeRAG = async ({
   currentUser = null,
 }) => {
   for (const endpoint of CANDIDATE_ENDPOINTS) {
+    let timeoutId;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      timeoutId = setTimeout(() => controller.abort(), RAG_REQUEST_TIMEOUT_MS);
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -30,17 +34,39 @@ export const executeRAG = async ({
         }),
         signal: controller.signal,
       });
-      clearTimeout(timeoutId);
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.reply) return data.reply;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || data.error || `RAG HTTP ${res.status}`);
+      }
+
+      if (data?.reply) {
+        const products = (data.sources || [])
+          .filter((source) => source?.type === "product" && source?.metadata?.id)
+          .map((source) => source.metadata)
+          .filter(
+            (product, index, items) =>
+              items.findIndex(
+                (item) =>
+                  String(item.id) === String(product.id) &&
+                  item.source === product.source
+              ) === index
+          )
+          .slice(0, 3);
+
+        return { reply: data.reply, products };
       }
     } catch (err) {
       console.warn(`[ChatBot] Thử kết nối ${endpoint} thất bại:`, err.message);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
   // Fallback an toàn khi chưa khởi động Python service (:8000)
-  return "HCore AI Bot hiện đang kết nối với hệ thống. Nếu bạn chưa khởi động máy chủ AI, vui lòng chạy lệnh `npm run rag`. Trong lúc này bạn có thể gọi hotline 1900 8888 để được hỗ trợ ngay nhé!";
+  return {
+    reply:
+      "HCore AI Bot hiện đang kết nối với hệ thống. Nếu bạn chưa khởi động máy chủ AI, vui lòng chạy lệnh `npm run rag`. Trong lúc này bạn có thể gọi hotline 1900 8888 để được hỗ trợ ngay nhé!",
+    products: [],
+  };
 };

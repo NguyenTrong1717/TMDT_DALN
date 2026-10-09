@@ -7,19 +7,39 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
+  FaArrowRight,
   FaTimes,
   FaPaperPlane,
   FaUser,
   FaTrashAlt,
-  FaRobot,
-  FaFire,
   FaRegLightbulb,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import { SiProbot } from "react-icons/si";
 import { BsStars } from "react-icons/bs";
 import { HiSparkles } from "react-icons/hi";
 import { executeRAG } from "./ragEngine.js";
 import "./ChatBot.css";
+import { API_URL } from "../utils/api";
+import { getImageUrl } from "../utils/imageUtils";
+
+const PRODUCT_DETAIL_ROUTES = {
+  catenogies: (id) => `/product/${id}`,
+  LaptopUser: (id) => `/laptop-detail/${id}`,
+  eventList: (id) => `/component-category/${id}`,
+  ProductMenus: (id) => `/menu/${id}`,
+  ProductPagies: (id) => `/menu/${id}`,
+  appliances: (id) => `/appliance/${id}`,
+  products: (id) => `/page/${id}`,
+};
+
+const getProductDetailUrl = (product) =>
+  (PRODUCT_DETAIL_ROUTES[product?.source] || PRODUCT_DETAIL_ROUTES.products)(
+    product?.id,
+  );
+
+const formatProductPrice = (value) =>
+  `${new Intl.NumberFormat("vi-VN").format(Number(value) || 0)}đ`;
 
 // Hàm định dạng cơ bản: hiển thị **in đậm** và ngắt dòng tự nhiên
 const renderMessageText = (rawText) => {
@@ -32,8 +52,6 @@ const renderMessageText = (rawText) => {
     return part;
   });
 };
-
-const API_URL = "http://localhost:3000";
 
 // Các gợi ý câu hỏi thông minh theo nhu cầu thực tế
 const QUICK_PROMPTS = [
@@ -232,7 +250,7 @@ const ChatBot = () => {
       const currentUser = JSON.parse(
         localStorage.getItem("currentUser") || "null",
       );
-      const botReplyText = await executeRAG({
+      const botReply = await executeRAG({
         userQuery: query,
         apiKey,
         currentUser,
@@ -241,7 +259,8 @@ const ChatBot = () => {
       const botMessage = {
         visitorId,
         sender: "bot",
-        text: botReplyText,
+        text: typeof botReply === "string" ? botReply : botReply.reply,
+        products: typeof botReply === "string" ? [] : botReply.products,
         createdAt: new Date().toISOString(),
       };
 
@@ -353,6 +372,40 @@ const ChatBot = () => {
                     <div className="hcore-bubble-text">
                       {renderMessageText(msg.text)}
                     </div>
+                    {msg.sender === "bot" && msg.products?.length > 0 && (
+                      <div className="hcore-ai-product-list">
+                        {msg.products.map((product) => (
+                          <Link
+                            key={`${product.source}-${product.id}`}
+                            to={getProductDetailUrl(product)}
+                            className="hcore-ai-product-card"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <img
+                              src={getImageUrl(product.image)}
+                              alt={product.name}
+                              loading="lazy"
+                              onError={(event) => {
+                                event.currentTarget.onerror = null;
+                                event.currentTarget.src = getImageUrl();
+                              }}
+                            />
+                            <span className="hcore-ai-product-info">
+                              <strong>{product.name}</strong>
+                              <span className="hcore-ai-product-prices">
+                                <b>{formatProductPrice(product.price)}</b>
+                                {Number(product.oldPrice) > Number(product.price) && (
+                                  <del>{formatProductPrice(product.oldPrice)}</del>
+                                )}
+                              </span>
+                              <span className="hcore-ai-product-link">
+                                Xem sản phẩm <FaArrowRight />
+                              </span>
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <span className="hcore-msg-timestamp">
                     {formatTime(msg.createdAt)}
