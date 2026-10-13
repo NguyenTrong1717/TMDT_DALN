@@ -13,6 +13,12 @@ from chunker import create_semantic_chunks
 from knowledge import STORE_POLICIES
 
 
+MIN_VALID_CATALOG_PRICE = 10_000
+TARGET_PRICE_MAX_RATIO = 1.15
+PRICE_NUMBER_PATTERN = r"\d+(?:[.,]\d+)*"
+PRICE_UNIT_PATTERN = r"ty|trieu|tr|cu|nghin|ngan|k|m|vnd|dong|d"
+
+
 def normalize_text(text: str) -> str:
     """Chuẩn hóa chuỗi tiếng Việt: chuyển chữ thường, loại bỏ dấu kết hợp."""
     if not text:
@@ -21,31 +27,87 @@ def normalize_text(text: str) -> str:
     return re.sub(r"[\u0300-\u036f]", "", decomposed).strip()
 
 
+def _parse_price_amount(number_text: str, unit: Optional[str]) -> float:
+    """Chuyển một mức giá trong câu hỏi sang VND."""
+    normalized_unit = (unit or "").lower()
+    normalized_number = number_text.strip()
+    is_grouped_integer = bool(re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", normalized_number))
+    number = (
+        float(re.sub(r"[.,]", "", normalized_number))
+        if is_grouped_integer
+        else float(normalized_number.replace(",", "."))
+    )
+
+    if normalized_unit == "ty":
+        return number * 1_000_000_000
+    if normalized_unit in {"trieu", "tr", "cu", "m"}:
+        return number * 1_000_000
+    if normalized_unit in {"nghin", "ngan", "k"}:
+        return number * 1_000
+    if normalized_unit in {"vnd", "dong", "d"} or is_grouped_integer:
+        return number
+
+    # Giữ cách hỏi thông dụng "tầm 15" = 15 triệu.
+    return number * 1_000_000 if number < 1_000 else number
+
+
+def get_budget_limit(filters: Dict[str, Any]) -> Optional[float]:
+    """Trả về trần giá dùng để loại bỏ sản phẩm vượt ngân sách."""
+    if filters.get("max_price") is not None:
+        return float(filters["max_price"])
+    if filters.get("target_price") is not None:
+        return float(filters["target_price"]) * TARGET_PRICE_MAX_RATIO
+    return None
+
+
+def is_valid_catalog_price(value: Any) -> bool:
+    """Loại giá rỗng hoặc placeholder như 0đ và 1đ khỏi kết quả tư vấn."""
+    try:
+        return float(value) >= MIN_VALID_CATALOG_PRICE
+    except (TypeError, ValueError):
+        return False
+
+
 def parse_budget_and_category(query: str) -> Dict[str, Any]:
     """Bóc tách ngân sách tối đa, ngân sách mục tiêu và phân loại danh mục từ câu hỏi."""
     norm = normalize_text(query)
     max_price: Optional[float] = None
     target_price: Optional[float] = None
 
-    # 1. Nhận diện ngân sách chặn trên: "dưới 15tr", "< 15tr", "thấp hơn 15 triệu"
-    under_match = re.search(r"(?:duoi|<|thap hon)\s*(\d+(?:[.,]\d+)?)\s*(?:tr|trieu|cu|m)?", norm)
-    if under_match:
-        num = float(under_match.group(1).replace(",", "."))
-        if num < 1000:
-            num *= 1_000_000
-        max_price = num
-    else:
-        # 2. Nhận diện ngân sách mục tiêu: "tầm 15tr", "khoảng 15 triệu", "15tr", "15 củ"
-        general_match = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:tr|trieu|cu|m)\b", norm) or re.search(
-            r"(?:tam|khoang|gia)\s*(\d+(?:[.,]\d+)?)", norm
-        )
-        if general_match:
-            num = float(general_match.group(1).replace(",", "."))
-            if num < 1000:
-                num *= 1_000_000
-            target_price = num
+    amount_pattern = rf"({PRICE_NUMBER_PATTERN})\s*({PRICE_UNIT_PATTERN})?\b"
 
-    # 3. Nhận diện phân loại danh mục
+    # 1. Nhận diện khoảng giá: "từ 15 đến 20 triệu", "15-20tr".
+    range_match = re.search(
+        rf"(?:tu\s+)?({PRICE_NUMBER_PATTERN})\s*({PRICE_UNIT_PATTERN})?\s*(?:-|den|toi)\s*"
+        rf"({PRICE_NUMBER_PATTERN})\s*({PRICE_UNIT_PATTERN})\b",
+        norm,
+    )
+    if range_match:
+        upper_unit = range_match.group(4) or range_match.group(2)
+        max_price = _parse_price_amount(range_match.group(3), upper_unit)
+    else:
+        # 2. Nhận diện ngân sách chặn trên: "dưới 15tr", "không quá 500k".
+        under_match = re.search(
+            rf"(?:duoi|<=|<|thap hon|toi da|khong qua)\s*{amount_pattern}",
+            norm,
+        )
+        if under_match:
+            max_price = _parse_price_amount(under_match.group(1), under_match.group(2))
+        else:
+            # 3. Nhận diện ngân sách mục tiêu, gồm cả đơn vị nghìn/ngàn/k.
+            explicit_match = re.search(
+                rf"({PRICE_NUMBER_PATTERN})\s*({PRICE_UNIT_PATTERN})\b",
+                norm,
+            )
+            prefixed_match = re.search(
+                rf"(?:tam|khoang|gia|ngan sach)\s*{amount_pattern}",
+                norm,
+            )
+            general_match = explicit_match or prefixed_match
+            if general_match:
+                target_price = _parse_price_amount(general_match.group(1), general_match.group(2))
+
+    # 4. Nhận diện phân loại danh mục
     category = None
     if re.search(r"\b(pc|may tinh ban|case|dan may)\b", norm):
         category = "pc"
@@ -111,8 +173,23 @@ async def retrieve_contexts(
     max_price = filters["max_price"]
     target_price = filters["target_price"]
     category = filters["category"]
+    budget_limit = get_budget_limit(filters)
 
-    vector_hits = await search_vector_store(user_query, all_chunks, top_k=12)
+    # Đây là ràng buộc cứng để AI không thể trả sản phẩm vượt ngân sách.
+    product_chunks = [
+        chunk
+        for chunk in all_chunks
+        if chunk.get("type") == "product"
+        and is_valid_catalog_price(chunk.get("metadata", {}).get("price"))
+        and (
+            budget_limit is None
+            or float(chunk.get("metadata", {}).get("price")) <= budget_limit
+        )
+    ]
+    if not product_chunks:
+        return policy_hits
+
+    vector_hits = await search_vector_store(user_query, product_chunks, top_k=12)
 
     # 3. Metadata Reranking (Ngân sách & Danh mục)
     reranked = []
@@ -128,12 +205,10 @@ async def retrieve_contexts(
         price = meta.get("price")
         if price:
             price = float(price)
-            if max_price:
+            if max_price is not None:
                 if price <= max_price:
                     score += 0.45 + (price / max_price) * 0.1
-                else:
-                    score -= min(0.5, ((price - max_price) / max_price) * 0.5)
-            elif target_price:
+            elif target_price is not None:
                 diff_ratio = abs(price - target_price) / target_price
                 if diff_ratio <= 0.25:
                     score += (0.25 - diff_ratio) * 1.8

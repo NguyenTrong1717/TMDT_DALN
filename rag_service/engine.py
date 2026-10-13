@@ -8,7 +8,7 @@ import httpx
 
 from config import GEMINI_API_KEY, PRIMARY_LLM_MODEL, FALLBACK_LLM_MODEL
 from knowledge import fetch_store_catalog
-from retriever import retrieve_contexts
+from retriever import is_valid_catalog_price, parse_budget_and_category, retrieve_contexts
 from guards import (
     build_small_talk_reply,
     check_jailbreak,
@@ -31,8 +31,9 @@ def build_system_prompt(
 
     intent_rules = {
         "product_search": (
-            "Người dùng muốn tìm hoặc so sánh sản phẩm. Chỉ gợi ý sản phẩm có trong dữ liệu bên trên, "
-            "nêu đúng tên và giá, không tự bịa sản phẩm."
+            "Người dùng muốn tìm hoặc so sánh sản phẩm. Nếu dữ liệu bên trên có sản phẩm đáp ứng yêu cầu, hãy gợi ý "
+            "2-3 sản phẩm phù hợp nhất, nêu đúng tên và giá. Nếu không có sản phẩm phù hợp thì phải nói rõ, tuyệt đối "
+            "không tự bịa hoặc đề xuất sản phẩm vượt ngân sách."
         ),
         "store_policy": (
             "Người dùng đang hỏi chính sách cửa hàng. Trả lời trực tiếp từ dữ liệu chính sách, không giới thiệu "
@@ -104,6 +105,28 @@ def build_offline_fallback_reply(contexts: list, intent: str = "product_search")
     return "\n\n".join(parts) if parts else "Mình chưa tìm thấy dữ liệu cửa hàng phù hợp với câu hỏi này. Bạn có thể mô tả rõ hơn nhu cầu để mình hỗ trợ đúng hướng nhé."
 
 
+def build_budget_no_match_reply(filters: Dict[str, Any], catalog: list) -> str:
+    """Phản hồi chắc chắn khi cửa hàng không có sản phẩm trong ngân sách."""
+    requested_budget = filters.get("max_price") or filters.get("target_price") or 0
+    formatted_budget = f"{int(requested_budget):,}".replace(",", ".")
+    category = filters.get("category")
+    valid_prices = [
+        float(item.get("price"))
+        for item in catalog
+        if is_valid_catalog_price(item.get("price"))
+        and (not category or item.get("category") == category)
+    ]
+
+    reply = (
+        f"Mình chưa tìm thấy sản phẩm nào phù hợp trong ngân sách {formatted_budget}đ. "
+        "Mình sẽ không hiển thị các sản phẩm có giá cao hơn mức bạn yêu cầu."
+    )
+    if valid_prices:
+        minimum_price = f"{int(min(valid_prices)):,}".replace(",", ".")
+        reply += f" Sản phẩm rẻ nhất trong nhóm này hiện có giá khoảng {minimum_price}đ."
+    return reply
+
+
 async def execute_rag(
     user_query: str,
     current_user: Optional[Dict[str, Any]] = None,
@@ -146,6 +169,18 @@ async def execute_rag(
         catalog,
         include_products=intent == "product_search",
     )
+
+    # Không để LLM tự bịa gợi ý khi ngân sách đã được nêu nhưng không có món phù hợp.
+    budget_filters = parse_budget_and_category(user_query)
+    has_budget = budget_filters.get("max_price") is not None or budget_filters.get("target_price") is not None
+    has_products = any(context.get("type") == "product" for context in contexts)
+    if intent == "product_search" and catalog and has_budget and not has_products:
+        return {
+            "reply": build_budget_no_match_reply(budget_filters, catalog),
+            "sources": contexts,
+            "engine": "budget-guard",
+            "intent": intent,
+        }
 
     # BƯỚC 3 & 4: AUGMENT & GENERATE
     if active_key and len(active_key) > 10:
