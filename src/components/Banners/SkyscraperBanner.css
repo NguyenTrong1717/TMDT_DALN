@@ -8,16 +8,21 @@
 
 .skyscraper-wing {
   position: fixed;
-  top: 110px;
-  width: 155px;
-  height: 580px;
-  border-radius: 0 !important;
+  top: 145px;
+  width: 175px;
+  height: 650px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  /* Đổ bóng nhiều tầng mờ mịn tự nhiên kết hợp viền ánh sáng siêu mảnh */
+  box-shadow:
+    0 12px 36px -6px rgba(0, 0, 0, 0.22),
+    0 4px 14px -2px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
   z-index: 60;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   background-color: #0A1128;
   display: block;
@@ -25,33 +30,37 @@
 }
 
 .skyscraper-wing:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 16px 44px rgba(0, 102, 255, 0.4);
-  border-color: rgba(59, 130, 246, 0.6);
+  transform: translateY(-4px) scale(1.015);
+  box-shadow:
+    0 20px 45px -8px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(59, 130, 246, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  border-color: rgba(147, 197, 253, 0.5);
 }
 
-/* Neo dạt sang 2 bên mép màn hình, luôn giữ khoảng cách an toàn với container 1200px */
+/* Neo dạt hẳn ra sát 2 bên mép ngoài màn hình */
 .skyscraper-wing.wing-left {
-  left: max(12px, calc(50vw - 600px - 155px - 20px));
+  left: max(6px, calc(50vw - 600px - 145px - 75px));
   right: auto;
 }
 
 .skyscraper-wing.wing-right {
-  right: max(12px, calc(50vw - 600px - 155px - 20px));
+  right: max(6px, calc(50vw - 600px - 145px - 75px));
   left: auto;
 }
 
-/* Nút tắt banner tinh tế */
+/* Nút tắt banner tròn mờ tinh tế chuẩn Glassmorphism */
 .skyscraper-close-btn {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   width: 22px;
   height: 22px;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   font-size: 11px;
   font-weight: 700;
   display: flex;
@@ -59,36 +68,41 @@
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  transition: background-color 0.15s ease, transform 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .skyscraper-close-btn:hover {
-  background: var(--brand-600, #D70018);
-  transform: scale(1.1);
+  background: #DC2626;
+  border-color: #EF4444;
+  transform: scale(1.12);
 }
 
-/* Ảnh poster phủ 100% thẳng góc phẳng */
+/* Ảnh poster phủ 100% bo góc mềm mại đồng bộ */
 .skyscraper-poster-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
-  border-radius: 0 !important;
+  border-radius: 9px;
 }
 
 /* Responsive: Màn hình siêu rộng (> 1920px) */
 @media (min-width: 1920px) {
   .skyscraper-wing {
-    width: 165px;
-    height: 600px;
+    width: 140px;
+    height: 650px;
+    top: 145px;
   }
+
   .skyscraper-wing.wing-left {
-    left: max(20px, calc(50vw - 600px - 165px - 24px));
+    left: max(16px, calc(50vw - 600px - 140px - 85px));
     right: auto;
   }
+
   .skyscraper-wing.wing-right {
-    right: max(20px, calc(50vw - 600px - 165px - 24px));
+    right: max(16px, calc(50vw - 600px - 140px - 85px));
     left: auto;
   }
 }
@@ -96,16 +110,18 @@
 /* Responsive: Màn hình trung bình (1440px - 1600px) co gọn nhẹ */
 @media (max-width: 1600px) and (min-width: 1440px) {
   .skyscraper-wing {
-    width: 115px;
-    height: 480px;
-    top: 105px;
+    width: 105px;
+    height: 520px;
+    top: 135px;
   }
+
   .skyscraper-wing.wing-left {
-    left: max(8px, calc(50vw - 600px - 115px - 16px));
+    left: max(6px, calc(50vw - 600px - 105px - 50px));
     right: auto;
   }
+
   .skyscraper-wing.wing-right {
-    right: max(8px, calc(50vw - 600px - 115px - 16px));
+    right: max(6px, calc(50vw - 600px - 105px - 50px));
     left: auto;
   }
 }
@@ -117,6 +133,7 @@
     top: 95px;
   }
 }
+
 @media (max-height: 620px) {
   .skyscraper-wing {
     height: 380px;

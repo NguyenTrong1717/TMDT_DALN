@@ -1,4 +1,4 @@
-# HCore Store — nghiệp vụ quản trị
+# HCore Store — Nghiệp vụ quản trị & Vận hành hệ thống
 
 ## Phạm vi đã đối chiếu
 

@@ -31,6 +31,7 @@ def _parse_price_amount(number_text: str, unit: Optional[str]) -> float:
     """Chuyển một mức giá trong câu hỏi sang VND."""
     normalized_unit = (unit or "").lower()
     normalized_number = number_text.strip()
+
     is_grouped_integer = bool(re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", normalized_number))
     number = (
         float(re.sub(r"[.,]", "", normalized_number))
@@ -119,7 +120,23 @@ def parse_budget_and_category(query: str) -> Dict[str, Any]:
     return {"max_price": max_price, "target_price": target_price, "category": category}
 
 
-async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 12) -> List[Dict[str, Any]]:
+def extract_hardware_keywords(norm_query: str) -> List[str]:
+    """Trích xuất từ khóa phần cứng cụ thể (card đồ họa, chip CPU, thương hiệu...)."""
+    patterns = [
+        r"\b(?:rtx\s*|gtx\s*|rx\s*)?(?:40[5-9]0|30[5-9]0|20[5-8]0|16[5-6]0|6800|7[7-9]00)\b",
+        r"\b(?:core\s*)?(?:i[3579](?:-\w+)?|ryzen\s*[3579](?:\s*\w+)?)\b",
+        r"\b(?:lenovo|asus|acer|msi|dell|hp|apple|macbook|gigabyte)\b",
+    ]
+    matches = []
+    for pat in patterns:
+        for found in re.findall(pat, norm_query):
+            cleaned = found.strip()
+            if cleaned:
+                matches.append(cleaned)
+    return list(set(matches))
+
+
+async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 15) -> List[Dict[str, Any]]:
     """Tìm kiếm tương đồng ngữ nghĩa bằng Local AI FastEmbed ONNX."""
     if not chunks or not query.strip():
         return []
@@ -147,8 +164,8 @@ async def retrieve_contexts(
     """
     Quy trình Hybrid Retrieval & Reranking:
     1. So khớp chính sách (Policy Matching) theo keyword trọng yếu.
-    2. Truy xuất Top-12 Semantic Vector Chunks bằng FastEmbed.
-    3. Reranking điểm số thông minh dựa trên Metadata (Category Match & Budget Match).
+    2. Hybrid Lexical + Vector Recall: Ưu tiên chunks chứa đúng từ khóa phần cứng (RTX 4060, i7...).
+    3. Reranking điểm số thông minh dựa trên Metadata (Category, Hardware Specs & Budget).
     4. Trả về Top 3 sản phẩm sát nhất + Chính sách liên quan.
     """
     norm_query = normalize_text(user_query)
@@ -167,39 +184,62 @@ async def retrieve_contexts(
     if not include_products:
         return policy_hits
 
-    # 2. Tìm kiếm Vector sản phẩm
+    # 2. Tìm kiếm Vector sản phẩm + Lexical Recall
     all_chunks = create_semantic_chunks(catalog)
     filters = parse_budget_and_category(user_query)
     max_price = filters["max_price"]
     target_price = filters["target_price"]
     category = filters["category"]
+    hw_keywords = extract_hardware_keywords(norm_query)
     budget_limit = get_budget_limit(filters)
 
-    # Đây là ràng buộc cứng để AI không thể trả sản phẩm vượt ngân sách.
-    product_chunks = [
+    # Chỉ truy xuất sản phẩm có giá thực và nằm trong ngân sách. Đây là ràng
+    # buộc cứng, không phải trừ điểm, để AI không thể trả món vượt giá.
+    all_chunks = [
         chunk
         for chunk in all_chunks
-        if chunk.get("type") == "product"
-        and is_valid_catalog_price(chunk.get("metadata", {}).get("price"))
-        and (
-            budget_limit is None
-            or float(chunk.get("metadata", {}).get("price")) <= budget_limit
+        if chunk.get("type") != "product"
+        or (
+            is_valid_catalog_price(chunk.get("metadata", {}).get("price"))
+            and (
+                budget_limit is None
+                or float(chunk.get("metadata", {}).get("price")) <= budget_limit
+            )
         )
     ]
+    product_chunks = [chunk for chunk in all_chunks if chunk.get("type") == "product"]
     if not product_chunks:
         return policy_hits
 
-    vector_hits = await search_vector_store(user_query, product_chunks, top_k=12)
+    vector_hits = await search_vector_store(user_query, product_chunks, top_k=15)
+    seen_ids = {h["id"] for h in vector_hits}
 
-    # 3. Metadata Reranking (Ngân sách & Danh mục)
+    # Lexical Recall: Nếu user hỏi đúng linh kiện (vd: "4060"), đảm bảo mọi sản phẩm chứa từ khóa được gom vào candidate
+    if hw_keywords:
+        for c in product_chunks:
+            if c["id"] not in seen_ids and c.get("type") == "product":
+                c_norm = normalize_text(f"{c.get('metadata', {}).get('name', '')} {c.get('text', '')}")
+                if any(kw in c_norm for kw in hw_keywords):
+                    vector_hits.append({**c, "score": 0.65})
+                    seen_ids.add(c["id"])
+
+    # 3. Metadata Reranking (Phần cứng, Ngân sách & Danh mục)
     reranked = []
     for hit in vector_hits:
         score = hit["score"]
         meta = hit.get("metadata", {})
+        hit_norm_name = normalize_text(meta.get("name", ""))
+        hit_norm_text = normalize_text(hit.get("text", ""))
 
         # Thưởng điểm nếu đúng danh mục khách tìm (PC, Laptop, Linh kiện)
         if category and meta.get("category") == category:
             score += 0.35
+
+        # Thưởng điểm rất cao nếu sản phẩm chứa ĐÚNG cấu hình / linh kiện khách hỏi (vd: 4060, rtx 4060)
+        if hw_keywords:
+            for kw in hw_keywords:
+                if kw in hit_norm_name or kw in hit_norm_text:
+                    score += 0.65
 
         # Tối ưu theo mức giá và ngân sách
         price = meta.get("price")
@@ -225,5 +265,24 @@ async def retrieve_contexts(
         for h in reranked
         if h.get("type") == "product"
     ][:3]
+
+    # Đảm bảo luôn có 2 - 3 sản phẩm gợi ý phù hợp ngay cả khi câu hỏi hiếm/chưa khớp tuyệt đối
+    if len(top_products) < 2 and product_chunks:
+        cat_matches = [
+            c for c in product_chunks
+            if c.get("type") == "product" and (not category or c.get("metadata", {}).get("category") == category)
+        ]
+        seen_ids = {p["metadata"].get("id") for p in top_products}
+        for c in (cat_matches or product_chunks):
+            if c.get("type") == "product" and c.get("metadata", {}).get("id") not in seen_ids:
+                top_products.append({
+                    "type": "product",
+                    "text": c["text"],
+                    "score": 0.45,
+                    "metadata": c.get("metadata", {})
+                })
+                seen_ids.add(c.get("metadata", {}).get("id"))
+                if len(top_products) >= 3:
+                    break
 
     return policy_hits + top_products

@@ -21,6 +21,11 @@ const iso = (value) => new Date(value).toISOString();
 
 export const getMomoConfig = () => {
   const port = process.env.PORT || 3000;
+  const publicBaseUrl = (
+    process.env.PUBLIC_BASE_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    `http://127.0.0.1:${port}`
+  ).replace(/\/$/, "");
   let partnerCode = process.env.MOMO_PARTNER_CODE;
   let accessKey = process.env.MOMO_ACCESS_KEY;
   let secretKey = process.env.MOMO_SECRET_KEY;
@@ -40,10 +45,10 @@ export const getMomoConfig = () => {
       "https://test-payment.momo.vn/v2/gateway/api/create",
     returnUrl:
       process.env.MOMO_RETURN_URL ||
-      `http://127.0.0.1:${port}/api/payments/momo/return`,
+      `${publicBaseUrl}/api/payments/momo/return`,
     ipnUrl:
       process.env.MOMO_IPN_URL ||
-      `http://127.0.0.1:${port}/api/payments/momo/ipn`,
+      `${publicBaseUrl}/api/payments/momo/ipn`,
     frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
     requestType: process.env.MOMO_REQUEST_TYPE || "payWithMethod",
   };

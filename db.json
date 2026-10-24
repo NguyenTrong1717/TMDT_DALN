@@ -8,11 +8,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -22,11 +19,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -36,11 +30,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "5",
@@ -50,11 +41,8 @@
       "deleted": false,
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -64,11 +52,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": 7,
@@ -78,11 +63,8 @@
       "deleted": false,
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": 8,
@@ -92,11 +74,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 166
     },
     {
       "id": 9,
@@ -106,11 +85,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 18,
+      "sold": 180
     }
   ],
   "paymentAttempts": [
@@ -583,15 +559,14 @@
       "category": "laptop-cu",
       "status": "Còn hàng",
       "soldPercent": 58,
-      "stockLeft": 25,
+      "stockLeft": 7,
       "image": "/images/LT10.jpg",
       "deleted": false,
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -602,14 +577,13 @@
       "category": "laptop-gaming",
       "status": "Còn hàng",
       "soldPercent": 70,
-      "stockLeft": 25,
+      "stockLeft": 4,
       "image": "/images/LT2.jpg",
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -620,14 +594,13 @@
       "category": "laptop-moi",
       "status": "Còn hàng",
       "soldPercent": 44,
-      "stockLeft": 25,
+      "stockLeft": 11,
       "image": "/images/LT3.jpg",
       "flashSale": false,
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -638,14 +611,13 @@
       "category": "laptop-do-hoa",
       "status": "Còn hàng",
       "soldPercent": 35,
-      "stockLeft": 25,
+      "stockLeft": 16,
       "image": "/images/LT4.jpg",
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -656,14 +628,13 @@
       "category": "laptop-do-hoa",
       "status": "Còn hàng",
       "soldPercent": 25,
-      "stockLeft": 25,
+      "stockLeft": 22,
       "image": "/images/LT5.jpg",
       "flashSale": true,
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -674,14 +645,13 @@
       "category": "laptop",
       "status": "Còn hàng",
       "soldPercent": 52,
-      "stockLeft": 25,
+      "stockLeft": 9,
       "image": "/images/LT6.jpg",
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -692,14 +662,13 @@
       "category": "laptop-moi",
       "status": "Còn hàng",
       "soldPercent": 67,
-      "stockLeft": 25,
+      "stockLeft": 6,
       "image": "/images/LT7.jpg",
       "flashSale": true,
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -710,14 +679,13 @@
       "category": "laptop-cu",
       "status": "Còn hàng",
       "soldPercent": 89,
-      "stockLeft": 25,
+      "stockLeft": 2,
       "image": "/images/LT8.jpg",
       "flashSale": true,
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -729,11 +697,8 @@
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -745,11 +710,93 @@
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 95,
+      "stock": 2,
+      "sold": 194
+    },
+    {
+      "id": "11",
+      "name": "Laptop Gaming Lenovo LOQ 15IRX9 (Core i5-13450HX, 16GB RAM, 512GB SSD, RTX 4060 8GB, 15.6 inch FHD 144Hz G-Sync)",
+      "price": 22990000,
+      "oldPrice": 26990000,
+      "discount": 15,
+      "category": "laptop-gaming",
+      "status": "Còn hàng",
+      "soldPercent": 85,
+      "stockLeft": 6,
+      "image": "/images/LT11.png",
+      "flashSale": true,
+      "rating": 4.9,
+      "reviewsCount": 48,
       "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "sold": 95
+    },
+    {
+      "id": "12",
+      "name": "Laptop Gaming Acer Nitro 16 Phoenix AN16-41-R5M4 (Ryzen 7 7840HS, 16GB, 512GB, RTX 4060 8GB, 16 inch WQXGA 165Hz sRGB 100%)",
+      "price": 25990000,
+      "oldPrice": 29990000,
+      "discount": 13,
+      "category": "laptop-gaming",
+      "status": "Còn hàng",
+      "soldPercent": 78,
+      "stockLeft": 4,
+      "image": "/images/LT12.png",
+      "flashSale": true,
+      "rating": 5,
+      "reviewsCount": 62,
+      "stock": 18,
+      "sold": 80
+    },
+    {
+      "id": "13",
+      "name": "Laptop Gaming ASUS TUF Gaming A15 FA507NV-LP046W (Ryzen 7 7735HS, 16GB, 512GB, RTX 4060 8GB, 15.6 inch FHD 144Hz 100% sRGB)",
+      "price": 24490000,
+      "oldPrice": 28490000,
+      "discount": 14,
+      "category": "laptop-gaming",
+      "status": "Còn hàng",
+      "soldPercent": 82,
+      "stockLeft": 5,
+      "image": "/images/lap01.png",
+      "flashSale": false,
+      "rating": 4.8,
+      "reviewsCount": 37,
+      "stock": 22,
+      "sold": 88
+    },
+    {
+      "id": "14",
+      "name": "Laptop Gaming MSI Katana 15 B13VFK-676VN (Core i7-13620H, 16GB, 1TB SSD, RTX 4060 8GB, 15.6 inch FHD 144Hz)",
+      "price": 26990000,
+      "oldPrice": 31990000,
+      "discount": 16,
+      "category": "laptop-gaming",
+      "status": "Còn hàng",
+      "soldPercent": 65,
+      "stockLeft": 7,
+      "image": "/images/lap02.jpg",
+      "flashSale": true,
+      "rating": 4.9,
+      "reviewsCount": 51,
+      "stock": 15,
+      "sold": 60
+    },
+    {
+      "id": "15",
+      "name": "Laptop Gaming Dell G15 5530 (Core i7-13650HX, 16GB RAM, 512GB SSD, RTX 4060 8GB, 15.6 inch FHD 165Hz sRGB 100%)",
+      "price": 28490000,
+      "oldPrice": 33000000,
+      "discount": 14,
+      "category": "laptop-gaming",
+      "status": "Còn hàng",
+      "soldPercent": 60,
+      "stockLeft": 3,
+      "image": "/images/LT18.webp",
+      "flashSale": false,
+      "rating": 4.7,
+      "reviewsCount": 29,
+      "stock": 12,
+      "sold": 45
     }
   ],
   "settings": [
@@ -768,14 +815,13 @@
       "category": "psu",
       "status": "Còn hàng",
       "soldPercent": 62,
-      "stockLeft": 25,
+      "stockLeft": 8,
       "image": "/images/LC1.jpg",
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -786,14 +832,13 @@
       "category": "vga",
       "status": "Còn hàng",
       "soldPercent": 75,
-      "stockLeft": 25,
+      "stockLeft": 5,
       "image": "/images/LC2.jpg",
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -804,14 +849,13 @@
       "category": "hdd",
       "status": "Còn hàng",
       "soldPercent": 40,
-      "stockLeft": 25,
+      "stockLeft": 18,
       "image": "/images/LC3.jpg",
       "flashSale": true,
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -822,14 +866,13 @@
       "category": "cpu",
       "status": "Còn hàng",
       "soldPercent": 55,
-      "stockLeft": 25,
+      "stockLeft": 12,
       "image": "/images/LC4.jpg",
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -845,9 +888,8 @@
       "flashSale": true,
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -858,14 +900,13 @@
       "category": "mainboard",
       "status": "Còn hàng",
       "soldPercent": 81,
-      "stockLeft": 25,
+      "stockLeft": 3,
       "image": "/images/LC6.webp",
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -876,14 +917,13 @@
       "category": "hdd",
       "status": "Còn hàng",
       "soldPercent": 28,
-      "stockLeft": 25,
+      "stockLeft": 40,
       "image": "/images/LC7.jpg",
       "flashSale": true,
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -894,14 +934,13 @@
       "category": "ram",
       "status": "Còn hàng",
       "soldPercent": 47,
-      "stockLeft": 25,
+      "stockLeft": 14,
       "image": "/images/LC8.webp",
       "flashSale": true,
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -913,11 +952,8 @@
       "flashSale": true,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -929,11 +965,8 @@
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 95,
-      "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 194
     }
   ],
   "cart": [
@@ -1003,11 +1036,8 @@
       "image": "/images/pr1.webp",
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -1016,11 +1046,8 @@
       "image": "/images/pr2.webp",
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -1029,11 +1056,8 @@
       "image": "/images/pr3.webp",
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -1042,11 +1066,8 @@
       "image": "/images/pr4.webp",
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -1055,11 +1076,8 @@
       "image": "/images/pr5.webp",
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -1068,11 +1086,8 @@
       "image": "/images/pr6.webp",
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -1081,11 +1096,8 @@
       "image": "/images/pr7.webp",
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -1094,11 +1106,8 @@
       "image": "/images/pr8.webp",
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -1108,11 +1117,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -1122,11 +1128,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 95,
-      "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 194
     },
     {
       "id": 11,
@@ -1136,11 +1139,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 102,
-      "stock": 25,
-      "sold": 208,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 208
     },
     {
       "id": 12,
@@ -1150,11 +1150,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 14,
-      "stock": 25,
-      "sold": 222,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 222
     },
     {
       "id": 13,
@@ -1164,11 +1161,8 @@
       "deleted": false,
       "rating": 4.7,
       "reviewsCount": 21,
-      "stock": 25,
-      "sold": 236,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 26,
+      "sold": 236
     },
     {
       "id": 14,
@@ -1178,11 +1172,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 28,
-      "stock": 25,
-      "sold": 250,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 250
     },
     {
       "id": 15,
@@ -1192,11 +1183,8 @@
       "deleted": false,
       "rating": 4.6,
       "reviewsCount": 35,
-      "stock": 25,
-      "sold": 264,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 264
     },
     {
       "id": 16,
@@ -1206,11 +1194,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 42,
-      "stock": 25,
-      "sold": 278,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 47,
+      "sold": 278
     },
     {
       "id": 17,
@@ -1220,11 +1205,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 49,
-      "stock": 25,
-      "sold": 292,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 292
     },
     {
       "id": 18,
@@ -1234,11 +1216,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 56,
-      "stock": 25,
-      "sold": 306,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 306
     },
     {
       "id": 19,
@@ -1248,11 +1227,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 63,
-      "stock": 25,
-      "sold": 40,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 40
     },
     {
       "id": 20,
@@ -1262,11 +1238,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 70,
-      "stock": 25,
-      "sold": 54,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 54
     }
   ],
   "catenogies": [
@@ -1279,11 +1252,8 @@
       "flashSale": false,
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -1294,11 +1264,8 @@
       "flashSale": false,
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -1309,11 +1276,8 @@
       "flashSale": false,
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -1324,11 +1288,8 @@
       "flashSale": false,
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -1338,11 +1299,8 @@
       "image": "/images/pc6.jpg",
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -1352,11 +1310,8 @@
       "image": "/images/pc7.jpeg",
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -1366,11 +1321,8 @@
       "image": "/images/pc8.jpg",
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -1380,11 +1332,8 @@
       "image": "/images/pc9.jpg",
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -1395,11 +1344,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -1410,11 +1356,8 @@
       "flashSale": true,
       "rating": 5,
       "reviewsCount": 95,
-      "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 194
     }
   ],
   "_test_temp": [],
@@ -1517,10 +1460,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": "2",
@@ -1587,10 +1528,8 @@
       },
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": "3",
@@ -1657,10 +1596,8 @@
       },
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": "4",
@@ -1727,10 +1664,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": "5",
@@ -1790,10 +1725,8 @@
       },
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": "6",
@@ -1853,10 +1786,8 @@
       },
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": "7",
@@ -1916,10 +1847,8 @@
       },
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": "8",
@@ -1979,10 +1908,8 @@
       },
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": "9",
@@ -2042,10 +1969,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": "10",
@@ -2105,10 +2030,8 @@
       },
       "rating": 5,
       "reviewsCount": 95,
-      "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 2,
+      "sold": 194
     },
     {
       "id": "11",
@@ -2168,10 +2091,8 @@
       },
       "rating": 4.9,
       "reviewsCount": 102,
-      "stock": 25,
-      "sold": 208,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 12,
+      "sold": 208
     },
     {
       "id": "12",
@@ -2231,10 +2152,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 14,
-      "stock": 25,
-      "sold": 222,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 19,
+      "sold": 222
     },
     {
       "id": "13",
@@ -2294,10 +2213,8 @@
       },
       "rating": 4.7,
       "reviewsCount": 21,
-      "stock": 25,
-      "sold": 236,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 26,
+      "sold": 236
     },
     {
       "id": "14",
@@ -2357,10 +2274,8 @@
       },
       "rating": 5,
       "reviewsCount": 28,
-      "stock": 25,
-      "sold": 250,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 33,
+      "sold": 250
     },
     {
       "id": "15",
@@ -2420,10 +2335,8 @@
       },
       "rating": 4.6,
       "reviewsCount": 35,
-      "stock": 25,
-      "sold": 264,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 40,
+      "sold": 264
     },
     {
       "id": "16",
@@ -2483,10 +2396,8 @@
       },
       "rating": 4.9,
       "reviewsCount": 42,
-      "stock": 25,
-      "sold": 278,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 47,
+      "sold": 278
     },
     {
       "id": "17",
@@ -2546,10 +2457,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 49,
-      "stock": 25,
-      "sold": 292,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 12,
+      "sold": 292
     },
     {
       "id": "18",
@@ -2609,10 +2518,8 @@
       },
       "rating": 5,
       "reviewsCount": 56,
-      "stock": 25,
-      "sold": 306,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 19,
+      "sold": 306
     },
     {
       "id": "19",
@@ -2672,10 +2579,8 @@
       },
       "rating": 4.9,
       "reviewsCount": 63,
-      "stock": 25,
-      "sold": 40,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 2,
+      "sold": 40
     },
     {
       "id": "20",
@@ -2735,10 +2640,8 @@
       },
       "rating": 4.8,
       "reviewsCount": 70,
-      "stock": 25,
-      "sold": 54,
-      "soldCount": null,
-      "stockLeft": 25
+      "stock": 33,
+      "sold": 54
     }
   ],
   "userVouchers": [
@@ -3153,11 +3056,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 32,
-      "stock": 25,
-      "sold": 68,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 68
     },
     {
       "id": 2,
@@ -3195,11 +3095,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 39,
-      "stock": 25,
-      "sold": 82,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 33,
+      "sold": 82
     },
     {
       "id": 3,
@@ -3237,11 +3134,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 46,
-      "stock": 25,
-      "sold": 96,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 96
     },
     {
       "id": 4,
@@ -3279,11 +3173,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 53,
-      "stock": 25,
-      "sold": 110,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 47,
+      "sold": 110
     },
     {
       "id": 5,
@@ -3321,11 +3212,8 @@
       "deleted": false,
       "rating": 4.7,
       "reviewsCount": 60,
-      "stock": 25,
-      "sold": 124,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 12,
+      "sold": 124
     },
     {
       "id": 6,
@@ -3363,11 +3251,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 67,
-      "stock": 25,
-      "sold": 138,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 19,
+      "sold": 138
     },
     {
       "id": 7,
@@ -3377,11 +3262,8 @@
       "deleted": false,
       "rating": 4.6,
       "reviewsCount": 74,
-      "stock": 25,
-      "sold": 152,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 26,
+      "sold": 152
     },
     {
       "id": 8,
@@ -3391,11 +3273,8 @@
       "deleted": false,
       "rating": 4.9,
       "reviewsCount": 81,
-      "stock": 25,
-      "sold": 166,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 18,
+      "sold": 166
     },
     {
       "id": 9,
@@ -3405,11 +3284,8 @@
       "deleted": false,
       "rating": 4.8,
       "reviewsCount": 88,
-      "stock": 25,
-      "sold": 180,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 40,
+      "sold": 180
     },
     {
       "id": 10,
@@ -3419,11 +3295,8 @@
       "deleted": false,
       "rating": 5,
       "reviewsCount": 95,
-      "stock": 25,
-      "sold": 194,
-      "soldCount": null,
-      "stockLeft": 25,
-      "status": "Còn hàng"
+      "stock": 2,
+      "sold": 194
     }
   ],
   "orders": [
@@ -3619,5 +3492,315 @@
       "voucherCode": null,
       "voucherProcessed": false
     }
-  ]
+  ],
+  "banners": [
+    {
+      "id": "banner-hm-01",
+      "title": "PC Gaming HCore Master RTX 4070 Super",
+      "subtitle": "Chiến mượt 144+ FPS mọi tựa game AAA • Tặng gói bảo hành 24 tháng",
+      "image": "/images/CN.jpg",
+      "imageMobile": "/images/CN.jpg",
+      "link": "/category/top-cuc-khung",
+      "placement": "hero_main",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-hm-02",
+      "title": "Đại Tiệc Màn Hình & Laptop Đồ Họa 2026",
+      "subtitle": "Tần số quét 180Hz • Chuẩn màu DCI-P3 99% • Trợ giá học sinh sinh viên đến 3 triệu",
+      "image": "/images/MT.jpg",
+      "imageMobile": "/images/MT.jpg",
+      "link": "/laptop/laptop-gaming",
+      "placement": "hero_main",
+      "category": "",
+      "order": 2,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-hm-03",
+      "title": "Tuần Lễ Intel & Asus - Bùng Nổ Ưu Đãi",
+      "subtitle": "Giảm ngay 1.000.000đ cho đơn máy tính từ 20 triệu • Quà tặng độc quyền",
+      "image": "/images/AN01.jpg",
+      "imageMobile": "/images/AN01.jpg",
+      "link": "/category/top-ban-chay",
+      "placement": "hero_main",
+      "category": "",
+      "order": 3,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-hs-01",
+      "title": "Card Đồ Họa RTX 40",
+      "subtitle": "Xả kho giá sốc tới 2.5Tr",
+      "image": "/images/gpu.png",
+      "imageMobile": "",
+      "link": "/component/vga",
+      "placement": "hero_side",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-hs-02",
+      "title": "Phụ Kiện Gear Gaming",
+      "subtitle": "Bàn phím cơ & Chuột giảm 40%",
+      "image": "/images/TN90.jpg",
+      "imageMobile": "",
+      "link": "/category/top-ban-chay",
+      "placement": "hero_side",
+      "category": "",
+      "order": 2,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-hs-03",
+      "title": "Smartwatch & Âm Thanh",
+      "subtitle": "Âm thanh vòm • Pin 7 ngày",
+      "image": "/images/DH.jpg",
+      "imageMobile": "",
+      "link": "/category/top-ban-chay",
+      "placement": "hero_side",
+      "category": "",
+      "order": 3,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-01",
+      "title": "Deal sốc đến 50%",
+      "subtitle": "Giờ vàng giá sốc",
+      "image": "FaBolt",
+      "imageMobile": "",
+      "link": "/san-sale",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-02",
+      "title": "Thu cũ đổi mới",
+      "subtitle": "Trợ giá đến 3 triệu",
+      "image": "FaSyncAlt",
+      "imageMobile": "",
+      "link": "/thu-cu-doi-moi",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 2,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-03",
+      "title": "Trả góp 0%",
+      "subtitle": "Xét duyệt 3 phút",
+      "image": "FaCreditCard",
+      "imageMobile": "",
+      "link": "/tra-gop",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 3,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-04",
+      "title": "Ưu đãi sinh viên",
+      "subtitle": "Giảm thêm 500K",
+      "image": "FaGraduationCap",
+      "imageMobile": "",
+      "link": "/uu-dai-sinh-vien",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 4,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-05",
+      "title": "Kho Voucher",
+      "subtitle": "Lưu mã giảm ngay",
+      "image": "FaTicketAlt",
+      "imageMobile": "",
+      "link": "/tri-an-khach-hang",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 5,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-pt-06",
+      "title": "Khách hàng DN",
+      "subtitle": "Chiết khấu độc quyền",
+      "image": "FaBriefcase",
+      "imageMobile": "",
+      "link": "/doanh-nghiep",
+      "placement": "promo_tiles",
+      "category": "",
+      "order": 6,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-sw-01",
+      "title": "Tuần Lễ Intel & Asus - Bùng Nổ Ưu Đãi Công Nghệ",
+      "subtitle": "Nhập mã INTEL2026 giảm ngay 1.000.000đ cho đơn máy tính từ 20 triệu",
+      "image": "/images/AN01.jpg",
+      "imageMobile": "/images/AN01.jpg",
+      "link": "/category/top-ban-chay",
+      "placement": "strip_wide",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-cp-laptop",
+      "title": "Laptop Mỏng Nhẹ & Gaming AI",
+      "subtitle": "Tản nhiệt buồng hơi • Pin trâu 12H",
+      "image": "/images/lap01.png",
+      "imageMobile": "",
+      "link": "/laptop/laptop-gaming",
+      "placement": "category_promo",
+      "category": "laptop",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-cp-pc",
+      "title": "PC Gaming & Workstation Cực Mạnh",
+      "subtitle": "Bảo hành 24 tháng đổi mới tận nơi",
+      "image": "/images/pc12.webp",
+      "imageMobile": "",
+      "link": "/category/top-cuc-khung",
+      "placement": "category_promo",
+      "category": "pc",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-cp-component",
+      "title": "Linh Kiện Chính Hãng 100%",
+      "subtitle": "Tự ráp cấu hình PC giá xuất xưởng",
+      "image": "/images/TB07.png",
+      "imageMobile": "",
+      "link": "/component/vga",
+      "placement": "category_promo",
+      "category": "component",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-sky-left",
+      "title": "Laptop AI - Giảm thêm đến 2 Triệu",
+      "subtitle": "Trợ giá lên đời • Trả góp 0%",
+      "image": "/images/banner_sky_laptop.png",
+      "imageMobile": "",
+      "link": "/laptop/laptop-gaming",
+      "placement": "skyscraper_left",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    },
+    {
+      "id": "banner-sky-right",
+      "title": "Laptop AI - Giảm thêm đến 2 Triệu",
+      "subtitle": "Trợ giá lên đời • Trả góp 0%",
+      "image": "/images/banner_sky_laptop.png",
+      "imageMobile": "",
+      "link": "/laptop/laptop-gaming",
+      "placement": "skyscraper_right",
+      "category": "",
+      "order": 1,
+      "active": true,
+      "startAt": null,
+      "endAt": null,
+      "deleted": false,
+      "createdAt": "2026-10-09T09:14:54.115Z",
+      "updatedAt": "2026-10-09T09:14:54.115Z"
+    }
+  ],
+  "wishlist": [],
+  "chatMessages": []
 }

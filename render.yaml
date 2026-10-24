@@ -1,0 +1,84 @@
+services:
+  - type: web
+    name: hcore-backend
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --omit=dev
+    startCommand: node server_mongodb.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.20.0
+      - key: DB_NAME
+        value: tmdt_daln
+      - key: MONGO_URI
+        sync: false
+      - key: FRONTEND_URL
+        fromService:
+          name: hcore-store
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VNP_TMN_CODE
+        sync: false
+      - key: VNP_HASH_SECRET
+        sync: false
+      - key: VNP_URL
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - key: MOMO_PARTNER_CODE
+        sync: false
+      - key: MOMO_ACCESS_KEY
+        sync: false
+      - key: MOMO_SECRET_KEY
+        sync: false
+      - key: MOMO_API_URL
+        value: https://test-payment.momo.vn/v2/gateway/api/create
+      - key: MOMO_REQUEST_TYPE
+        value: payWithMethod
+
+  - type: web
+    name: hcore-rag
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: rag_service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: JSON_SERVER_URL
+        fromService:
+          name: hcore-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: hcore-store
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: 22.20.0
+      - key: VITE_API_URL
+        fromService:
+          name: hcore-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_RAG_API_URL
+        fromService:
+          name: hcore-rag
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: VITE_RAG_TIMEOUT_MS
+        value: 60000
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

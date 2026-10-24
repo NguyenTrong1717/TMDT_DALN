@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useBanners } from "../../hooks/useBanners";
+import { useBanners, FALLBACK_BANNERS } from "../../hooks/useBanners";
 import "./BannerCarousel.css";
 
 const AUTO_PLAY_MS = 5000;
@@ -9,7 +9,12 @@ const AUTO_PLAY_MS = 5000;
 export default function BannerCarousel({ customBanners = null }) {
   const navigate = useNavigate();
   const { banners: fetchedBanners, loading } = useBanners("hero_main");
-  const banners = customBanners || fetchedBanners;
+  const banners =
+    customBanners && customBanners.length > 0
+      ? customBanners
+      : fetchedBanners && fetchedBanners.length > 0
+      ? fetchedBanners
+      : FALLBACK_BANNERS.hero_main;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);

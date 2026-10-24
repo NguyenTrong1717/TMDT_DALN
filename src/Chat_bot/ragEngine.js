@@ -7,7 +7,12 @@
 const RAG_REQUEST_TIMEOUT_MS = Number(
   import.meta.env.VITE_RAG_TIMEOUT_MS || 60000,
 );
-const configuredEndpoint = import.meta.env.VITE_RAG_API_URL?.trim();
+const configuredRagUrl = import.meta.env.VITE_RAG_API_URL?.trim();
+const configuredEndpoint = configuredRagUrl
+  ? `${configuredRagUrl.replace(/\/$/, "")}${
+      configuredRagUrl.endsWith("/api/chat") ? "" : "/api/chat"
+    }`
+  : "";
 const CANDIDATE_ENDPOINTS = [
   configuredEndpoint,
   "http://127.0.0.1:8000/api/chat",

@@ -15,9 +15,8 @@ import {
   FaBan,
 } from "react-icons/fa";
 import { clearBannerCache } from "../../hooks/useBanners";
+import { API_URL } from "../../utils/api";
 import "./BannerManager.css";
-
-const API_URL = "http://localhost:3000";
 
 const PLACEMENT_CONFIG = {
   hero_main: {

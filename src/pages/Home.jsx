@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { API_URL } from "../utils/api";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import ProductGrid from "../components/ProductGrid/ProductGrid";
 import Catenogy from "../components/Catenogy/Catenogy";
-import EventList from "../components/Events/EventList";
+import EventList, { FALLBACK_COMPONENTS } from "../components/Events/EventList";
 import LaptopUser from "../components/Newlaptop/LaptopUser";
 import Sevicer from "../components/Sevicer/Sevicer";
 import FooterUser from "../components/Footer/FooterUser";
@@ -19,6 +18,7 @@ import StripBanner from "../components/Banners/StripBanner";
 import CategoryPromo from "../components/Banners/CategoryPromo";
 import SkyscraperBanner from "../components/Banners/SkyscraperBanner";
 import { getImageUrl } from "../utils/imageUtils";
+import { API_URL } from "../utils/api";
 import { toast } from "sonner";
 import "./Home.css";
 
@@ -70,20 +70,37 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, catenogiesRes, eventListRes, laptopRes] =
-          await Promise.all([
-            fetch(`${API_URL}/products`),
-            fetch(`${API_URL}/catenogies`),
-            fetch(`${API_URL}/eventList`),
-            fetch(`${API_URL}/LaptopUser`),
-          ]);
+        const fetchEndpoint = async (endpoint, fallback = []) => {
+          try {
+            const base = API_URL || "http://127.0.0.1:3000";
+            let res = await fetch(`${base}${endpoint}`).catch(() => null);
+            if (!res || !res.ok) {
+              res = await fetch(`http://localhost:3000${endpoint}`).catch(() => null);
+            }
+            if (res && res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) return data;
+            }
+          } catch (e) {
+            console.warn(`[Home] Lỗi fetch ${endpoint}:`, e.message);
+          }
+          return fallback;
+        };
 
-        setProducts(await productsRes.json());
-        setCatenogies(await catenogiesRes.json());
-        setEventList(await eventListRes.json());
-        setLaptopUser(await laptopRes.json());
+        const [pData, cData, eData, lData] = await Promise.all([
+          fetchEndpoint("/products", []),
+          fetchEndpoint("/catenogies", []),
+          fetchEndpoint("/eventList", FALLBACK_COMPONENTS),
+          fetchEndpoint("/LaptopUser", []),
+        ]);
+
+        if (pData.length) setProducts(pData);
+        if (cData.length) setCatenogies(cData);
+        setEventList(eData.length ? eData : FALLBACK_COMPONENTS);
+        if (lData.length) setLaptopUser(lData);
       } catch (err) {
         console.error(err);
+        setEventList(FALLBACK_COMPONENTS);
       } finally {
         setLoading(false);
       }
@@ -414,25 +431,20 @@ const Home = () => {
                 <div className="podium-badge silver">
                   <FaMedal /> {topLeaderboard[0].badge}
                 </div>
-                <div className="podium-img-box">
-                  <img
-                    src={getImageUrl(
-                      topLeaderboard[0].image || topLeaderboard[0].img,
-                    )}
-                    alt={topLeaderboard[0].name}
-                    onError={(e) => {
-                      e.target.src = "/images/pc.jpg";
-                    }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[0].image || topLeaderboard[0].img)}
+                  alt={topLeaderboard[0].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/pc.jpg"; }}
+                />
+                <div className="podium-info-overlay">
+                  <h4 className="podium-name">{topLeaderboard[0].name}</h4>
+                  <div className="podium-price">
+                    {Number(topLeaderboard[0].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count">🔥 {topLeaderboard[0].sold}</span>
+                  <button className="podium-action-btn">XEM CHI TIẾT &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[0].name}</h4>
-                <div className="podium-price">
-                  {Number(topLeaderboard[0].price || 0).toLocaleString("vi-VN")}
-                  đ
-                </div>
-                <span className="podium-sold-count">
-                  🔥 {topLeaderboard[0].sold}
-                </span>
               </div>
 
               {/* Top 1 Vàng (Ở giữa cao nhất) */}
@@ -444,27 +456,21 @@ const Home = () => {
                 <div className="podium-badge gold">
                   <FaCrown /> {topLeaderboard[1].badge}
                 </div>
-                <div className="podium-img-box king-img">
-                  <img
-                    src={getImageUrl(
-                      topLeaderboard[1].image || topLeaderboard[1].img,
-                    )}
-                    alt={topLeaderboard[1].name}
-                    onError={(e) => {
-                      e.target.src = "/images/pc3.png";
-                    }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[1].image || topLeaderboard[1].img)}
+                  alt={topLeaderboard[1].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/pc3.png"; }}
+                />
+                <div className="podium-info-overlay">
                   <span className="king-tag">ĐƯỢC YÊU THÍCH NHẤT</span>
+                  <h4 className="podium-name">{topLeaderboard[1].name}</h4>
+                  <div className="podium-price king-price">
+                    {Number(topLeaderboard[1].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count king-sold">🔥 {topLeaderboard[1].sold}</span>
+                  <button className="podium-action-btn king-btn">XEM NGAY QUÁN QUÂN &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[1].name}</h4>
-                <div className="podium-price king-price">
-                  {Number(topLeaderboard[1].price || 0).toLocaleString("vi-VN")}
-                  đ
-                </div>
-                <span className="podium-sold-count king-sold">
-                  🔥 {topLeaderboard[1].sold}
-                </span>
-                <button className="podium-king-btn">XEM NGAY QUÁN QUÂN</button>
               </div>
 
               {/* Top 3 Đồng (Bên phải) */}
@@ -475,25 +481,20 @@ const Home = () => {
                 <div className="podium-badge bronze">
                   <FaMedal /> {topLeaderboard[2].badge}
                 </div>
-                <div className="podium-img-box">
-                  <img
-                    src={getImageUrl(
-                      topLeaderboard[2].image || topLeaderboard[2].img,
-                    )}
-                    alt={topLeaderboard[2].name}
-                    onError={(e) => {
-                      e.target.src = "/images/MT.jpg";
-                    }}
-                  />
+                <img
+                  src={getImageUrl(topLeaderboard[2].image || topLeaderboard[2].img)}
+                  alt={topLeaderboard[2].name}
+                  className="podium-full-img"
+                  onError={(e) => { e.target.src = "/images/MT.jpg"; }}
+                />
+                <div className="podium-info-overlay">
+                  <h4 className="podium-name">{topLeaderboard[2].name}</h4>
+                  <div className="podium-price">
+                    {Number(topLeaderboard[2].price || 0).toLocaleString("vi-VN")}đ
+                  </div>
+                  <span className="podium-sold-count">🔥 {topLeaderboard[2].sold}</span>
+                  <button className="podium-action-btn">XEM CHI TIẾT &rsaquo;</button>
                 </div>
-                <h4 className="podium-name">{topLeaderboard[2].name}</h4>
-                <div className="podium-price">
-                  {Number(topLeaderboard[2].price || 0).toLocaleString("vi-VN")}
-                  đ
-                </div>
-                <span className="podium-sold-count">
-                  🔥 {topLeaderboard[2].sold}
-                </span>
               </div>
             </div>
           </div>
