@@ -6,9 +6,7 @@ File: rag_service/retriever.py
 import re
 import unicodedata
 from typing import List, Dict, Any, Optional
-import numpy as np
 
-from embeddings import get_embed_model, normalize_vector
 from chunker import create_semantic_chunks
 from knowledge import STORE_POLICIES
 
@@ -137,21 +135,25 @@ def extract_hardware_keywords(norm_query: str) -> List[str]:
 
 
 async def search_vector_store(query: str, chunks: List[Dict[str, Any]], top_k: int = 15) -> List[Dict[str, Any]]:
-    """Tìm kiếm tương đồng ngữ nghĩa bằng Local AI FastEmbed ONNX."""
+    """Rank chunks with a memory-safe lexical scorer for 512 MB instances."""
     if not chunks or not query.strip():
         return []
 
-    model = get_embed_model()
-    q_vec = next(model.embed([query]))
-    q_norm = normalize_vector(q_vec)
+    normalized_query = normalize_text(query)
+    query_terms = set(re.findall(r"[a-z0-9]+", normalized_query))
+    scored = []
+    for chunk in chunks:
+        metadata = chunk.get("metadata", {})
+        searchable = normalize_text(
+            f"{metadata.get('name', '')} {metadata.get('category', '')} {chunk.get('text', '')}"
+        )
+        searchable_terms = set(re.findall(r"[a-z0-9]+", searchable))
+        overlap = len(query_terms & searchable_terms)
+        score = overlap / max(1, len(query_terms))
+        if normalized_query and normalized_query in searchable:
+            score += 0.5
+        scored.append({**chunk, "score": score})
 
-    # Sinh vector cho các chunks chưa có trong bộ nhớ
-    uncached = [c for c in chunks if "vector" not in c]
-    if uncached:
-        for c, raw_v in zip(uncached, model.embed([c["text"] for c in uncached])):
-            c["vector"] = normalize_vector(raw_v)
-
-    scored = [{**c, "score": float(np.dot(q_norm, c["vector"]))} for c in chunks]
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored[:top_k]
 

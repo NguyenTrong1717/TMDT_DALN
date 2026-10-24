@@ -34,20 +34,14 @@ from dotenv import load_dotenv
 
 from contextlib import asynccontextmanager
 from engine import execute_rag
-from embeddings import get_embed_model
 
 load_dotenv()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Làm nóng mô hình AI Vector (Preload model vào RAM) ngay khi bật server
-    print("\n🧠 [RAG Service] Đang nạp mô hình AI Vector FastEmbed ONNX vào RAM...")
-    try:
-        get_embed_model()
-        print("✅ [RAG Service] Mô hình FastEmbed ONNX đã sẵn sàng trong RAM! Sẵn sàng phục vụ tức thì.\n")
-    except Exception as e:
-        print(f"⚠️ [RAG Service] Cảnh báo khởi động mô hình: {e}\n")
+    # Render Free has 512 MB RAM, so retrieval stays lightweight at startup.
+    print("\n[RAG Service] Lightweight lexical retrieval is ready.\n")
     yield
     print("🛑 [RAG Service] Dừng dịch vụ AI RAG.")
 
