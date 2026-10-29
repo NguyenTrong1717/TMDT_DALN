@@ -70,6 +70,27 @@ test("Mongo backend enforces auth, workflow and inventory consistency on an isol
       login("admin@test.local", "admin-pass"), login("warehouse@test.local", "admin-pass"), login("support@test.local", "admin-pass"), login("u1@test.local", "legacy-pass"), login("u2@test.local", "user-pass"),
     ]);
     for (const result of [adminLogin, warehouseLogin, supportLogin, user1Login, user2Login]) assert.equal(result.response.status, 200, JSON.stringify(result.data));
+    const recoveryRequest = await fetch(`${base}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account: "u2@test.local" }),
+    });
+    assert.equal(recoveryRequest.status, 202, await recoveryRequest.text());
+    assert.equal(await db.collection("serviceRequests").countDocuments({ userId: "u2", service: "Khôi phục tài khoản" }), 1);
+    const wrongPasswordChange = await fetch(`${base}/api/auth/change-password`, {
+      method: "POST",
+      headers: auth(user2Login.data.token),
+      body: JSON.stringify({ currentPassword: "wrong-pass", newPassword: "new-user-pass" }),
+    });
+    assert.equal(wrongPasswordChange.status, 400, await wrongPasswordChange.text());
+    const passwordChange = await fetch(`${base}/api/auth/change-password`, {
+      method: "POST",
+      headers: auth(user2Login.data.token),
+      body: JSON.stringify({ currentPassword: "user-pass", newPassword: "new-user-pass" }),
+    });
+    assert.equal(passwordChange.status, 200, await passwordChange.text());
+    assert.equal((await login("u2@test.local", "user-pass")).response.status, 401);
+    assert.equal((await login("u2@test.local", "new-user-pass")).response.status, 200);
     const deleteCartItem = await fetch(`${base}/cart/cart-delete`, { method: "DELETE", headers: auth(user1Login.data.token) });
     assert.equal(deleteCartItem.status, 200, await deleteCartItem.text());
     assert.equal(await db.collection("cart").countDocuments({ id: "cart-delete" }), 0);

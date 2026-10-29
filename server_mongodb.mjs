@@ -366,6 +366,26 @@ const saveState = async (state) => {
 const getUser = (req) => requireAuth(req);
 const requireAdmin = (req) => requireRoles(req, ["admin"]);
 
+const passwordRecoveryAttempts = new Map();
+const PASSWORD_RECOVERY_WINDOW_MS = 15 * 60 * 1000;
+const PASSWORD_RECOVERY_MAX_ATTEMPTS = 3;
+
+const checkPasswordRecoveryRateLimit = (req, account) => {
+  const now = Date.now();
+  const key = `${getClientIp(req)}:${account.toLowerCase()}`;
+  const recentAttempts = (passwordRecoveryAttempts.get(key) || []).filter(
+    (timestamp) => now - timestamp < PASSWORD_RECOVERY_WINDOW_MS,
+  );
+  if (recentAttempts.length >= PASSWORD_RECOVERY_MAX_ATTEMPTS) {
+    throw Object.assign(
+      new Error("Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau 15 phút."),
+      { status: 429 },
+    );
+  }
+  recentAttempts.push(now);
+  passwordRecoveryAttempts.set(key, recentAttempts);
+};
+
 const prepareCheckoutInput = (req, user) => ({
   ...req.body,
   userId: String(user.id),
@@ -422,6 +442,56 @@ app.post("/api/auth/register", async (req, res) => {
     };
     await db.collection("users").insertOne(user);
     res.status(201).json({ user: publicUser(user) });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+app.post("/api/auth/forgot-password", async (req, res) => {
+  try {
+    const account = String(req.body.account || "").trim();
+    if (!account || account.length > 200) {
+      return res.status(400).json({ error: "Vui lòng nhập email hoặc số điện thoại hợp lệ." });
+    }
+    checkPasswordRecoveryRateLimit(req, account);
+
+    const escaped = account.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const user = await db.collection("users").findOne({
+      $or: [
+        { emailNormalized: account.toLowerCase() },
+        { email: new RegExp(`^${escaped}$`, "i") },
+        { phone: account },
+      ],
+    });
+
+    if (user) {
+      const recentRequest = await db.collection("serviceRequests").findOne({
+        userId: String(user.id ?? user._id),
+        service: "Khôi phục tài khoản",
+        status: { $in: ["pending", "processing"] },
+        createdAt: { $gte: new Date(Date.now() - PASSWORD_RECOVERY_WINDOW_MS).toISOString() },
+      });
+      if (!recentRequest) {
+        const now = new Date().toISOString();
+        await db.collection("serviceRequests").insertOne({
+          id: `srv_${crypto.randomUUID()}`,
+          userId: String(user.id ?? user._id),
+          service: "Khôi phục tài khoản",
+          fullName: user.fullName || "Khách hàng",
+          email: user.email || "",
+          phone: user.phone || "",
+          message: "Khách hàng yêu cầu hỗ trợ khôi phục mật khẩu từ trang đăng nhập.",
+          status: "pending",
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    }
+
+    res.status(202).json({
+      message:
+        "Nếu thông tin khớp với tài khoản, bộ phận hỗ trợ sẽ liên hệ với bạn sớm nhất.",
+    });
   } catch (error) {
     handleError(res, error);
   }
@@ -485,6 +555,49 @@ app.post("/api/auth/logout", async (req, res) => {
     await db.collection("sessions").deleteOne({ _id: req.authSession._id });
     await audit(user, "auth.logout", "session", req.authSession.id);
     res.json({ success: true });
+  } catch (error) {
+    handleError(res, error);
+  }
+});
+
+app.post("/api/auth/change-password", async (req, res) => {
+  try {
+    const actor = requireAuth(req);
+    const currentPassword = String(req.body.currentPassword || "");
+    const newPassword = String(req.body.newPassword || "");
+    const user = await db.collection("users").findOne(buildIdQuery(actor.id));
+    if (!user) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+
+    let currentPasswordValid = user.passwordHash
+      ? await verifyPassword(currentPassword, user.passwordHash)
+      : false;
+    if (!user.passwordHash && user.password != null) {
+      const actual = Buffer.from(currentPassword);
+      const expected = Buffer.from(String(user.password));
+      currentPasswordValid =
+        actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+    }
+    if (!currentPasswordValid) {
+      return res.status(400).json({ error: "Mật khẩu hiện tại không chính xác." });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: "Mật khẩu mới phải khác mật khẩu hiện tại." });
+    }
+
+    const now = new Date().toISOString();
+    await db.collection("users").updateOne(
+      { _id: user._id },
+      {
+        $set: { passwordHash: await hashPassword(newPassword), updatedAt: now },
+        $unset: { password: "" },
+      },
+    );
+    await db.collection("sessions").deleteMany({
+      userId: String(actor.id),
+      _id: { $ne: req.authSession._id },
+    });
+    await audit(actor, "auth.password_changed", "user", actor.id);
+    res.json({ success: true, message: "Đổi mật khẩu thành công." });
   } catch (error) {
     handleError(res, error);
   }

@@ -55,6 +55,8 @@ import TradeInPage from "./pages/Promotions/TradeInPage";
 import InstallmentPage from "./pages/Promotions/InstallmentPage";
 import StudentPromoPage from "./pages/Promotions/StudentPromoPage";
 import BusinessCustomerPage from "./pages/Promotions/BusinessCustomerPage";
+import ChangePassword from "./components/LogUserPage/ChangePassword";
+import ForgotPassword from "./components/LogUserPage/ForgotPassword";
 
 // BẢO VỆ ROUTE ADMIN
 const AdminProtectedRoute = ({
@@ -115,8 +117,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/Profile" element={<Profile />} />
         <Route path="/edit" element={<EditProfile />} />
+        <Route path="/change-password" element={<ChangePassword />} />
 
         {/* Tuyến đường sản phẩm chi tiết */}
         <Route path="/search" element={<SearchResults />} />
